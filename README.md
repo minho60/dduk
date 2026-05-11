@@ -6,13 +6,26 @@
 ## 🛠 Tech Stack
 
 ### **Frontend**
-![HTML5](https://img.shields.io/badge/html5-%23E34F26.svg?style=for-the-badge&logo=html5&logoColor=white) ![JavaScript](https://img.shields.io/badge/javascript-%23323330.svg?style=for-the-badge&logo=javascript&logoColor=%23F7DF1E)
+*   **Core**: ![HTML5](https://img.shields.io/badge/html5-%23E34F26.svg?style=flat-square&logo=html5&logoColor=white) ![CSS3](https://img.shields.io/badge/css3-%231572B6.svg?style=flat-square&logo=css3&logoColor=white) ![JavaScript](https://img.shields.io/badge/javascript-%23323330.svg?style=flat-square&logo=javascript&logoColor=%23F7DF1E)
+*   **UI/Design**: Vanilla CSS (Custom Properties), CSS Grid/Flexbox, Font Awesome, Google Fonts
+*   **Communication**: Fetch API (Async/Await), WebSocket (Real-time Alarms)
 
 ### **Backend (ERP Core)**
-![Spring Boot](https://img.shields.io/badge/Spring_Boot-6DB33F?style=for-the-badge&logo=springboot&logoColor=white) ![MySQL](https://img.shields.io/badge/mysql-%2300f.svg?style=for-the-badge&logo=mysql&logoColor=white)
+*   **Framework**: ![Spring Boot](https://img.shields.io/badge/Spring_Boot-3.x-6DB33F?style=flat-square&logo=springboot&logoColor=white)
+*   **Language**: ![Java 21](https://img.shields.io/badge/Java-21-ED8B00?style=flat-square&logo=openjdk&logoColor=white)
+*   **Data Access**: Spring Data JPA (Hibernate), QueryDSL
+*   **Security**: Spring Security, JWT (JSON Web Token)
+*   **Build Tool**: Gradle
 
-### **AI & RPA**
-![Flask](https://img.shields.io/badge/flask-%23000.svg?style=for-the-badge&logo=flask&logoColor=white) ![OpenAI](https://img.shields.io/badge/OpenAI-412991?style=for-the-badge&logo=openai&logoColor=white) ![Playwright](https://img.shields.io/badge/Playwright-2EAD33?style=for-the-badge&logo=playwright&logoColor=white)
+### **AI & RPA Server**
+*   **Framework**: ![Flask](https://img.shields.io/badge/flask-%23000.svg?style=flat-square&logo=flask&logoColor=white)
+*   **Language**: ![Python 3.10](https://img.shields.io/badge/Python-3.10-3776AB?style=flat-square&logo=python&logoColor=white)
+*   **AI Engine**: ![OpenAI](https://img.shields.io/badge/OpenAI_GPT--4-412991?style=flat-square&logo=openai&logoColor=white)
+*   **Automation**: ![Playwright](https://img.shields.io/badge/Playwright-2EAD33?style=flat-square&logo=playwright&logoColor=white) (RPA), OCR (Tesseract/Cloud Vision)
+
+### **Database & Infrastructure**
+*   **RDBMS**: ![MySQL](https://img.shields.io/badge/mysql-8.0-%2300f.svg?style=flat-square&logo=mysql&logoColor=white)
+*   **Deployment**: ![Docker](https://img.shields.io/badge/Docker-2496ED?style=flat-square&logo=docker&logoColor=white), PyInstaller (EXE Packaging)
 
 ---
 
