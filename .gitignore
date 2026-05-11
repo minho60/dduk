@@ -1,0 +1,26 @@
+# Java / Spring Boot
+.gradle/
+build/
+!gradle/wrapper/gradle-wrapper.jar
+!**/src/main/**/build/
+!**/src/test/**/build/
+bin/
+out/
+.idea/
+*.iml
+*.iws
+*.ipr
+.vscode/
+
+# Python / Flask
+__pycache__/
+*.py[cod]
+*$py.class
+.venv/
+venv/
+env/
+.env
+
+# OS Files
+.DS_Store
+Thumbs.db
