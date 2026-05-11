@@ -5,27 +5,41 @@
 
 ## 🛠 기술 스택 (Tech Stack)
 
-### **프론트엔드 (Frontend)**
-*   **핵심 기술**: ![HTML5](https://img.shields.io/badge/html5-%23E34F26.svg?style=flat-square&logo=html5&logoColor=white) ![CSS3](https://img.shields.io/badge/css3-%231572B6.svg?style=flat-square&logo=css3&logoColor=white) ![JavaScript](https://img.shields.io/badge/javascript-%23323330.svg?style=flat-square&logo=javascript&logoColor=%23F7DF1E)
-*   **UI/디자인**: Vanilla CSS (Custom Properties), CSS Grid/Flexbox, Font Awesome, Google Fonts
-*   **통신**: Fetch API (Async/Await), WebSocket (실시간 알림)
+### **1. 프론트엔드 (Frontend)**
+*   **기본 언어**: HTML5, CSS3, JavaScript (ES6+)
+*   **UI 프레임워크 및 스타일링**:
+    *   **Vanilla CSS**: 커스텀 속성(Variable)을 활용한 테마 관리 및 Glassmorphism 디자인 적용
+    *   **Flexbox & Grid**: 반응형 레이아웃 구현 및 복잡한 ERP 대시보드 구조 설계
+*   **비동기 통신 및 실시간성**:
+    *   **Fetch API**: RESTful API와의 비동기 데이터 통신 (Async/Await 활용)
+    *   **WebSocket**: 실시간 알림 시스템 및 실시간 재고/현황 업데이트 반영
+*   **외부 라이브러리**: Font Awesome (아이콘), Google Fonts (Typography)
 
-### **백엔드 (Backend - ERP Core)**
-*   **프레임워크**: ![Spring Boot](https://img.shields.io/badge/Spring_Boot-3.x-6DB33F?style=flat-square&logo=springboot&logoColor=white)
-*   **언어**: ![Java 21](https://img.shields.io/badge/Java-21-ED8B00?style=flat-square&logo=openjdk&logoColor=white)
-*   **데이터 접근**: Spring Data JPA (Hibernate), QueryDSL
-*   **보안**: Spring Security, JWT (JSON Web Token)
-*   **빌드 도구**: Gradle
+### **2. 백엔드 (Backend - ERP Core)**
+*   **프레임워크**: **Spring Boot 3.x**
+*   **사용 언어**: **Java 21** (최신 LTS 버전의 가상 스레드 및 최신 문법 활용)
+*   **데이터베이스 관리**:
+    *   **Spring Data JPA**: Hibernate를 이용한 객체 지향적 데이터 관리
+    *   **QueryDSL**: 타입 세이프한 동적 쿼리 작성으로 복잡한 통계 및 조회 로직 구현
+*   **보안 (Security)**:
+    *   **Spring Security**: 다중 권한 기반의 접근 제어
+    *   **JWT (JSON Web Token)**: Stateless 기반의 인증 및 인가 시스템 구축
+*   **빌드 도구**: Gradle (의존성 관리 및 빌드 자동화)
 
-### **AI & RPA 서버**
-*   **프레임워크**: ![Flask](https://img.shields.io/badge/flask-%23000.svg?style=flat-square&logo=flask&logoColor=white)
-*   **언어**: ![Python 3.10](https://img.shields.io/badge/Python-3.10-3776AB?style=flat-square&logo=python&logoColor=white)
-*   **AI 엔진**: ![OpenAI](https://img.shields.io/badge/OpenAI_GPT--4-412991?style=flat-square&logo=openai&logoColor=white)
-*   **자동화**: ![Playwright](https://img.shields.io/badge/Playwright-2EAD33?style=flat-square&logo=playwright&logoColor=white) (RPA), OCR (Tesseract/Cloud Vision)
+### **3. AI & RPA 서버**
+*   **프레임워크**: **Flask** (경량 Python 웹 프레임워크)
+*   **사용 언어**: **Python 3.10+**
+*   **AI 모델 연동**:
+    *   **OpenAI GPT-4o**: 급여 명세 요약, 회계 리포트 생성, 비즈니스 챗봇 구현
+*   **업무 자동화 (RPA)**:
+    *   **Playwright**: 발주 이메일 자동 처리 및 웹 기반 데이터 수집 자동화
+    *   **OCR (Optical Character Recognition)**: Tesseract 또는 Cloud Vision을 이용한 발주서/영수증 자동 인식
 
-### **데이터베이스 및 인프라**
-*   **데이터베이스**: ![MySQL](https://img.shields.io/badge/mysql-8.0-%2300f.svg?style=flat-square&logo=mysql&logoColor=white)
-*   **배포/패키징**: ![Docker](https://img.shields.io/badge/Docker-2496ED?style=flat-square&logo=docker&logoColor=white), PyInstaller (EXE 패키징)
+### **4. 데이터베이스 및 인프라**
+*   **RDBMS**: **MySQL 8.0** (고성능 관계형 데이터베이스로 ERP 핵심 데이터 관리)
+*   **배포 및 패키징**:
+    *   **Docker**: 컨테이너화를 통한 일관된 개발/운영 환경 보장
+    *   **PyInstaller**: Flask 및 Python 환경을 독립적인 **.exe** 실행 파일로 패키징하여 배포 편의성 증대
 
 ---
 
