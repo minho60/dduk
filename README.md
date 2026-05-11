@@ -3,29 +3,29 @@
 
 ---
 
-## 🛠 Tech Stack
+## 🛠 기술 스택 (Tech Stack)
 
-### **Frontend**
-*   **Core**: ![HTML5](https://img.shields.io/badge/html5-%23E34F26.svg?style=flat-square&logo=html5&logoColor=white) ![CSS3](https://img.shields.io/badge/css3-%231572B6.svg?style=flat-square&logo=css3&logoColor=white) ![JavaScript](https://img.shields.io/badge/javascript-%23323330.svg?style=flat-square&logo=javascript&logoColor=%23F7DF1E)
-*   **UI/Design**: Vanilla CSS (Custom Properties), CSS Grid/Flexbox, Font Awesome, Google Fonts
-*   **Communication**: Fetch API (Async/Await), WebSocket (Real-time Alarms)
+### **프론트엔드 (Frontend)**
+*   **핵심 기술**: ![HTML5](https://img.shields.io/badge/html5-%23E34F26.svg?style=flat-square&logo=html5&logoColor=white) ![CSS3](https://img.shields.io/badge/css3-%231572B6.svg?style=flat-square&logo=css3&logoColor=white) ![JavaScript](https://img.shields.io/badge/javascript-%23323330.svg?style=flat-square&logo=javascript&logoColor=%23F7DF1E)
+*   **UI/디자인**: Vanilla CSS (Custom Properties), CSS Grid/Flexbox, Font Awesome, Google Fonts
+*   **통신**: Fetch API (Async/Await), WebSocket (실시간 알림)
 
-### **Backend (ERP Core)**
-*   **Framework**: ![Spring Boot](https://img.shields.io/badge/Spring_Boot-3.x-6DB33F?style=flat-square&logo=springboot&logoColor=white)
-*   **Language**: ![Java 21](https://img.shields.io/badge/Java-21-ED8B00?style=flat-square&logo=openjdk&logoColor=white)
-*   **Data Access**: Spring Data JPA (Hibernate), QueryDSL
-*   **Security**: Spring Security, JWT (JSON Web Token)
-*   **Build Tool**: Gradle
+### **백엔드 (Backend - ERP Core)**
+*   **프레임워크**: ![Spring Boot](https://img.shields.io/badge/Spring_Boot-3.x-6DB33F?style=flat-square&logo=springboot&logoColor=white)
+*   **언어**: ![Java 21](https://img.shields.io/badge/Java-21-ED8B00?style=flat-square&logo=openjdk&logoColor=white)
+*   **데이터 접근**: Spring Data JPA (Hibernate), QueryDSL
+*   **보안**: Spring Security, JWT (JSON Web Token)
+*   **빌드 도구**: Gradle
 
-### **AI & RPA Server**
-*   **Framework**: ![Flask](https://img.shields.io/badge/flask-%23000.svg?style=flat-square&logo=flask&logoColor=white)
-*   **Language**: ![Python 3.10](https://img.shields.io/badge/Python-3.10-3776AB?style=flat-square&logo=python&logoColor=white)
-*   **AI Engine**: ![OpenAI](https://img.shields.io/badge/OpenAI_GPT--4-412991?style=flat-square&logo=openai&logoColor=white)
-*   **Automation**: ![Playwright](https://img.shields.io/badge/Playwright-2EAD33?style=flat-square&logo=playwright&logoColor=white) (RPA), OCR (Tesseract/Cloud Vision)
+### **AI & RPA 서버**
+*   **프레임워크**: ![Flask](https://img.shields.io/badge/flask-%23000.svg?style=flat-square&logo=flask&logoColor=white)
+*   **언어**: ![Python 3.10](https://img.shields.io/badge/Python-3.10-3776AB?style=flat-square&logo=python&logoColor=white)
+*   **AI 엔진**: ![OpenAI](https://img.shields.io/badge/OpenAI_GPT--4-412991?style=flat-square&logo=openai&logoColor=white)
+*   **자동화**: ![Playwright](https://img.shields.io/badge/Playwright-2EAD33?style=flat-square&logo=playwright&logoColor=white) (RPA), OCR (Tesseract/Cloud Vision)
 
-### **Database & Infrastructure**
-*   **RDBMS**: ![MySQL](https://img.shields.io/badge/mysql-8.0-%2300f.svg?style=flat-square&logo=mysql&logoColor=white)
-*   **Deployment**: ![Docker](https://img.shields.io/badge/Docker-2496ED?style=flat-square&logo=docker&logoColor=white), PyInstaller (EXE Packaging)
+### **데이터베이스 및 인프라**
+*   **데이터베이스**: ![MySQL](https://img.shields.io/badge/mysql-8.0-%2300f.svg?style=flat-square&logo=mysql&logoColor=white)
+*   **배포/패키징**: ![Docker](https://img.shields.io/badge/Docker-2496ED?style=flat-square&logo=docker&logoColor=white), PyInstaller (EXE 패키징)
 
 ---
 
