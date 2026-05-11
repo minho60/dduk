@@ -6,40 +6,46 @@
 ## 🛠 기술 스택 (Tech Stack)
 
 ### **1. 프론트엔드 (Frontend)**
-*   **기본 언어**: HTML5, CSS3, JavaScript (ES6+)
-*   **UI 프레임워크 및 스타일링**:
-    *   **Vanilla CSS**: 커스텀 속성(Variable)을 활용한 테마 관리 및 Glassmorphism 디자인 적용
-    *   **Flexbox & Grid**: 반응형 레이아웃 구현 및 복잡한 ERP 대시보드 구조 설계
-*   **비동기 통신 및 실시간성**:
-    *   **Fetch API**: RESTful API와의 비동기 데이터 통신 (Async/Await 활용)
-    *   **WebSocket**: 실시간 알림 시스템 및 실시간 재고/현황 업데이트 반영
-*   **외부 라이브러리**: Font Awesome (아이콘), Google Fonts (Typography)
+*   **핵심 아키텍처**: 순수 HTML/JS를 기반으로 한 **Component-Based UI** 설계 (React 없이 모듈화 구현)
+*   **스타일링 및 디자인**:
+    *   **Vanilla CSS (Modern)**: CSS 변수(Custom Properties)를 활용한 다크/라이트 모드 테마 스위칭, `Glassmorphism` 효과 구현
+    *   **Layout**: `CSS Grid`를 활용한 대시보드 위젯 배치 및 `Flexbox`를 이용한 반응형 네비게이션
+    *   **애니메이션**: `Web Animations API` 및 `CSS Transitions`를 활용한 부드러운 UI 인터랙션
+*   **데이터 통신 및 상태 관리**:
+    *   **Fetch API (Async/Await)**: 중앙 집중형 API 모듈 구성을 통한 HTTP 요청 관리
+    *   **State Management**: 브라우저의 `LocalStorage` 및 `SessionStorage`를 활용한 사용자 세션 및 상태 유지
+    *   **WebSocket**: 실시간 알림 시스템 및 전사 실시간 대시보드 데이터 동기화
+*   **시각화 라이브러리**: **Chart.js** 또는 **ApexCharts**를 활용한 회계/매출 통계 데이터 시각화
 
 ### **2. 백엔드 (Backend - ERP Core)**
-*   **프레임워크**: **Spring Boot 3.x**
-*   **사용 언어**: **Java 21** (최신 LTS 버전의 가상 스레드 및 최신 문법 활용)
-*   **데이터베이스 관리**:
-    *   **Spring Data JPA**: Hibernate를 이용한 객체 지향적 데이터 관리
-    *   **QueryDSL**: 타입 세이프한 동적 쿼리 작성으로 복잡한 통계 및 조회 로직 구현
-*   **보안 (Security)**:
-    *   **Spring Security**: 다중 권한 기반의 접근 제어
-    *   **JWT (JSON Web Token)**: Stateless 기반의 인증 및 인가 시스템 구축
-*   **빌드 도구**: Gradle (의존성 관리 및 빌드 자동화)
+*   **기반 기술**: **Spring Boot 3.2+** & **Java 21**
+*   **핵심 프레임워크 기능**:
+    *   **Spring Data JPA (Hibernate)**: 엔티티 매핑 및 성능 최적화를 위한 `Batch Fetching`, `Lazy Loading` 전략 적용
+    *   **QueryDSL**: 컴파일 타임에 타입 체크가 가능한 동적 쿼리를 작성하여 복잡한 ERP 검색 및 통계 필터링 구현
+    *   **Spring Security & JWT**: `Access Token` 및 `Refresh Token`을 이용한 보안 인증, `RBAC(Role-Based Access Control)` 기반의 메뉴 권한 제어
+*   **비즈니스 로직 및 유틸리티**:
+    *   **MapStruct**: Entity와 DTO 간의 고성능 객체 매핑 수행
+    *   **Validation API**: 입력 데이터의 정합성 검증 자동화
+    *   **HikariCP**: 고성능 데이터베이스 커넥션 풀링 관리
+*   **빌드 및 관리**: Gradle 기반의 멀티 모듈 및 의존성 관리
 
 ### **3. AI & RPA 서버**
-*   **프레임워크**: **Flask** (경량 Python 웹 프레임워크)
-*   **사용 언어**: **Python 3.10+**
-*   **AI 모델 연동**:
-    *   **OpenAI GPT-4o**: 급여 명세 요약, 회계 리포트 생성, 비즈니스 챗봇 구현
-*   **업무 자동화 (RPA)**:
-    *   **Playwright**: 발주 이메일 자동 처리 및 웹 기반 데이터 수집 자동화
-    *   **OCR (Optical Character Recognition)**: Tesseract 또는 Cloud Vision을 이용한 발주서/영수증 자동 인식
+*   **프레임워크**: **Flask** (AI 연동용 REST API 서버)
+*   **핵심 라이브러리**:
+    *   **OpenAI SDK (GPT-4o)**: 프롬프트 엔지니어링을 통한 회계 데이터 분석, 자연어 기반의 ERP 챗봇(Agent) 구현
+    *   **Playwright**: 자동화 브라우저를 이용한 거래처 사이트 로그인, 발주서/영수증 자동 다운로드 및 이메일 자동 발송
+    *   **PyTesseract / EasyOCR**: 이미지 파일(영수증, 발주서)에서 텍스트를 추출하는 OCR 파이프라인 구축
+    *   **Pandas**: AI 분석 전 데이터 전처리 및 통계 리포트 생성 보조
+*   **배포 환경**: **Python 3.10+** (Virtualenv 기반 가상환경 관리)
 
 ### **4. 데이터베이스 및 인프라**
-*   **RDBMS**: **MySQL 8.0** (고성능 관계형 데이터베이스로 ERP 핵심 데이터 관리)
-*   **배포 및 패키징**:
-    *   **Docker**: 컨테이너화를 통한 일관된 개발/운영 환경 보장
-    *   **PyInstaller**: Flask 및 Python 환경을 독립적인 **.exe** 실행 파일로 패키징하여 배포 편의성 증대
+*   **데이터베이스**: **MySQL 8.0**
+    *   ERP의 핵심 도메인(인사, 회계, 재고)을 위한 정규화된 DB 스키마 설계
+    *   대용량 데이터 조회를 위한 인덱스 최적화 및 `Stored Procedure` 최소화
+*   **인프라 및 배포**:
+    *   **Docker**: 백엔드, DB, AI 서버의 컨테이너화를 통한 환경 일관성 유지
+    *   **PyInstaller**: Flask 및 Python 환경을 단일 실행 파일(**.exe**)로 빌드하여 사용자 PC 배포 지원
+    *   **Postman**: API 명세 관리 및 통합 테스트 수행
 
 ---
 
