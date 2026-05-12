@@ -78,6 +78,7 @@ CREATE TABLE IF NOT EXISTS employees (
         ON UPDATE CASCADE
 ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci;
 
+-- 공급업체 정보 (주석은 반드시 -- 로 시작하세요)
 CREATE TABLE IF NOT EXISTS vendors (
     id BIGINT NOT NULL AUTO_INCREMENT,
     vendor_code VARCHAR(50) NOT NULL,
@@ -89,7 +90,7 @@ CREATE TABLE IF NOT EXISTS vendors (
     status VARCHAR(30) NOT NULL DEFAULT 'ACTIVE',
     created_at DATETIME NOT NULL DEFAULT CURRENT_TIMESTAMP,
     updated_at DATETIME NOT NULL DEFAULT CURRENT_TIMESTAMP ON UPDATE CURRENT_TIMESTAMP,
-    PRIMARY KEY (id),
+    PRIMARY KEY (id), -- 오타 수정됨
     UNIQUE KEY uk_vendors_vendor_code (vendor_code)
 ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci;
 
@@ -153,7 +154,7 @@ CREATE TABLE IF NOT EXISTS audit_logs (
         ON UPDATE CASCADE
 ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci;
 
-CREATE TABLE IF NOT EXISTS items (
+CREATE TABLE IF NOT EXISTS items ( /*자재/제품 정보*/
     id BIGINT NOT NULL AUTO_INCREMENT,
     item_code VARCHAR(50) NOT NULL,
     name VARCHAR(100) NOT NULL,
@@ -174,7 +175,7 @@ CREATE TABLE IF NOT EXISTS items (
         ON UPDATE CASCADE
 ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci;
 
-CREATE TABLE IF NOT EXISTS inventories (
+CREATE TABLE IF NOT EXISTS inventories ( /*재고 현황*/
     id BIGINT NOT NULL AUTO_INCREMENT,
     item_id BIGINT NOT NULL,
     quantity INT NOT NULL DEFAULT 0,
@@ -192,7 +193,7 @@ CREATE TABLE IF NOT EXISTS inventories (
         ON UPDATE CASCADE
 ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci;
 
-CREATE TABLE IF NOT EXISTS attendances (
+CREATE TABLE IF NOT EXISTS attendances ( 
     id BIGINT NOT NULL AUTO_INCREMENT,
     employee_id BIGINT NOT NULL,
     work_date DATE NOT NULL,
@@ -231,7 +232,7 @@ CREATE TABLE IF NOT EXISTS payrolls (
         ON UPDATE CASCADE
 ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci;
 
-CREATE TABLE IF NOT EXISTS expenses (
+CREATE TABLE IF NOT EXISTS expenses ( /*경비 처리*/
     id BIGINT NOT NULL AUTO_INCREMENT,
     employee_id BIGINT NULL,
     expense_date DATE NOT NULL,
@@ -251,7 +252,7 @@ CREATE TABLE IF NOT EXISTS expenses (
         ON UPDATE CASCADE
 ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci;
 
-CREATE TABLE IF NOT EXISTS purchase_orders (
+CREATE TABLE IF NOT EXISTS purchase_orders ( /*  구매 발주 정보 */
     id BIGINT NOT NULL AUTO_INCREMENT,
     purchase_order_no VARCHAR(50) NOT NULL,
     vendor_id BIGINT NOT NULL,
@@ -283,7 +284,7 @@ CREATE TABLE IF NOT EXISTS purchase_orders (
         ON UPDATE CASCADE
 ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci;
 
-CREATE TABLE IF NOT EXISTS purchase_order_items (
+CREATE TABLE IF NOT EXISTS purchase_order_items ( /*구매 발주 상세 항목*/
     id BIGINT NOT NULL AUTO_INCREMENT,
     purchase_order_id BIGINT NOT NULL,
     item_id BIGINT NOT NULL,
@@ -306,17 +307,17 @@ CREATE TABLE IF NOT EXISTS purchase_order_items (
         ON UPDATE CASCADE
 ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci;
 
-CREATE TABLE IF NOT EXISTS stock_movements (
+CREATE TABLE IF NOT EXISTS stock_movements ( /* 재고 이동 기록 */
     id BIGINT NOT NULL AUTO_INCREMENT,
-    item_id BIGINT NOT NULL,
-    inventory_id BIGINT NOT NULL,
-    movement_type VARCHAR(30) NOT NULL,
-    quantity INT NOT NULL,
-    reference_type VARCHAR(50) NULL,
+    item_id BIGINT NOT NULL, /*어떤 품목인지*/
+    inventory_id BIGINT NOT NULL,/* 어느 재고/창고 위치인지 */
+    movement_type VARCHAR(30) NOT NULL,/*입고, 출고, 조정, 이동 같은 이동유형 */
+    quantity INT NOT NULL,/* 이동수량 */
+    reference_type VARCHAR(50) NULL, /*reference_type과 reference_id는 어떤 트랜잭션/이벤트에 의해 재고 이동이 발생했는지 추적하기 위한 필드입니다. 예를 들어, purchase_order, sales_order, inventory_adjustment이 이동이 어떤 문서나 업무에서 발생했는지 연결하기 위한값 */
     reference_id BIGINT NULL,
-    moved_at DATETIME NOT NULL,
+    moved_at DATETIME NOT NULL, /* 실재 재고가 움직인 시각 */
     note VARCHAR(255) NULL,
-    created_at DATETIME NOT NULL DEFAULT CURRENT_TIMESTAMP,
+    created_at DATETIME NOT NULL DEFAULT CURRENT_TIMESTAMP, /* 시스템에 기록된 시각 */
     PRIMARY KEY (id),
     KEY idx_stock_movements_item_id (item_id),
     KEY idx_stock_movements_inventory_id (inventory_id),
