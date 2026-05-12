@@ -51,3 +51,8 @@ playwright/.cache/
 # Temp
 .tmp/
 .temp/
+
+# AI Agent Internal
+STATE.md
+LOG.md
+OVERVIEW.md
