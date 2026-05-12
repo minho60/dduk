@@ -1,98 +1,194 @@
-# 🚀 DDUK (떡) ERP Project
-> **기업의 모든 자원을 한 곳에서, 효율적이고 지능적으로 관리하는 차세대 ERP 솔루션**
+# DDUK ERP Project
+
+기업 운영에 필요한 인사, 회계, 구매, 재고 업무를 한 곳에서 관리하는 팀 프로젝트형 ERP 뼈대다.  
+현재 문서는 "무엇을 만들지"보다 "팀원이 어떻게 바로 착수할지"에 초점을 맞춘 배포용 초안이다.
 
 ---
 
-## 🛠 기술 스택 (Tech Stack)
+## 프로젝트 한눈에 보기
 
-### **1. 프론트엔드 (Frontend)**
-*   **핵심 아키텍처**: 순수 HTML/JS를 기반으로 한 **Component-Based UI** 설계 (React 없이 모듈화 구현)
-*   **스타일링 및 디자인**:
-    *   **Vanilla CSS (Modern)**: CSS 변수(Custom Properties)를 활용한 다크/라이트 모드 테마 스위칭, `Glassmorphism` 효과 구현
-    *   **Layout**: `CSS Grid`를 활용한 대시보드 위젯 배치 및 `Flexbox`를 이용한 반응형 네비게이션
-    *   **애니메이션**: `Web Animations API` 및 `CSS Transitions`를 활용한 부드러운 UI 인터랙션
-*   **데이터 통신 및 상태 관리**:
-    *   **Fetch API (Async/Await)**: 중앙 집중형 API 모듈 구성을 통한 HTTP 요청 관리
-    *   **State Management**: 브라우저의 `LocalStorage` 및 `SessionStorage`를 활용한 사용자 세션 및 상태 유지
-    *   **WebSocket**: 실시간 알림 시스템 및 전사 실시간 대시보드 데이터 동기화
-*   **시각화 라이브러리**: **Chart.js** 또는 **ApexCharts**를 활용한 회계/매출 통계 데이터 시각화
+- 목표: 인사/회계, 구매/재고, 관리자 기능을 하나의 ERP 흐름으로 묶는다.
+- 방향: 백엔드 중심의 업무 시스템에 프론트 UI, AI 보조 기능, RPA 자동화를 단계적으로 붙인다.
+- 현재 상태: 저장소 구조와 협업 규칙은 잡혀 있고, 구현은 각 도메인별로 확장해 나가는 단계다.
 
-### **2. 백엔드 (Backend - ERP Core)**
-*   **기반 기술**: **Spring Boot 3.2+** & **Java 21**
-*   **핵심 프레임워크 기능**:
-    *   **Spring Data JPA (Hibernate)**: 엔티티 매핑 및 성능 최적화를 위한 `Batch Fetching`, `Lazy Loading` 전략 적용
-    *   **QueryDSL**: 컴파일 타임에 타입 체크가 가능한 동적 쿼리를 작성하여 복잡한 ERP 검색 및 통계 필터링 구현
-    *   **Spring Security & JWT**: `Access Token` 및 `Refresh Token`을 이용한 보안 인증, `RBAC(Role-Based Access Control)` 기반의 메뉴 권한 제어
-*   **비즈니스 로직 및 유틸리티**:
-    *   **MapStruct**: Entity와 DTO 간의 고성능 객체 매핑 수행
-    *   **Validation API**: 입력 데이터의 정합성 검증 자동화
-    *   **HikariCP**: 고성능 데이터베이스 커넥션 풀링 관리
-*   **빌드 및 관리**: Gradle 기반의 멀티 모듈 및 의존성 관리
+### 핵심 도메인
 
-### **3. AI & RPA 서버**
-*   **프레임워크**: **Flask** (AI 연동용 REST API 서버)
-*   **핵심 라이브러리**:
-    *   **OpenAI SDK (GPT-4o)**: 프롬프트 엔지니어링을 통한 회계 데이터 분석, 자연어 기반의 ERP 챗봇(Agent) 구현
-    *   **Playwright**: 자동화 브라우저를 이용한 거래처 사이트 로그인, 발주서/영수증 자동 다운로드 및 이메일 자동 발송
-    *   **PyTesseract / EasyOCR**: 이미지 파일(영수증, 발주서)에서 텍스트를 추출하는 OCR 파이프라인 구축
-    *   **Pandas**: AI 분석 전 데이터 전처리 및 통계 리포트 생성 보조
-*   **배포 환경**: **Python 3.10+** (Virtualenv 기반 가상환경 관리)
-
-### **4. 데이터베이스 및 인프라**
-*   **데이터베이스**: **MySQL 8.0**
-    *   ERP의 핵심 도메인(인사, 회계, 재고)을 위한 정규화된 DB 스키마 설계
-    *   대용량 데이터 조회를 위한 인덱스 최적화 및 `Stored Procedure` 최소화
-*   **인프라 및 배포**:
-    *   **Docker**: 백엔드, DB, AI 서버의 컨테이너화를 통한 환경 일관성 유지
-    *   **PyInstaller**: Flask 및 Python 환경을 단일 실행 파일(**.exe**)로 빌드하여 사용자 PC 배포 지원
-    *   **Postman**: API 명세 관리 및 통합 테스트 수행
+| 도메인 | 설명 | 담당 |
+| :--- | :--- | :--- |
+| `hr` | 직원, 근태, 급여, 비용 처리 | 서우리 |
+| `inventory` | 거래처, 발주, 입출고, 재고 추적 | 김슬기 |
+| `admin` | 로그인, 권한, 대시보드, 공통 운영 기능 | 김민호 |
 
 ---
 
-## 👥 Team & Roles
+## MVP 범위
 
-| 이름 | 역할 | 담당 파트 | 주요 기여 기능 |
-| :--- | :--- | :--- | :--- |
-| **김민호 (조장)** | **관리자 / AI** | 공통 시스템 & 인프라 | 로그인/JWT, 대시보드, AI 챗봇, 인프라 배포 |
-| **서우리** | **회계 / 인사** | 인사 및 재무 관리 | 근태/급여 정산, 비용 처리, AI 회계 분석 리포트 |
-| **김슬기** | **구매 / 발주** | 물류 및 재고 관리 | 재고/거래처 관리, 발주서 OCR, AI 자동 발주 |
+지금 단계에서 중요한 건 "한 번에 다 만드는 것"보다 "시연 가능한 최소 제품"을 먼저 닫는 거다.
+
+### 1차 필수 MVP
+
+- 로그인 / JWT 기반 인증
+- 직원 기본 정보 조회 및 등록
+- 근태 기록 조회
+- 거래처 등록 및 목록 조회
+- 재고 품목 등록 및 수량 조회
+- 발주 등록 및 상태 변경
+- 관리자 대시보드 기본 통계 카드
+
+### 2차 확장 기능
+
+- 급여 계산 및 명세서 생성
+- 매출/지출 통계 시각화
+- 발주 승인 흐름
+- 재고 부족 알림
+- WebSocket 기반 실시간 대시보드 갱신
+
+### 3차 시연/차별화 기능
+
+- OpenAI 기반 ERP 챗봇
+- OCR 기반 영수증/발주서 텍스트 추출
+- Playwright 기반 반복 업무 자동화
+- AI 추천 발주 또는 이상 비용 탐지
 
 ---
 
-## ✨ 상세 기능 및 로드맵
+## 기술 스택
 
-### 1️⃣ 회계 / 인사 / 급여 (담당: 서우리) ⭐⭐⭐⭐
-*   **직원/근태 관리**: 사원 정보 통합 관리 및 실시간 근태 체크
-*   **급여 시스템**: 자동 급여 계산 및 명세서 발행
-*   **재무 관리**: 비용 처리 및 매출/지출 현황 분석
-*   **AI 특화**: 급여 명세 요약, 비용 이상 탐지, 월간 회계 리포트 생성
+| 영역 | 기술 |
+| :--- | :--- |
+| Frontend | HTML, CSS, Vanilla JS |
+| Backend | Spring Boot 3.2+, Java 21, JPA, QueryDSL, Spring Security |
+| AI Server | Python 3.10+, Flask, OpenAI SDK, Pandas |
+| RPA | Playwright, OCR(PyTesseract 또는 EasyOCR) |
+| Database | TiDB (MySQL Compatible) |
+| Infra | Docker, Gradle, Postman |
 
-### 2️⃣ 구매 / 발주 / 재고 (담당: 김슬기) ⭐⭐⭐
-*   **재고 최적화**: 실시간 재고 추적 및 입출고 자동화
-*   **공급망 관리**: 거래처 정보 및 주문 상태 실시간 모니터링
-*   **RPA/AI 특화**: **Playwright** 기반 이메일 자동 처리, **OCR**을 통한 발주서 자동 인식, 데이터 기반 자동 발주 추천
-
-### 3️⃣ 공통 시스템 / AI (담당: 김민호) ⭐⭐⭐
-*   **보안 및 인증**: JWT 기반의 안전한 로그인 및 세밀한 권한 제어
-*   **통합 관리**: 전체 시스템 현황을 한눈에 보는 관리자 대시보드
-*   **지능형 지원**: **OpenAI API** 연동을 통한 전사 업무 지원 AI 챗봇
-*   **인프라**: Flask AI 서버 구축 및 API Gateway를 통한 유연한 아키텍처
+스택은 넓지만 구현 우선순위는 MVP 기준으로 잘라서 간다.  
+AI, OCR, RPA는 초반부터 모든 흐름에 넣지 말고 독립 기능으로 붙이는 걸 권장한다.
 
 ---
 
-## 🚀 시작하기
+## 저장소 구조
 
-```bash
-# 1. 저장소 클론
-git clone https://github.com/minho60/dduk.git
-
-# 2. Backend 실행 (Spring Boot)
-./gradlew bootRun
-
-# 3. AI Server 실행 (Flask)
-cd ai-server
-python app.py
+```text
+backend/    Spring Boot ERP API
+frontend/   HTML/CSS/Vanilla JS UI
+ai-server/  Flask 기반 AI API 및 데이터 보조 처리
+rpa/        Playwright 자동화 작업
+docs/       협업 규칙, 구조 문서, API 초안
 ```
 
+더 구체적인 구조 기준은 아래 문서를 보면 된다.
+
+- 구조 문서: [docs/ARCHITECTURE.md](/C:/kmh/dduk/docs/ARCHITECTURE.md:1)
+- API 초안: [docs/API_DRAFT.md](/C:/kmh/dduk/docs/API_DRAFT.md:1)
+- DB 초안: [docs/DB_DRAFT.md](/C:/kmh/dduk/docs/DB_DRAFT.md:1)
+- 환경변수 가이드: [docs/ENV_GUIDE.md](/C:/kmh/dduk/docs/ENV_GUIDE.md:1) (통합 샘플: [.env.example](/.env.example))
+- 실행/테스트 가이드: [docs/RUN_TEST_GUIDE.md](/C:/kmh/dduk/docs/RUN_TEST_GUIDE.md:1)
+- AI 하네스: [docs/AI_HARNESS.md](/C:/kmh/dduk/docs/AI_HARNESS.md:1)
+- 협업 규칙: [docs/CONVENTION.md](/C:/kmh/dduk/docs/CONVENTION.md:1)
+
 ---
-© 2026 Team DDUK. All rights reserved.
+
+## 빠른 시작
+
+현재 저장소는 구현 초기 뼈대 단계라 일부 런타임 엔트리 파일은 아직 비어 있거나 미완성일 수 있다.  
+아래는 팀 공통 기준으로 맞출 실행 순서다.
+
+### 요구 환경
+
+- Java 21
+- Gradle Wrapper 또는 Gradle 실행 환경
+- Python 3.10+
+- MySQL 8.0
+- Node.js
+
+### 1. 저장소 준비
+
+```bash
+git clone https://github.com/minho60/dduk.git
+cd dduk
+```
+
+### 2. 백엔드 실행
+
+```bash
+cd backend
+./gradlew bootRun
+```
+
+기본 목표:
+
+- 인증 API 응답 확인
+- 도메인별 CRUD API 확장 준비
+
+### 3. 프론트 확인
+
+```bash
+cd frontend
+```
+
+현재는 정적 구조 중심이므로 `index.html`을 기준 엔트리로 사용한다.
+
+### 4. AI 서버 준비
+
+```bash
+cd ai-server
+```
+
+현재 폴더 구조는 준비되어 있지만 실제 앱 진입점 파일과 환경 변수 규칙은 구현하면서 확정해야 한다.
+
+권장 초기 구조:
+
+- `api/`: Flask route
+- `services/`: AI/OCR 처리 로직
+- `models/`: 요청/응답 모델
+- `utils/`: 공통 유틸리티
+
+### 5. RPA 준비
+
+```bash
+cd rpa
+```
+
+권장 역할:
+
+- `tasks/`: 작업 시나리오
+- `engine/`: Playwright 공통 실행기
+- `outputs/`: 자동화 산출물
+
+---
+
+## 팀 작업 순서 제안
+
+1. `admin`이 로그인/권한/공통 응답 구조를 먼저 고정한다.
+2. `hr`, `inventory`가 각자 도메인 API와 화면을 병렬로 만든다.
+3. 기본 CRUD와 대시보드가 붙으면 그 다음에 AI/OCR/RPA를 연결한다.
+
+이 순서로 가면 초반 계약이 덜 흔들리고, 시연 가능한 상태를 빨리 만들 수 있다.
+
+---
+
+## 문서 읽는 순서
+
+팀원에게는 아래 순서로 공유하면 된다.
+
+1. [README.md](/C:/kmh/dduk/README.md:1)
+2. [docs/AI_HARNESS.md](/C:/kmh/dduk/docs/AI_HARNESS.md:1)
+3. [docs/CONVENTION.md](/C:/kmh/dduk/docs/CONVENTION.md:1)
+4. [docs/ARCHITECTURE.md](/C:/kmh/dduk/docs/ARCHITECTURE.md:1)
+5. [docs/API_DRAFT.md](/C:/kmh/dduk/docs/API_DRAFT.md:1)
+6. [docs/DB_DRAFT.md](/C:/kmh/dduk/docs/DB_DRAFT.md:1)
+7. [docs/ENV_GUIDE.md](/C:/kmh/dduk/docs/ENV_GUIDE.md:1)
+8. [docs/RUN_TEST_GUIDE.md](/C:/kmh/dduk/docs/RUN_TEST_GUIDE.md:1)
+
+---
+
+## 메모
+
+- 지금 문서는 구현 완료본이 아니라 착수용 기준 문서다.
+- 실제 패키지명, DB 스키마, API 필드는 구현하면서 구체화하되, 공용 계약은 문서 먼저 갱신하고 움직인다.
+
+---
+
+© 2026 Team DDUK
