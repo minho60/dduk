@@ -72,17 +72,26 @@ CREATE TABLE IF NOT EXISTS attendances (
 CREATE TABLE IF NOT EXISTS vendors (
     id BIGINT NOT NULL AUTO_INCREMENT,
     vendor_code VARCHAR(50) NOT NULL,
+    business_registration_no VARCHAR(20) NOT NULL,
     name VARCHAR(100) NOT NULL,
+    representative_name VARCHAR(100) NOT NULL,
+    business_type VARCHAR(100) NULL,
+    business_item VARCHAR(100) NULL,
     contact_name VARCHAR(100) NULL,
     contact_phone VARCHAR(30) NULL,
     email VARCHAR(100) NULL,
     address VARCHAR(255) NULL,
+    bank_name VARCHAR(50) NULL,
+    bank_account_no VARCHAR(50) NULL,
+    bank_account_holder VARCHAR(100) NULL,
+    bankbook_copy_file_path VARCHAR(255) NULL,
     status VARCHAR(30) NOT NULL DEFAULT 'ACTIVE',
     memo VARCHAR(255) NULL,
     created_at DATETIME NOT NULL DEFAULT CURRENT_TIMESTAMP,
     updated_at DATETIME NOT NULL DEFAULT CURRENT_TIMESTAMP ON UPDATE CURRENT_TIMESTAMP,
     PRIMARY KEY (id),
-    UNIQUE KEY uk_vendors_vendor_code (vendor_code)
+    UNIQUE KEY uk_vendors_vendor_code (vendor_code),
+    UNIQUE KEY uk_vendors_business_registration_no (business_registration_no)
 ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci;
 
 CREATE TABLE IF NOT EXISTS items (
@@ -90,6 +99,8 @@ CREATE TABLE IF NOT EXISTS items (
     item_code VARCHAR(50) NOT NULL,
     name VARCHAR(100) NOT NULL,
     category VARCHAR(100) NULL,
+    spec VARCHAR(100) NULL,
+    barcode VARCHAR(100) NULL,
     unit VARCHAR(30) NOT NULL,
     default_vendor_id BIGINT NULL,
     unit_price DECIMAL(15,2) NOT NULL DEFAULT 0.00,
@@ -99,6 +110,7 @@ CREATE TABLE IF NOT EXISTS items (
     updated_at DATETIME NOT NULL DEFAULT CURRENT_TIMESTAMP ON UPDATE CURRENT_TIMESTAMP,
     PRIMARY KEY (id),
     UNIQUE KEY uk_items_item_code (item_code),
+    UNIQUE KEY uk_items_barcode (barcode),
     KEY idx_items_default_vendor_id (default_vendor_id),
     CONSTRAINT fk_items_default_vendor
         FOREIGN KEY (default_vendor_id) REFERENCES vendors (id)
@@ -111,13 +123,19 @@ CREATE TABLE IF NOT EXISTS inventories (
     item_id BIGINT NOT NULL,
     location VARCHAR(100) NOT NULL,
     quantity INT NOT NULL DEFAULT 0,
+    allocated_quantity INT NOT NULL DEFAULT 0,
+    lot_no VARCHAR(100) NOT NULL DEFAULT '',
+    expiration_date DATE NOT NULL DEFAULT '9999-12-31',
+    status VARCHAR(30) NOT NULL DEFAULT 'AVAILABLE',
     last_adjusted_at DATETIME NULL,
     created_at DATETIME NOT NULL DEFAULT CURRENT_TIMESTAMP,
     updated_at DATETIME NOT NULL DEFAULT CURRENT_TIMESTAMP ON UPDATE CURRENT_TIMESTAMP,
     PRIMARY KEY (id),
-    UNIQUE KEY uk_inventories_item_location (item_id, location),
+    UNIQUE KEY uk_inventories_item_location_lot_expiration (item_id, location, lot_no, expiration_date),
     KEY idx_inventories_item_id (item_id),
     CONSTRAINT chk_inventories_quantity_non_negative CHECK (quantity >= 0),
+    CONSTRAINT chk_inventories_allocated_quantity_non_negative CHECK (allocated_quantity >= 0),
+    CONSTRAINT chk_inventories_allocated_quantity_available CHECK (allocated_quantity <= quantity),
     CONSTRAINT fk_inventories_item
         FOREIGN KEY (item_id) REFERENCES items (id)
         ON DELETE RESTRICT
@@ -161,14 +179,23 @@ CREATE TABLE IF NOT EXISTS purchase_order_items (
     purchase_order_id BIGINT NOT NULL,
     item_id BIGINT NOT NULL,
     quantity INT NOT NULL,
+    unit VARCHAR(30) NOT NULL,
     unit_price DECIMAL(15,2) NOT NULL,
+    supply_amount DECIMAL(15,2) NOT NULL DEFAULT 0.00,
+    tax_amount DECIMAL(15,2) NOT NULL DEFAULT 0.00,
     line_amount DECIMAL(15,2) NOT NULL,
+    expected_date DATE NULL,
+    note VARCHAR(255) NULL,
     created_at DATETIME NOT NULL DEFAULT CURRENT_TIMESTAMP,
     updated_at DATETIME NOT NULL DEFAULT CURRENT_TIMESTAMP ON UPDATE CURRENT_TIMESTAMP,
     PRIMARY KEY (id),
     KEY idx_purchase_order_items_order_id (purchase_order_id),
     KEY idx_purchase_order_items_item_id (item_id),
     CONSTRAINT chk_purchase_order_items_quantity_positive CHECK (quantity > 0),
+    CONSTRAINT chk_purchase_order_items_unit_price_non_negative CHECK (unit_price >= 0),
+    CONSTRAINT chk_purchase_order_items_supply_amount_non_negative CHECK (supply_amount >= 0),
+    CONSTRAINT chk_purchase_order_items_tax_amount_non_negative CHECK (tax_amount >= 0),
+    CONSTRAINT chk_purchase_order_items_line_amount_matches CHECK (line_amount = supply_amount + tax_amount),
     CONSTRAINT fk_purchase_order_items_order
         FOREIGN KEY (purchase_order_id) REFERENCES purchase_orders (id)
         ON DELETE CASCADE
