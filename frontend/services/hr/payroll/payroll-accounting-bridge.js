@@ -1,48 +1,41 @@
 /**
  * Advanced Payroll Accounting Bridge (Multi-Posting & Reconciliation)
  */
-import { accountingService } from '../accounting-service.js';
+import { journalEntryService } from '../accounting/journal-entry-service.js';
 import { TRANSACTION_TYPE, TRANSACTION_STATUS } from '../accounting-constants.js';
 
 export class PayrollAccountingBridge {
     /**
      * Post Multi-Journal Entries for a Payroll Run
      */
-    async postPayrollRun(payrollRun) {
+    /**
+     * Post a balanced Journal Entry for a Payroll Record
+     */
+    async postPayrollRun(payrollRecord) {
         try {
-            console.log(`[Bridge] Posting Payroll Run ${payrollRun.header.id}...`);
-            payrollRun.accounting.postingStatus = 'PENDING';
-
-            const entries = [
-                // 1. Gross Salary (Expense)
-                { label: '급여 총액 (비용)', amount: payrollRun.header.totalGrossPay },
-                // 2. Employee Deductions (Liabilities/예수금)
-                { label: '사회보험/세금 (예수금)', amount: -payrollRun.header.totalDeductions },
-                // 3. Net Salary (Payable/미지급금)
-                { label: '실지급액 (미지급금)', amount: -payrollRun.header.totalNetPay }
-            ];
-
-            const journalIds = [];
-            for (const entry of entries) {
-                const res = await accountingService.saveTransaction({
-                    type: TRANSACTION_TYPE.PURCHASE,
-                    transactionDate: new Date().toISOString().split('T')[0],
-                    vendorName: '[급여정산]',
-                    totalAmount: Math.abs(entry.amount),
-                    note: `${payrollRun.header.yearMonth} ${entry.label}`,
-                    voucherNo: payrollRun.header.id
-                });
-                if (res.success) journalIds.push(res.id);
-            }
-
-            payrollRun.accounting.journalEntries = journalIds;
-            payrollRun.accounting.postingStatus = 'POSTED';
-            payrollRun.accounting.lastSyncAt = new Date().toISOString();
+            console.log(`[Bridge] Posting Payroll Record ${payrollRecord.id} to Backend Accounting...`);
             
-            return { success: true, journalIds };
+            // Prepare Balanced Journal Entry
+            const journalData = {
+                date: new Date().toISOString().split('T')[0],
+                description: `${payrollRecord.payMonth} 급여 확정 반영 (사번: ${payrollRecord.employee.employeeNo})`,
+                items: [
+                    { accountCode: '5001', amount: payrollRecord.baseSalary.add(payrollRecord.allowanceAmount), side: 'DEBIT' }, // 급여비용
+                    { accountCode: '2001', amount: payrollRecord.deductionAmount, side: 'CREDIT' }, // 예수금
+                    { accountCode: '2002', amount: payrollRecord.netSalary, side: 'CREDIT' }      // 미지급급여
+                ]
+            };
+
+            const res = await journalEntryService.createAndPost(journalData);
+            
+            if (res.success) {
+                console.log("[Bridge] Payroll posted successfully to backend accounting:", res.id);
+                return { success: true, journalId: res.id };
+            } else {
+                throw new Error(res.message);
+            }
         } catch (err) {
-            payrollRun.accounting.postingStatus = 'FAILED';
-            payrollRun.accounting.retryCount++;
+            console.error("[Bridge] Payroll posting failed:", err.message);
             return { success: false, message: err.message };
         }
     }

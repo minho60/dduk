@@ -10,38 +10,27 @@ export class JournalEntryService {
     }
 
     /**
-     * Create and Post a Journal Entry
+     * Create and Post a Journal Entry (Backend-only)
      */
     async createAndPost(data) {
         // data: { date, description, items: [{accountCode, amount, side}] }
         
-        // 1. Balanced Validation
-        const debitSum = data.items.filter(i => i.side === 'DEBIT').reduce((acc, i) => acc + i.amount, 0);
-        const creditSum = data.items.filter(i => i.side === 'CREDIT').reduce((acc, i) => acc + i.amount, 0);
+        // Step 1: Call Backend API (Single Source of Truth)
+        const response = await fetch('/api/v1/accounting/journal', {
+            method: 'POST',
+            headers: { 'Content-Type': 'application/json' },
+            body: JSON.stringify(data)
+        });
 
-        if (debitSum !== creditSum) {
-            throw new Error("차대 불일치: 차변과 대변의 합계가 일치해야 합니다.");
+        if (!response.ok) {
+            const errorData = await response.json().catch(() => ({}));
+            throw new Error(errorData.message || `전표 생성 서버 오류 (${response.status})`);
         }
 
-        // 2. Fiscal Period Check
-        const yearMonth = data.date.substring(0, 7);
-        if (!accountingMasterService.isPeriodOpen(yearMonth)) {
-            throw new Error(`마감된 회계 기간(${yearMonth})에는 전표를 생성할 수 없습니다.`);
-        }
-
-        // 3. Post to GL
-        for (const item of data.items) {
-            await generalLedgerService.postEntry(item.accountCode, item.amount, item.side);
-        }
-
-        const journal = {
-            id: `JRN-${Date.now()}`,
-            ...data,
-            status: 'POSTED',
-            createdAt: new Date().toISOString()
-        };
-        this.journals.push(journal);
-        return { success: true, id: journal.id };
+        const apiData = await response.json();
+        console.log("[JournalEntryService] Backend posting successful:", apiData);
+        this.journals.push(apiData);
+        return { success: true, id: apiData.id };
     }
 
     getJournals() { return this.journals; }

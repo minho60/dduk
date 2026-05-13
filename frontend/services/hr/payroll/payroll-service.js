@@ -11,23 +11,37 @@ class PayrollService {
     }
 
     /**
-     * Calculate and Save Payroll Draft
+     * Calculate and Save Payroll Draft (Backend-only)
      */
     async calculatePayroll(employee, yearMonth, input = {}) {
-        const result = PayrollEngine.calculate(employee, input);
-        const record = {
-            id: `PAY-${Date.now()}`,
-            yearMonth,
-            ...result,
-            status: 'DRAFT',
-            revision: 1,
-            createdAt: new Date().toISOString(),
-            updatedAt: new Date().toISOString()
-        };
+        // Step 1: Call Backend API (Single Source of Truth)
+        const response = await fetch('/api/v1/hr/payroll/calculate', {
+            method: 'POST',
+            headers: { 'Content-Type': 'application/json' },
+            body: JSON.stringify({
+                employeeId: employee.id,
+                payMonth: yearMonth,
+                inputs: input
+            })
+        });
+
+        if (!response.ok) {
+            const errorData = await response.json().catch(() => ({}));
+            throw new Error(errorData.message || `급여 계산 서버 오류 (${response.status})`);
+        }
+
+        const apiData = await response.json();
+        console.log("[PayrollService] Backend calculation successful:", apiData);
         
-        this.records.push(record);
-        payrollAuditService.log(record.id, 'CALCULATED', 'SYSTEM', { yearMonth });
-        return { success: true, data: record };
+        // Update local records
+        const index = this.records.findIndex(r => r.id === apiData.id);
+        if (index !== -1) {
+            this.records[index] = apiData;
+        } else {
+            this.records.push(apiData);
+        }
+
+        return { success: true, data: apiData };
     }
 
     /**
@@ -78,11 +92,45 @@ class PayrollService {
         return { success: true, data: oldRecord };
     }
 
+    /**
+     * Get all payroll records from Backend
+     */
     async getPayrolls(filters = {}) {
-        let filtered = this.records;
-        if (filters.yearMonth) filtered = filtered.filter(r => r.yearMonth === filters.yearMonth);
-        if (filters.status) filtered = filtered.filter(r => r.status === filters.status);
-        return { success: true, data: filtered };
+        try {
+            const response = await fetch('/api/v1/hr/payroll');
+            if (response.ok) {
+                this.records = await response.json();
+                let filtered = this.records;
+                if (filters.yearMonth) filtered = filtered.filter(r => r.payMonth === filters.yearMonth);
+                if (filters.status) filtered = filtered.filter(r => r.status === filters.status);
+                return { success: true, data: filtered };
+            }
+        } catch (e) {
+            console.error("[PayrollService] Failed to fetch payrolls:", e);
+        }
+        return { success: false, data: [] };
+    }
+
+    /**
+     * Transition Status via Backend API
+     */
+    async transitionStatus(id, nextStatus, userId, reason) {
+        const response = await fetch(`/api/v1/hr/payroll/${id}/transition`, {
+            method: 'POST',
+            headers: { 'Content-Type': 'application/json' },
+            body: JSON.stringify({ nextStatus, userId, reason })
+        });
+
+        if (!response.ok) {
+            const errorData = await response.json().catch(() => ({}));
+            throw new Error(errorData.message || `상태 변경 실패 (${response.status})`);
+        }
+
+        const updated = await response.json();
+        const index = this.records.findIndex(r => r.id === id);
+        if (index !== -1) this.records[index] = updated;
+        
+        return { success: true, data: updated };
     }
 }
 
