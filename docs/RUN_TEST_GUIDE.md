@@ -17,8 +17,8 @@
 
 지금 바로 확인 가능한 범위는 아래다.
 
-- MySQL에 `members` 테이블 생성
-- 초기 계정 3개 seed
+- backend 실행 시 전체 ERP 스키마 자동 생성
+- 초기 계정 3개 자동 seed
 - Spring Boot backend 실행
 - `frontend/index.html`에서 로그인
 - 역할별 메인 페이지 이동 확인
@@ -43,23 +43,17 @@ MySQL 콘솔 또는 Workbench로 접속한다.
 mysql -u root -p
 ```
 
-### 4-2. members 테이블 생성
+### 4-2. 수동 SQL 실행은 현재 필수 아님
 
-아래 SQL 파일을 먼저 실행한다.
+현재 backend는 실행 시 아래를 자동으로 처리하도록 설정되어 있다.
 
-```sql
-SOURCE C:/kmh/dduk/backend/src/main/resources/db/mysql/dduk_members_schema.sql;
-```
+- `dduk_erp` DB 생성 시도
+- 전체 ERP 스키마 생성
+- 기본 계정 3개 seed
 
-### 4-3. 초기 계정 seed 넣기
+즉, **DB 서버만 살아 있으면 수동으로 schema/seed SQL을 먼저 실행하지 않아도 된다.**
 
-그다음 seed 파일을 실행한다.
-
-```sql
-SOURCE C:/kmh/dduk/backend/src/main/resources/db/mysql/dduk_members_seed.sql;
-```
-
-### 4-4. DB 확인
+### 4-3. DB 확인
 
 ```sql
 USE dduk_erp;
@@ -74,7 +68,25 @@ SELECT id, login_id, name, role, active FROM members;
 
 ## 5. 백엔드 실행
 
-### 5-1. 환경변수 준비
+### 5-1. 팀원이 최신 backend 변경 받는 방법
+
+작업 중인 파일이 있으면 먼저 커밋하거나 stash 한 뒤 진행한다.
+
+```bash
+git checkout 본인브랜치명
+git fetch origin
+git merge origin/erp-kmh
+```
+
+주의:
+
+- `backend/src/main/resources/application.yml`
+- `docs/`
+- `backend/src/main/resources/db/`
+
+위 경로를 본인이 수정 중이었다면 merge 전에 먼저 상태를 정리하는 게 좋다.
+
+### 5-2. 환경변수 준비
 
 `backend/src/main/resources/application.yml` 기준으로 아래 환경변수를 사용한다.
 
@@ -88,29 +100,38 @@ SELECT id, login_id, name, role, active FROM members;
 예시 값:
 
 ```powershell
-$env:DB_URL="jdbc:mysql://localhost:3306/dduk_erp?useSSL=false&serverTimezone=Asia/Seoul&allowPublicKeyRetrieval=true"
+$env:DB_URL="jdbc:mysql://localhost:3306/dduk_erp?useSSL=false&serverTimezone=Asia/Seoul&allowPublicKeyRetrieval=true&createDatabaseIfNotExist=true"
 $env:DB_USERNAME="root"
 $env:DB_PASSWORD="여기에_DB_비밀번호"
 $env:JWT_SECRET="여기에_충분히_긴_JWT_시크릿_문자열"
-$env:JPA_DDL_AUTO="update"
+$env:JPA_DDL_AUTO="validate"
 ```
 
-`JWT_SECRET`은 반드시 직접 넣어야 한다.
+주의:
 
-### 5-2. backend 실행
+- `JWT_SECRET`은 `.env.example`의 예시 문구를 그대로 쓰면 안 된다.
+- 반드시 실제 긴 문자열로 바꿔야 한다.
+- `OPENAI_API_KEY`는 AI 기능을 쓰는 경우에만 실제 값이 필요하다.
+
+### 5-3. backend 실행
 
 `backend` 폴더로 이동해서 실행한다.
 
-Gradle Wrapper가 없으면 로컬 Gradle이 설치되어 있어야 한다.
-
 ```bash
 cd C:\kmh\dduk\backend
-gradle bootRun
+.\gradlew.bat bootRun
 ```
 
 정상 실행되면 기본 포트는 `http://localhost:8080`이다.
 
-### 5-3. 로그인 API 빠른 확인
+backend 시작 시 기대 동작:
+
+1. `dduk_erp` DB 생성 시도
+2. 전체 스키마 자동 생성
+3. 기본 계정 `admin`, `inventory`, `hr` 자동 적재
+4. 이후 JPA가 현재 엔티티와 정합성 검사
+
+### 5-4. 로그인 API 빠른 확인
 
 로그인이 되는지 먼저 확인하고 싶으면 Postman 또는 curl로 호출한다.
 
@@ -220,12 +241,21 @@ python -m http.server 5500
 - 비밀번호를 정확히 입력했는지
 - 계정 `active` 값이 `1`인지
 
-### 10-2. `JWT_SECRET` 오류
+### 10-2. 스키마가 안 생김
 
-`application.yml`에서 `JWT_SECRET` 환경변수를 강제 사용한다.  
-환경변수를 안 넣으면 backend가 정상 동작하지 않을 수 있다.
+확인할 것:
 
-### 10-3. 프론트에서 API 호출 실패
+- DB 서버가 실제로 켜져 있는지
+- `DB_URL`, `DB_USERNAME`, `DB_PASSWORD`가 맞는지
+- `DB_URL`에 `createDatabaseIfNotExist=true`가 포함돼 있는지
+- backend 로그에서 SQL init 에러가 없는지
+
+### 10-3. `JWT_SECRET` 오류
+
+`application.yml`에서 `JWT_SECRET` 환경변수를 사용한다.  
+예시 문구 그대로 두면 인증 토큰 생성이 정상 동작하지 않을 수 있다.
+
+### 10-4. 프론트에서 API 호출 실패
 
 확인할 것:
 
@@ -233,7 +263,7 @@ python -m http.server 5500
 - backend가 `http://localhost:8080`에서 실행 중인지
 - 브라우저 콘솔에 CORS 에러가 있는지
 
-### 10-4. `gradle` 명령이 안 됨
+### 10-5. `gradle` 명령이 안 됨
 
 최근 업데이트를 통해 저장소에 **Gradle Wrapper**가 추가되었습니다. 로컬에 Gradle이 설치되어 있지 않아도 `./gradlew bootRun`(Linux/Mac) 또는 `.\gradlew.bat bootRun`(Windows) 명령어로 실행할 수 있습니다.
 
