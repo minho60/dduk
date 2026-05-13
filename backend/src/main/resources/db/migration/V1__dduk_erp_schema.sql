@@ -78,20 +78,31 @@ CREATE TABLE IF NOT EXISTS employees (
         ON UPDATE CASCADE
 ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci;
 
--- 공급업체 정보 (주석은 반드시 -- 로 시작하세요)
+
+-- 공급업체 정보
 CREATE TABLE IF NOT EXISTS vendors (
     id BIGINT NOT NULL AUTO_INCREMENT,
     vendor_code VARCHAR(50) NOT NULL,
+    business_registration_no VARCHAR(20) NOT NULL,
     name VARCHAR(100) NOT NULL,
+    representative_name VARCHAR(100) NOT NULL,
+    business_type VARCHAR(100) NULL,
+    business_item VARCHAR(100) NULL,
     contact_name VARCHAR(100) NULL,
     contact_phone VARCHAR(30) NULL,
     email VARCHAR(100) NULL,
     address VARCHAR(255) NULL,
+    bank_name VARCHAR(50) NULL,
+    bank_account_no VARCHAR(50) NULL,
+    bank_account_holder VARCHAR(100) NULL,
+    bankbook_copy_file_path VARCHAR(255) NULL,
     status VARCHAR(30) NOT NULL DEFAULT 'ACTIVE',
     created_at DATETIME NOT NULL DEFAULT CURRENT_TIMESTAMP,
     updated_at DATETIME NOT NULL DEFAULT CURRENT_TIMESTAMP ON UPDATE CURRENT_TIMESTAMP,
-    PRIMARY KEY (id), -- 오타 수정됨
-    UNIQUE KEY uk_vendors_vendor_code (vendor_code)
+    PRIMARY KEY (id),
+    UNIQUE KEY uk_vendors_vendor_code (vendor_code),
+    UNIQUE KEY uk_vendors_business_registration_no (business_registration_no),
+    CONSTRAINT chk_vendors_status CHECK (status IN ('ACTIVE', 'INACTIVE', 'BLOCKED', 'PENDING'))
 ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci;
 
 CREATE TABLE IF NOT EXISTS user_roles (
@@ -154,39 +165,70 @@ CREATE TABLE IF NOT EXISTS audit_logs (
         ON UPDATE CASCADE
 ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci;
 
-CREATE TABLE IF NOT EXISTS items ( /*자재/제품 정보*/
+-- 자재/제품 정보
+CREATE TABLE IF NOT EXISTS items (
     id BIGINT NOT NULL AUTO_INCREMENT,
     item_code VARCHAR(50) NOT NULL,
+    item_type VARCHAR(30) NOT NULL,
     name VARCHAR(100) NOT NULL,
     category VARCHAR(100) NULL,
+    spec VARCHAR(100) NULL,
     unit VARCHAR(30) NOT NULL,
+    barcode VARCHAR(100) NULL,
     default_vendor_id BIGINT NULL,
-    unit_price DECIMAL(15,2) NOT NULL DEFAULT 0.00,
+    purchase_unit_price DECIMAL(15,2) NOT NULL DEFAULT 0.00,
+    sales_unit_price DECIMAL(15,2) NOT NULL DEFAULT 0.00,
     safety_stock INT NOT NULL DEFAULT 0,
-    is_active TINYINT(1) NOT NULL DEFAULT 1,
+    storage_type VARCHAR(30) NULL,
+    shelf_life_days INT NULL,
+    tax_type VARCHAR(30) NOT NULL DEFAULT 'TAXABLE',
+    status VARCHAR(30) NOT NULL DEFAULT 'ACTIVE',
+    description VARCHAR(255) NULL,
     created_at DATETIME NOT NULL DEFAULT CURRENT_TIMESTAMP,
     updated_at DATETIME NOT NULL DEFAULT CURRENT_TIMESTAMP ON UPDATE CURRENT_TIMESTAMP,
     PRIMARY KEY (id),
     UNIQUE KEY uk_items_item_code (item_code),
+    UNIQUE KEY uk_items_barcode (barcode),
     KEY idx_items_default_vendor_id (default_vendor_id),
+    KEY idx_items_item_type (item_type),
+    KEY idx_items_category (category),
+    KEY idx_items_status (status),
+    CONSTRAINT chk_items_safety_stock_non_negative CHECK (safety_stock >= 0),
+    CONSTRAINT chk_items_shelf_life_days_positive CHECK (shelf_life_days IS NULL OR shelf_life_days > 0),
+    CONSTRAINT chk_items_item_type CHECK (item_type IN ('RAW_MATERIAL', 'PRODUCT', 'SUB_MATERIAL', 'PACKAGING')),
+    CONSTRAINT chk_items_storage_type CHECK (storage_type IS NULL OR storage_type IN ('ROOM_TEMP', 'REFRIGERATED', 'FROZEN')),
+    CONSTRAINT chk_items_tax_type CHECK (tax_type IN ('TAXABLE', 'TAX_FREE', 'ZERO_RATED')),
+    CONSTRAINT chk_items_status CHECK (status IN ('ACTIVE', 'INACTIVE', 'DISCONTINUED', 'PENDING')),
     CONSTRAINT fk_items_default_vendor
         FOREIGN KEY (default_vendor_id) REFERENCES vendors (id)
         ON DELETE SET NULL
         ON UPDATE CASCADE
 ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci;
 
-CREATE TABLE IF NOT EXISTS inventories ( /*재고 현황*/
+-- 재고 현황
+CREATE TABLE IF NOT EXISTS inventories (
     id BIGINT NOT NULL AUTO_INCREMENT,
     item_id BIGINT NOT NULL,
     quantity INT NOT NULL DEFAULT 0,
+    allocated_quantity INT NOT NULL DEFAULT 0,
     location VARCHAR(100) NOT NULL,
-    last_adjusted_at DATETIME NULL,
+    lot_no VARCHAR(100) NOT NULL DEFAULT '',
+    expiration_date DATE NOT NULL DEFAULT '9999-12-31',
+    status VARCHAR(30) NOT NULL DEFAULT 'AVAILABLE',
+    last_movement_at DATETIME NULL,
     created_at DATETIME NOT NULL DEFAULT CURRENT_TIMESTAMP,
     updated_at DATETIME NOT NULL DEFAULT CURRENT_TIMESTAMP ON UPDATE CURRENT_TIMESTAMP,
     PRIMARY KEY (id),
-    UNIQUE KEY uk_inventories_item_location (item_id, location),
+    UNIQUE KEY uk_inventories_item_location_lot_expiration (item_id, location, lot_no, expiration_date),
     KEY idx_inventories_item_id (item_id),
+    KEY idx_inventories_location (location),
+    KEY idx_inventories_expiration_date (expiration_date),
+    KEY idx_inventories_status (status),
+    KEY idx_inventories_item_expiration (item_id, expiration_date),
     CONSTRAINT chk_inventories_quantity_non_negative CHECK (quantity >= 0),
+    CONSTRAINT chk_inventories_allocated_quantity_non_negative CHECK (allocated_quantity >= 0),
+    CONSTRAINT chk_inventories_allocated_quantity_available CHECK (allocated_quantity <= quantity),
+    CONSTRAINT chk_inventories_status CHECK (status IN ('AVAILABLE', 'HOLD', 'DAMAGED', 'EXPIRED', 'DISPOSED')),
     CONSTRAINT fk_inventories_item
         FOREIGN KEY (item_id) REFERENCES items (id)
         ON DELETE RESTRICT
@@ -232,32 +274,68 @@ CREATE TABLE IF NOT EXISTS payrolls (
         ON UPDATE CASCADE
 ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci;
 
-CREATE TABLE IF NOT EXISTS expenses ( /*경비 처리*/
+-- 비용/경비 등록 정보
+CREATE TABLE IF NOT EXISTS expenses (
     id BIGINT NOT NULL AUTO_INCREMENT,
+    expense_no VARCHAR(50) NOT NULL,
     employee_id BIGINT NULL,
+    vendor_id BIGINT NULL,
     expense_date DATE NOT NULL,
     category VARCHAR(50) NOT NULL,
-    amount DECIMAL(15,2) NOT NULL,
     description VARCHAR(255) NOT NULL,
+    supply_amount DECIMAL(15,2) NOT NULL DEFAULT 0.00,
+    tax_amount DECIMAL(15,2) NOT NULL DEFAULT 0.00,
+    amount DECIMAL(15,2) NOT NULL DEFAULT 0.00,
+    tax_type VARCHAR(30) NOT NULL DEFAULT 'TAXABLE',
+    payment_method VARCHAR(30) NULL,
+    payment_status VARCHAR(30) NOT NULL DEFAULT 'UNPAID',
+    receipt_no VARCHAR(100) NULL,
     receipt_file_path VARCHAR(255) NULL,
     status VARCHAR(30) NOT NULL DEFAULT 'SUBMITTED',
+    approved_by BIGINT NULL,
+    approved_at DATETIME NULL,
+    paid_at DATETIME NULL,
+    note VARCHAR(255) NULL,
     created_at DATETIME NOT NULL DEFAULT CURRENT_TIMESTAMP,
     updated_at DATETIME NOT NULL DEFAULT CURRENT_TIMESTAMP ON UPDATE CURRENT_TIMESTAMP,
     PRIMARY KEY (id),
+    UNIQUE KEY uk_expenses_expense_no (expense_no),
     KEY idx_expenses_employee_id (employee_id),
+    KEY idx_expenses_vendor_id (vendor_id),
     KEY idx_expenses_expense_date (expense_date),
+    KEY idx_expenses_status (status),
+    KEY idx_expenses_payment_status (payment_status),
+    KEY idx_expenses_expense_date_status (expense_date, status),
+    CONSTRAINT chk_expenses_supply_amount_non_negative CHECK (supply_amount >= 0),
+    CONSTRAINT chk_expenses_tax_amount_non_negative CHECK (tax_amount >= 0),
+    CONSTRAINT chk_expenses_amount_non_negative CHECK (amount >= 0),
+    CONSTRAINT chk_expenses_amount_matches CHECK (amount = supply_amount + tax_amount),
+    CONSTRAINT chk_expenses_tax_type CHECK (tax_type IN ('TAXABLE', 'TAX_FREE', 'ZERO_RATED')),
+    CONSTRAINT chk_expenses_payment_status CHECK (payment_status IN ('UNPAID', 'PAID', 'CANCELLED')),
+    CONSTRAINT chk_expenses_status CHECK (status IN ('DRAFT', 'SUBMITTED', 'APPROVED', 'REJECTED', 'CANCELLED')),
     CONSTRAINT fk_expenses_employee
         FOREIGN KEY (employee_id) REFERENCES employees (id)
+        ON DELETE SET NULL
+        ON UPDATE CASCADE,
+    CONSTRAINT fk_expenses_vendor
+        FOREIGN KEY (vendor_id) REFERENCES vendors (id)
+        ON DELETE SET NULL
+        ON UPDATE CASCADE,
+    CONSTRAINT fk_expenses_approved_by
+        FOREIGN KEY (approved_by) REFERENCES users (id)
         ON DELETE SET NULL
         ON UPDATE CASCADE
 ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci;
 
-CREATE TABLE IF NOT EXISTS purchase_orders ( /*  구매 발주 정보 */
+
+
+
+-- 구매 발주 정보
+CREATE TABLE IF NOT EXISTS purchase_orders (
     id BIGINT NOT NULL AUTO_INCREMENT,
     purchase_order_no VARCHAR(50) NOT NULL,
     vendor_id BIGINT NOT NULL,
     requested_by BIGINT NOT NULL,
-    approved_by BIGINT NULL,
     order_date DATE NOT NULL,
     expected_date DATE NULL,
     status VARCHAR(30) NOT NULL DEFAULT 'REQUESTED',
@@ -269,7 +347,8 @@ CREATE TABLE IF NOT EXISTS purchase_orders ( /*  구매 발주 정보 */
     UNIQUE KEY uk_purchase_orders_no (purchase_order_no),
     KEY idx_purchase_orders_vendor_id (vendor_id),
     KEY idx_purchase_orders_requested_by (requested_by),
-    KEY idx_purchase_orders_approved_by (approved_by),
+    CONSTRAINT chk_purchase_orders_total_amount_non_negative CHECK (total_amount >= 0),
+    CONSTRAINT chk_purchase_orders_status CHECK (status IN ('REQUESTED', 'ORDERED', 'PARTIALLY_RECEIVED', 'RECEIVED', 'CANCELLED')),
     CONSTRAINT fk_purchase_orders_vendor
         FOREIGN KEY (vendor_id) REFERENCES vendors (id)
         ON DELETE RESTRICT
@@ -277,26 +356,33 @@ CREATE TABLE IF NOT EXISTS purchase_orders ( /*  구매 발주 정보 */
     CONSTRAINT fk_purchase_orders_requested_by
         FOREIGN KEY (requested_by) REFERENCES users (id)
         ON DELETE RESTRICT
-        ON UPDATE CASCADE,
-    CONSTRAINT fk_purchase_orders_approved_by
-        FOREIGN KEY (approved_by) REFERENCES users (id)
-        ON DELETE SET NULL
         ON UPDATE CASCADE
 ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci;
 
-CREATE TABLE IF NOT EXISTS purchase_order_items ( /*구매 발주 상세 항목*/
+-- 구매 발주 상세 항목
+CREATE TABLE IF NOT EXISTS purchase_order_items (
     id BIGINT NOT NULL AUTO_INCREMENT,
     purchase_order_id BIGINT NOT NULL,
     item_id BIGINT NOT NULL,
     quantity INT NOT NULL,
-    unit_price DECIMAL(15,2) NOT NULL,
-    line_amount DECIMAL(15,2) NOT NULL,
+    unit VARCHAR(30) NOT NULL,
+    unit_price DECIMAL(15,2) NOT NULL DEFAULT 0.00,
+    supply_amount DECIMAL(15,2) NOT NULL DEFAULT 0.00,
+    tax_amount DECIMAL(15,2) NOT NULL DEFAULT 0.00,
+    line_amount DECIMAL(15,2) NOT NULL DEFAULT 0.00,
+    expected_date DATE NULL,
+    note VARCHAR(255) NULL,
     created_at DATETIME NOT NULL DEFAULT CURRENT_TIMESTAMP,
     updated_at DATETIME NOT NULL DEFAULT CURRENT_TIMESTAMP ON UPDATE CURRENT_TIMESTAMP,
     PRIMARY KEY (id),
     KEY idx_purchase_order_items_order_id (purchase_order_id),
     KEY idx_purchase_order_items_item_id (item_id),
     CONSTRAINT chk_purchase_order_items_quantity_positive CHECK (quantity > 0),
+    CONSTRAINT chk_purchase_order_items_unit_price_non_negative CHECK (unit_price >= 0),
+    CONSTRAINT chk_purchase_order_items_supply_amount_non_negative CHECK (supply_amount >= 0),
+    CONSTRAINT chk_purchase_order_items_tax_amount_non_negative CHECK (tax_amount >= 0),
+    CONSTRAINT chk_purchase_order_items_line_amount_non_negative CHECK (line_amount >= 0),
+    CONSTRAINT chk_purchase_order_items_line_amount_matches CHECK (line_amount = supply_amount + tax_amount),
     CONSTRAINT fk_purchase_order_items_order
         FOREIGN KEY (purchase_order_id) REFERENCES purchase_orders (id)
         ON DELETE CASCADE
@@ -307,28 +393,62 @@ CREATE TABLE IF NOT EXISTS purchase_order_items ( /*구매 발주 상세 항목*
         ON UPDATE CASCADE
 ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci;
 
-CREATE TABLE IF NOT EXISTS stock_movements ( /* 재고 이동 기록 */
+-- 재고 이동 기록
+CREATE TABLE IF NOT EXISTS stock_movements (
     id BIGINT NOT NULL AUTO_INCREMENT,
-    item_id BIGINT NOT NULL, /*어떤 품목인지*/
-    inventory_id BIGINT NOT NULL,/* 어느 재고/창고 위치인지 */
-    movement_type VARCHAR(30) NOT NULL,/*입고, 출고, 조정, 이동 같은 이동유형 */
-    quantity INT NOT NULL,/* 이동수량 */
-    reference_type VARCHAR(50) NULL, /*reference_type과 reference_id는 어떤 트랜잭션/이벤트에 의해 재고 이동이 발생했는지 추적하기 위한 필드입니다. 예를 들어, purchase_order, sales_order, inventory_adjustment이 이동이 어떤 문서나 업무에서 발생했는지 연결하기 위한값 */
+    item_id BIGINT NOT NULL,
+    from_inventory_id BIGINT NULL,
+    to_inventory_id BIGINT NULL,
+    movement_type VARCHAR(30) NOT NULL,
+    quantity INT NOT NULL,
+    unit VARCHAR(30) NOT NULL,
+    from_before_quantity INT NULL,
+    from_after_quantity INT NULL,
+    to_before_quantity INT NULL,
+    to_after_quantity INT NULL,
+    reference_type VARCHAR(50) NULL,
     reference_id BIGINT NULL,
-    moved_at DATETIME NOT NULL, /* 실재 재고가 움직인 시각 */
+    purchase_order_item_id BIGINT NULL,
+    moved_at DATETIME NOT NULL,
+    reason VARCHAR(100) NULL,
     note VARCHAR(255) NULL,
-    created_at DATETIME NOT NULL DEFAULT CURRENT_TIMESTAMP, /* 시스템에 기록된 시각 */
+    created_by BIGINT NULL,
+    created_at DATETIME NOT NULL DEFAULT CURRENT_TIMESTAMP,
     PRIMARY KEY (id),
     KEY idx_stock_movements_item_id (item_id),
-    KEY idx_stock_movements_inventory_id (inventory_id),
+    KEY idx_stock_movements_from_inventory_id (from_inventory_id),
+    KEY idx_stock_movements_to_inventory_id (to_inventory_id),
     KEY idx_stock_movements_reference (reference_type, reference_id),
+    KEY idx_stock_movements_purchase_order_item_id (purchase_order_item_id),
+    KEY idx_stock_movements_moved_at (moved_at),
+    KEY idx_stock_movements_item_moved_at (item_id, moved_at),
+    KEY idx_stock_movements_movement_type (movement_type),
+    KEY idx_stock_movements_created_by (created_by),
     CONSTRAINT chk_stock_movements_quantity_positive CHECK (quantity > 0),
+    CONSTRAINT chk_stock_movements_from_before_quantity_non_negative CHECK (from_before_quantity IS NULL OR from_before_quantity >= 0),
+    CONSTRAINT chk_stock_movements_from_after_quantity_non_negative CHECK (from_after_quantity IS NULL OR from_after_quantity >= 0),
+    CONSTRAINT chk_stock_movements_to_before_quantity_non_negative CHECK (to_before_quantity IS NULL OR to_before_quantity >= 0),
+    CONSTRAINT chk_stock_movements_to_after_quantity_non_negative CHECK (to_after_quantity IS NULL OR to_after_quantity >= 0),
+    CONSTRAINT chk_stock_movements_inventory_exists CHECK (from_inventory_id IS NOT NULL OR to_inventory_id IS NOT NULL),
+    CONSTRAINT chk_stock_movements_movement_type CHECK (movement_type IN ('INBOUND', 'OUTBOUND', 'ADJUSTMENT_IN', 'ADJUSTMENT_OUT', 'TRANSFER')),
     CONSTRAINT fk_stock_movements_item
         FOREIGN KEY (item_id) REFERENCES items (id)
         ON DELETE RESTRICT
         ON UPDATE CASCADE,
-    CONSTRAINT fk_stock_movements_inventory
-        FOREIGN KEY (inventory_id) REFERENCES inventories (id)
+    CONSTRAINT fk_stock_movements_from_inventory
+        FOREIGN KEY (from_inventory_id) REFERENCES inventories (id)
+        ON DELETE RESTRICT
+        ON UPDATE CASCADE,
+    CONSTRAINT fk_stock_movements_to_inventory
+        FOREIGN KEY (to_inventory_id) REFERENCES inventories (id)
+        ON DELETE RESTRICT
+        ON UPDATE CASCADE,
+    CONSTRAINT fk_stock_movements_purchase_order_item
+        FOREIGN KEY (purchase_order_item_id) REFERENCES purchase_order_items (id)
+        ON DELETE SET NULL
+        ON UPDATE CASCADE,
+    CONSTRAINT fk_stock_movements_created_by
+        FOREIGN KEY (created_by) REFERENCES users (id)
         ON DELETE RESTRICT
         ON UPDATE CASCADE
 ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci;
