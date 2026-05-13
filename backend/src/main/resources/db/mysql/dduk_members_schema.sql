@@ -6,8 +6,8 @@
 --
 -- Purpose:
 -- - This file matches the current backend implementation for admin-managed accounts.
--- - Use this when you want a simple auth/account schema aligned with the current `members` API.
--- - Keep `dduk_erp_schema.sql` as the separate expanded ERP draft based on docs/DB_DRAFT.md.
+-- - It also keeps one small recommended extension column, `last_login_at`, which the backend may start using later.
+-- - Use this file when you only need the auth/account schema aligned with the current `members` API.
 
 CREATE DATABASE IF NOT EXISTS dduk_erp
   DEFAULT CHARACTER SET utf8mb4
@@ -22,6 +22,7 @@ CREATE TABLE IF NOT EXISTS members (
     name VARCHAR(100) NOT NULL,
     role VARCHAR(30) NOT NULL,
     active TINYINT(1) NOT NULL DEFAULT 1,
+    last_login_at DATETIME NULL,
     created_at DATETIME NOT NULL DEFAULT CURRENT_TIMESTAMP,
     updated_at DATETIME NOT NULL DEFAULT CURRENT_TIMESTAMP ON UPDATE CURRENT_TIMESTAMP,
     PRIMARY KEY (id),
