@@ -220,12 +220,20 @@
 
 - `id`
 - `vendorCode`
+- `businessRegistrationNo`
 - `name`
+- `representativeName`
+- `businessType`
+- `businessItem`
 - `contactName`
 - `contactPhone`
 - `email`
 - `address`
 - `status`
+- `bankName`
+- `bankAccountNo`
+- `bankAccountHolder`
+- `bankbookCopyFilePath`
 - `memo`
 
 ### 거래처 등록
@@ -237,12 +245,20 @@
 ```json
 {
   "vendorCode": "VENDOR-001",
+  "businessRegistrationNo": "123-45-67890",
   "name": "뚝상사",
+  "representativeName": "김대표",
+  "businessType": "도소매",
+  "businessItem": "사무용품",
   "contactName": "김담당",
   "contactPhone": "02-1234-5678",
   "email": "vendor@example.com",
   "address": "서울시 중구 ...",
   "status": "ACTIVE",
+  "bankName": "국민은행",
+  "bankAccountNo": "123456-01-123456",
+  "bankAccountHolder": "뚝상사",
+  "bankbookCopyFilePath": null,
   "memo": ""
 }
 ```
@@ -262,6 +278,8 @@
   "itemCode": "ITEM-001",
   "name": "복사용지 A4",
   "category": "OFFICE",
+  "spec": "A4 / 80g",
+  "barcode": "880000000001",
   "unit": "BOX",
   "defaultVendorId": 1,
   "unitPrice": 23000,
@@ -280,6 +298,10 @@
 - `itemId`
 - `location`
 - `quantity`
+- `allocatedQuantity`
+- `lotNo`
+- `expirationDate`
+- `status`
 - `lastAdjustedAt`
 
 ### 재고 수량 조정
@@ -291,7 +313,11 @@
 ```json
 {
   "quantity": 120,
-  "location": "MAIN"
+  "allocatedQuantity": 20,
+  "location": "MAIN",
+  "lotNo": "LOT-20260513",
+  "expirationDate": "2027-05-12",
+  "status": "AVAILABLE"
 }
 ```
 
@@ -316,7 +342,12 @@
     {
       "itemId": 3,
       "quantity": 5,
-      "unitPrice": 23000
+      "unit": "BOX",
+      "unitPrice": 23000,
+      "supplyAmount": 115000,
+      "taxAmount": 11500,
+      "expectedDate": "2026-05-20",
+      "note": ""
     }
   ]
 }
