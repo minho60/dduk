@@ -1,0 +1,101 @@
+<!DOCTYPE html>
+<html lang="ko">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>DDUK ERP - 합계잔액시산표</title>
+    <link rel="stylesheet" href="../../../styles/common/app-shell.css">
+    <link rel="stylesheet" href="../../../styles/common/erp-components.css">
+    <style>
+        .tb_container { padding: 24px; }
+        .tb_card { background: #fff; border: 1px solid #e2e8f0; border-radius: 8px; padding: 24px; }
+        .acc_row:hover { background: #f8fafc; cursor: pointer; }
+        .acc_type_header { background: #f1f5f9; padding: 12px 16px; font-weight: 700; color: #475569; margin-top: 24px; border-radius: 4px; }
+    </style>
+</head>
+<body>
+    <div class="app-shell">
+        <aside class="app-sidebar">
+            <h1>DDUK ERP</h1>
+            <nav data-nav></nav>
+        </aside>
+        <main class="app-main">
+            <header class="app-header">
+                <div>
+                    <h2 data-page-title>합계잔액시산표 (Trial Balance)</h2>
+                    <p data-page-description>계정과목별 차변/대변 잔액을 실시간으로 대조하고 분석합니다.</p>
+                </div>
+                <div style="display: flex; gap: 8px;">
+                    <button id="btn_refresh" class="erp_button erp_button_secondary">새로고침</button>
+                    <button id="btn_export" class="erp_button erp_button_secondary">PDF 내보내기</button>
+                </div>
+            </header>
+
+            <div class="tb_container">
+                <div class="tb_card">
+                    <table class="erp_table" style="width: 100%;">
+                        <thead>
+                            <tr>
+                                <th style="text-align: left;">계정과목 (COA)</th>
+                                <th style="text-align: right;">잔액 (Balance)</th>
+                                <th style="text-align: center;">계정 유형</th>
+                                <th style="text-align: center;">원장 추적</th>
+                            </tr>
+                        </thead>
+                        <tbody id="tb_body">
+                            <!-- Data rows will be injected here -->
+                        </tbody>
+                    </table>
+                </div>
+            </div>
+        </main>
+    </div>
+
+    <script src="../../../services/common/session.js"></script>
+    <script src="../../../services/common/app-shell.js"></script>
+    <script type="module">
+        import { generalLedgerService } from '../../../services/hr/accounting/general-ledger-service.js';
+        import { formatCurrency } from '../../../services/common/formatters.js';
+
+        async function init() {
+            const session = window.ddukSession.requireRole(["ADMIN", "FINANCE"]);
+            if (!session) return;
+            window.ddukSession.bindShell(session);
+
+            window.ddukAppShell.hydratePage({
+                navItems: [
+                    { href: "../../hr/dashboard.html", label: "인사/회계 메인" },
+                    { href: "../accounting/dashboard.html", label: "회계 대시보드" },
+                    { href: "./trial-balance.html", label: "시산표/원장", current: true },
+                    { href: "../payroll/list.html", label: "급여 관리" }
+                ]
+            });
+
+            loadTB();
+        }
+
+        function loadTB() {
+            const data = generalLedgerService.getTrialBalance();
+            const tbody = document.getElementById('tb_body');
+            
+            // Simple grouping by type could be done here, but we'll show flat for now
+            tbody.innerHTML = data.map(acc => `
+                <tr class="acc_row">
+                    <td style="font-weight: 600;">[${acc.code}] ${acc.name}</td>
+                    <td style="text-align: right; font-family: monospace; font-size: 1rem; ${acc.balance < 0 ? 'color: #e53e3e;' : ''}">
+                        ${formatCurrency(acc.balance)}
+                    </td>
+                    <td style="text-align: center;"><span class="erp_badge badge_secondary">${acc.type}</span></td>
+                    <td style="text-align: center;">
+                        <button class="erp_button erp_button_secondary" style="padding: 4px 8px; font-size: 0.75rem;" onclick="alert('계정별 상세 원장 조회 기능은 준비 중입니다.')">상세보기</button>
+                    </td>
+                </tr>
+            `).join('');
+        }
+
+        document.getElementById('btn_refresh').addEventListener('click', loadTB);
+
+        init();
+    </script>
+</body>
+</html>
