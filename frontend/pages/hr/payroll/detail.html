@@ -1,0 +1,230 @@
+<!DOCTYPE html>
+<html lang="ko">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>DDUK ERP - 급여 상세 분석</title>
+    <link rel="stylesheet" href="../../../styles/common/app-shell.css">
+    <link rel="stylesheet" href="../../../styles/common/erp-components.css">
+    <style>
+        .detail_grid { display: grid; grid-template-columns: 1fr 350px; gap: 24px; padding: 24px; }
+        .detail_section { background: #fff; border: 1px solid #e2e8f0; border-radius: 8px; margin-bottom: 24px; overflow: hidden; }
+        .section_header { padding: 16px 20px; border-bottom: 1px solid #f1f5f9; background: #f8fafc; display: flex; justify-content: space-between; align-items: center; }
+        .section_header h3 { font-size: 0.875rem; font-weight: 700; color: #334155; margin: 0; }
+        .section_body { padding: 20px; }
+
+        .trace_step { display: flex; align-items: flex-start; gap: 16px; margin-bottom: 24px; position: relative; }
+        .trace_step::after { content: ''; position: absolute; left: 15px; top: 32px; bottom: -12px; width: 2px; background: #e2e8f0; }
+        .trace_step:last-child::after { display: none; }
+        .step_icon { width: 32px; height: 32px; border-radius: 50%; background: #f1f5f9; display: flex; align-items: center; justify-content: center; font-size: 0.75rem; font-weight: 700; color: #64748b; z-index: 1; border: 2px solid #fff; }
+        .step_icon.active { background: #3182ce; color: #fff; }
+        .step_content { flex: 1; }
+        .step_title { font-size: 0.8125rem; font-weight: 700; color: #1e293b; margin-bottom: 4px; }
+        .step_data { font-size: 0.75rem; color: #64748b; background: #f8fafc; padding: 8px 12px; border-radius: 4px; margin-top: 8px; }
+
+        .data_row { display: flex; justify-content: space-between; padding: 8px 0; border-bottom: 1px solid #f1f5f9; font-size: 0.875rem; }
+        .data_row:last-child { border-bottom: none; }
+        .data_label { color: #64748b; }
+        .data_value { font-weight: 600; color: #1e293b; }
+        .data_value.negative { color: #e53e3e; }
+    </style>
+</head>
+<body>
+    <div class="app-shell">
+        <aside class="app-sidebar">
+            <h1>DDUK ERP</h1>
+            <nav data-nav></nav>
+        </aside>
+        <main class="app-main">
+            <header class="app-header">
+                <div>
+                    <h2 data-page-title>급여 상세 분석 및 감사</h2>
+                    <p data-page-description>개별 급여 산출 근거를 상세히 추적하고 검증합니다.</p>
+                </div>
+                <div style="display: flex; gap: 8px;">
+                    <button id="btn_approve" class="erp_button erp_button_primary">최종 승인</button>
+                    <button id="btn_recalculate" class="erp_button erp_button_secondary">재계산</button>
+                    <button id="btn_history" class="erp_button erp_button_secondary">감사 이력</button>
+                </div>
+            </header>
+
+            <div class="detail_grid">
+                <!-- Main Content -->
+                <div class="detail_left">
+                    <!-- Summary -->
+                    <section class="detail_section">
+                        <div class="section_header"><h3>1. 직원 및 급여 요약</h3></div>
+                        <div class="section_body">
+                            <div style="display: grid; grid-template-columns: repeat(3, 1fr); gap: 24px;">
+                                <div>
+                                    <div style="font-size: 0.75rem; color: #94a3b8;">대상 직원</div>
+                                    <div id="val_emp_name" style="font-size: 1.125rem; font-weight: 700;">-</div>
+                                </div>
+                                <div>
+                                    <div style="font-size: 0.75rem; color: #94a3b8;">정산 기간</div>
+                                    <div id="val_year_month" style="font-size: 1.125rem; font-weight: 700;">-</div>
+                                </div>
+                                <div>
+                                    <div style="font-size: 0.75rem; color: #94a3b8;">최종 실지급액</div>
+                                    <div id="val_net_pay" style="font-size: 1.25rem; font-weight: 700; color: #3182ce;">-</div>
+                                </div>
+                            </div>
+                        </div>
+                    </section>
+
+                    <!-- Breakdown -->
+                    <div style="display: grid; grid-template-columns: 1fr 1fr; gap: 24px;">
+                        <section class="detail_section">
+                            <div class="section_header"><h3>2. 지급 항목 (Gross)</h3></div>
+                            <div class="section_body" id="list_gross"></div>
+                        </section>
+                        <section class="detail_section">
+                            <div class="section_header"><h3>3. 공제 및 세금 (Deductions)</h3></div>
+                            <div class="section_body" id="list_deductions"></div>
+                        </section>
+                    </div>
+
+                    <!-- Explainability Trace -->
+                    <section class="detail_section">
+                        <div class="section_header"><h3>4. 계산 트레이스 (Calculation Explainability)</h3></div>
+                        <div class="section_body" id="trace_root">
+                            <!-- Trace steps will be injected here -->
+                        </div>
+                    </section>
+                </div>
+
+                <!-- Sidebar Content -->
+                <div class="detail_right">
+                    <section class="detail_section">
+                        <div class="section_header"><h3>상태 및 연동 정보</h3></div>
+                        <div class="section_body">
+                            <div class="data_row">
+                                <span class="data_label">현재 상태</span>
+                                <span id="val_status" class="erp_badge">-</span>
+                            </div>
+                            <div class="data_row">
+                                <span class="data_label">리비전</span>
+                                <span id="val_revision" class="data_value">-</span>
+                            </div>
+                            <div class="data_row">
+                                <span class="data_label">회계 전표 ID</span>
+                                <span id="val_accounting_id" class="data_value" style="color: #3182ce;">-</span>
+                            </div>
+                        </div>
+                    </section>
+
+                    <section class="detail_section">
+                        <div class="section_header"><h3>스냅샷 정보 (Freeze)</h3></div>
+                        <div class="section_body" id="list_snapshot">
+                            <!-- Snapshot key values -->
+                        </div>
+                    </section>
+                </div>
+            </div>
+        </main>
+    </div>
+
+    <script src="../../../services/common/session.js"></script>
+    <script src="../../../services/common/app-shell.js"></script>
+    <script type="module">
+        import { payrollService } from '../../../services/hr/payroll/payroll-service.js';
+        import { formatCurrency, getStatusBadgeClass } from '../../../services/common/formatters.js';
+
+        const urlParams = new URLSearchParams(window.location.search);
+        const recordId = urlParams.get('id');
+
+        async function init() {
+            const session = window.ddukSession.requireRole(["ADMIN", "HR", "FINANCE"]);
+            if (!session) return;
+            window.ddukSession.bindShell(session);
+
+            window.ddukAppShell.hydratePage({
+                navItems: [
+                    { href: "../../hr/dashboard.html", label: "인사/회계 메인" },
+                    { href: "../accounting/dashboard.html", label: "회계 관리" },
+                    { href: "./list.html", label: "급여 대장" },
+                    { href: "../accounting/reports.html", label: "회계 리포트" }
+                ]
+            });
+
+            loadDetail();
+        }
+
+        async function loadDetail() {
+            const res = await payrollService.getPayrolls();
+            const record = res.data.find(r => r.id === recordId);
+            if (!record) {
+                alert('급여 정보를 찾을 수 없습니다.');
+                return;
+            }
+
+            renderBasic(record);
+            renderBreakdown(record);
+            renderTrace(record);
+            renderSnapshot(record);
+        }
+
+        function renderBasic(record) {
+            document.getElementById('val_emp_name').textContent = record.employeeName;
+            document.getElementById('val_year_month').textContent = record.yearMonth;
+            document.getElementById('val_net_pay').textContent = formatCurrency(record.amounts.netPay);
+            document.getElementById('val_status').textContent = record.status;
+            document.getElementById('val_status').className = `erp_badge ${getStatusBadgeClass(record.status)}`;
+            document.getElementById('val_revision').textContent = `v${record.revision}`;
+            document.getElementById('val_accounting_id').textContent = record.accountingId || '-';
+        }
+
+        function renderBreakdown(record) {
+            const am = record.amounts;
+            const grossHtml = `
+                <div class="data_row"><span class="data_label">기본급</span><span class="data_value">${formatCurrency(am.baseSalary)}</span></div>
+                <div class="data_row"><span class="data_label">연장수당</span><span class="data_value">${formatCurrency(am.overtimePay)}</span></div>
+                <div class="data_row"><span class="data_label">상여금</span><span class="data_value">${formatCurrency(am.bonus)}</span></div>
+                <div class="data_row"><span class="data_label">식대/수당</span><span class="data_value">${formatCurrency(am.allowance)}</span></div>
+                <div class="data_row" style="margin-top: 12px; padding-top: 12px; border-top: 2px solid #f1f5f9;"><span class="data_label" style="font-weight: 700;">지급액 합계</span><span class="data_value" style="font-size: 1.125rem;">${formatCurrency(am.grossPay)}</span></div>
+            `;
+            document.getElementById('list_gross').innerHTML = grossHtml;
+
+            const dedHtml = `
+                <div class="data_row"><span class="data_label">국민연금</span><span class="data_value negative">-${formatCurrency(am.pension)}</span></div>
+                <div class="data_row"><span class="data_label">건강보험</span><span class="data_value negative">-${formatCurrency(am.health)}</span></div>
+                <div class="data_row"><span class="data_label">고용보험</span><span class="data_value negative">-${formatCurrency(am.employment)}</span></div>
+                <div class="data_row"><span class="data_label">소득세</span><span class="data_value negative">-${formatCurrency(am.incomeTax)}</span></div>
+                <div class="data_row" style="margin-top: 12px; padding-top: 12px; border-top: 2px solid #f1f5f9;"><span class="data_label" style="font-weight: 700;">공제 합계</span><span class="data_value" style="font-size: 1.125rem;">${formatCurrency(am.totalDeductions)}</span></div>
+            `;
+            document.getElementById('list_deductions').innerHTML = dedHtml;
+        }
+
+        function renderTrace(record) {
+            const container = document.getElementById('trace_root');
+            const trace = record.trace || [];
+            
+            container.innerHTML = trace.map((step, idx) => `
+                <div class="trace_step">
+                    <div class="step_icon ${idx === trace.length - 1 ? 'active' : ''}">${idx + 1}</div>
+                    <div class="step_content">
+                        <div class="step_title">${step.step}</div>
+                        <div class="step_data">
+                            ${step.input ? `<div style="margin-bottom: 4px;"><strong>Inputs:</strong> ${JSON.stringify(step.input)}</div>` : ''}
+                            <div><strong>Result:</strong> ${formatCurrency(step.output)}</div>
+                        </div>
+                    </div>
+                </div>
+            `).join('');
+        }
+
+        function renderSnapshot(record) {
+            const snap = record.snapshot;
+            const container = document.getElementById('list_snapshot');
+            container.innerHTML = `
+                <div class="data_row"><span class="data_label">규칙 버전</span><span class="data_value">${snap.rulesVersion}</span></div>
+                <div class="data_row"><span class="data_label">국민연금 요율</span><span class="data_value">${(snap.pensionRate * 100).toFixed(1)}%</span></div>
+                <div class="data_row"><span class="data_label">건강보험 요율</span><span class="data_value">${(snap.healthRate * 100).toFixed(2)}%</span></div>
+                <div class="data_row"><span class="data_label">라운딩 정책</span><span class="data_value">${snap.roundingPolicy}</span></div>
+            `;
+        }
+
+        init();
+    </script>
+</body>
+</html>

@@ -1,0 +1,208 @@
+<!DOCTYPE html>
+<html lang="ko">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>DDUK ERP - 매입/매출 관리</title>
+    <link rel="stylesheet" href="../../../styles/common/app-shell.css">
+    <link rel="stylesheet" href="../../../styles/common/erp-components.css">
+    <link rel="stylesheet" href="../../../styles/hr/accounting.css">
+</head>
+<body>
+    <div class="app-shell">
+        <aside class="app-sidebar">
+            <h1>DDUK ERP</h1>
+            <nav data-nav></nav>
+        </aside>
+        <main class="app-main">
+            <header class="app-header">
+                <div>
+                    <h2 data-page-title>매입/매출 관리</h2>
+                    <p data-page-description>회사의 모든 매입 및 매출 내역을 기록하고 관리합니다.</p>
+                </div>
+                <section class="app-user">
+                    <dl>
+                        <dt>이름</dt>
+                        <dd data-user-name>-</dd>
+                        <dt>아이디</dt>
+                        <dd data-login-id>-</dd>
+                        <dt>권한</dt>
+                        <dd data-role>-</dd>
+                    </dl>
+                    <button type="button" data-action="logout">로그아웃</button>
+                </section>
+            </header>
+
+            <div class="accounting_page_container">
+                <!-- Filter Section -->
+                <section id="filter_root"></section>
+
+                <!-- Table Actions Section -->
+                <div class="table_actions">
+                    <div class="bulk_actions">
+                        <button id="btn_bulk_delete" class="erp_button erp_button_danger" style="display:none;">선택 삭제</button>
+                    </div>
+                    <div class="main_actions">
+                        <button id="btn_new_transaction" class="erp_button erp_button_primary">+ 신규 거래 등록</button>
+                    </div>
+                </div>
+
+                <!-- Table Section -->
+                <section id="table_root" class="erp_table_container"></section>
+
+                <!-- Pagination Section -->
+                <section id="pagination_root" class="pagination_container"></section>
+            </div>
+        </main>
+    </div>
+
+    <!-- Modal Root -->
+    <div id="modal_root"></div>
+
+    <script src="../../../services/common/session.js"></script>
+    <script src="../../../services/common/app-shell.js"></script>
+    <script type="module">
+        import { accountingService } from '../../../services/hr/accounting-service.js';
+        import { TransactionTable } from '../../../components/hr/accounting/TransactionTable.js';
+        import { TransactionFilter } from '../../../components/hr/accounting/TransactionFilter.js';
+        import { TransactionModal } from '../../../components/hr/accounting/TransactionModal.js';
+
+        let currentFilters = {};
+        let selectedIds = [];
+
+        // UI Components
+        const table = new TransactionTable({
+            container: document.getElementById('table_root'),
+            onSort: (key) => handleSort(key),
+            onSelect: (ids) => handleSelect(ids),
+            onEdit: (row) => openModal(row)
+        });
+
+        const filter = new TransactionFilter({
+            container: document.getElementById('filter_root'),
+            onFilter: (filters) => handleFilter(filters),
+            initialFilters: getFiltersFromUrl()
+        });
+
+        const modal = new TransactionModal({
+            container: document.getElementById('modal_root'),
+            onSave: (data) => handleSave(data)
+        });
+
+        // Initialize
+        async function init() {
+            // Check session
+            const session = window.ddukSession.requireRole(["ADMIN", "HR"]);
+            if (!session) return;
+            window.ddukSession.bindShell(session);
+
+            // Hydrate sidebar with active state
+            // Note: Since we are in pages/hr/accounting/transactions.html, 
+            // the relative paths for navItems in dashboard.js might need adjustment or handle it here
+            const navItems = [
+                { href: "../../hr/dashboard.html", label: "인사/회계 메인" },
+                { href: "./transactions.html", label: "매입/매출 관리", current: true },
+                { href: "../../admin/dashboard.html", label: "관리자" },
+                { href: "../../inventory/dashboard.html", label: "재고/발주" }
+            ];
+            window.ddukAppShell.hydratePage({ navItems });
+
+            filter.render();
+            currentFilters = getFiltersFromUrl();
+            loadData();
+        }
+
+        async function loadData() {
+            table.setLoading(true);
+            const response = await accountingService.getTransactions(currentFilters);
+            table.setData(response.data, currentFilters.sortBy, currentFilters.sortOrder);
+            renderPagination(response.pagination);
+            updateUrlFromFilters();
+        }
+
+        function handleFilter(filters) {
+            currentFilters = { ...currentFilters, ...filters, page: 1 };
+            loadData();
+        }
+
+        function handleSort(key) {
+            const order = (currentFilters.sortBy === key && currentFilters.sortOrder === 'asc') ? 'desc' : 'asc';
+            currentFilters.sortBy = key;
+            currentFilters.sortOrder = order;
+            loadData();
+        }
+
+        function handleSelect(ids) {
+            selectedIds = ids;
+            const deleteBtn = document.getElementById('btn_bulk_delete');
+            deleteBtn.style.display = ids.length > 0 ? 'inline-flex' : 'none';
+            deleteBtn.textContent = `선택 삭제 (${ids.length})`;
+        }
+
+        async function handleSave(data) {
+            const result = await accountingService.saveTransaction(data);
+            if (result.success) {
+                alert(result.message);
+                modal.close();
+                loadData();
+            }
+        }
+
+        function openModal(transaction = null) {
+            modal.open(transaction);
+        }
+
+        function renderPagination(pagination) {
+            const root = document.getElementById('pagination_root');
+            let html = `
+                <button class="page_btn" ${pagination.page === 1 ? 'disabled' : ''} onclick="window.goToPage(${pagination.page - 1})">&lt;</button>
+            `;
+            
+            for (let i = 1; i <= pagination.totalPages; i++) {
+                html += `
+                    <button class="page_btn ${pagination.page === i ? 'is_active' : ''}" onclick="window.goToPage(${i})">${i}</button>
+                `;
+            }
+            
+            html += `
+                <button class="page_btn" ${pagination.page === pagination.totalPages ? 'disabled' : ''} onclick="window.goToPage(${pagination.page + 1})">&gt;</button>
+            `;
+            root.innerHTML = html;
+        }
+
+        window.goToPage = (page) => {
+            currentFilters.page = page;
+            loadData();
+        };
+
+        function getFiltersFromUrl() {
+            const params = new URLSearchParams(window.location.search);
+            return Object.fromEntries(params.entries());
+        }
+
+        function updateUrlFromFilters() {
+            const params = new URLSearchParams();
+            Object.entries(currentFilters).forEach(([key, val]) => {
+                if (val) params.set(key, val);
+            });
+            const newUrl = `${window.location.pathname}?${params.toString()}`;
+            window.history.replaceState({}, '', newUrl);
+        }
+
+        // Event Listeners
+        document.getElementById('btn_new_transaction').addEventListener('click', () => openModal());
+        document.getElementById('btn_bulk_delete').addEventListener('click', async () => {
+            if (confirm(`선택한 ${selectedIds.length}건을 삭제하시겠습니까?`)) {
+                const result = await accountingService.deleteTransactions(selectedIds);
+                if (result.success) {
+                    alert(result.message);
+                    selectedIds = [];
+                    loadData();
+                }
+            }
+        });
+
+        init();
+    </script>
+</body>
+</html>

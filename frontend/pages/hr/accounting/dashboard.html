@@ -1,0 +1,154 @@
+<!DOCTYPE html>
+<html lang="ko">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>DDUK ERP - 회계 대시보드</title>
+    <link rel="stylesheet" href="../../../styles/common/app-shell.css">
+    <link rel="stylesheet" href="../../../styles/common/erp-components.css">
+    <style>
+        @keyframes spin { to { transform: rotate(360deg); } }
+        .dashboard_grid {
+            display: grid;
+            grid-template-columns: repeat(12, 1fr);
+            gap: 16px;
+            padding: 24px;
+        }
+        .col_kpi { grid-column: span 2; }
+        .col_trend { grid-column: span 8; }
+        .col_dist { grid-column: span 4; }
+        .col_recent { grid-column: span 7; }
+        .col_vendor { grid-column: span 5; }
+
+        @media (max-width: 1200px) {
+            .col_kpi { grid-column: span 4; }
+            .col_trend { grid-column: span 12; }
+            .col_dist { grid-column: span 12; }
+        }
+        @media (max-width: 768px) {
+            .col_kpi { grid-column: span 6; }
+            .col_recent, .col_vendor { grid-column: span 12; }
+        }
+    </style>
+</head>
+<body>
+    <div class="app-shell">
+        <aside class="app-sidebar">
+            <h1>DDUK ERP</h1>
+            <nav data-nav></nav>
+        </aside>
+        <main class="app-main">
+            <header class="app-header">
+                <div>
+                    <h2 data-page-title>회계 대시보드</h2>
+                    <p data-page-description>실시간 회계 현황과 주요 KPI를 한눈에 파악합니다.</p>
+                </div>
+                <section class="app-user">
+                    <dl>
+                        <dt>이름</dt>
+                        <dd data-user-name>-</dd>
+                        <dt>아이디</dt>
+                        <dd data-login-id>-</dd>
+                        <dt>권한</dt>
+                        <dd data-role>-</dd>
+                    </dl>
+                    <button type="button" data-action="logout">로그아웃</button>
+                </section>
+            </header>
+
+            <div class="dashboard_grid">
+                <!-- KPI Section -->
+                <div id="kpi_sales" class="col_kpi"></div>
+                <div id="kpi_purchase" class="col_kpi"></div>
+                <div id="kpi_profit" class="col_kpi"></div>
+                <div id="kpi_pending" class="col_kpi"></div>
+                <div id="kpi_unsettled" class="col_kpi"></div>
+                <div id="kpi_vat" class="col_kpi"></div>
+
+                <!-- Analysis Section -->
+                <div id="chart_trend" class="col_trend" style="height: 380px;"></div>
+                <div id="chart_dist" class="col_dist" style="height: 380px;">
+                    <!-- Placeholder for distribution or other widget -->
+                    <div class="erp_widget" style="height:100%; background:#f8fafc; border:1px dashed #cbd5e0; border-radius:8px; display:flex; align-items:center; justify-content:center; color:#94a3b8; font-size:0.875rem;">
+                        준비 중인 위젯 (상태 분포)
+                    </div>
+                </div>
+
+                <!-- List Section -->
+                <div id="list_recent" class="col_recent"></div>
+                <div id="list_vendor" class="col_vendor"></div>
+            </div>
+        </main>
+    </div>
+
+    <script src="../../../services/common/session.js"></script>
+    <script src="../../../services/common/app-shell.js"></script>
+    <script type="module">
+        import { dashboardRegistry } from '../../../services/hr/accounting-dashboard-registry.js';
+        import { DashboardKPI } from '../../../components/hr/accounting/DashboardKPI.js';
+        import { DashboardTrend } from '../../../components/hr/accounting/DashboardTrend.js';
+        import { DashboardRecentList } from '../../../components/hr/accounting/DashboardRecentList.js';
+        import { DashboardVendorRank } from '../../../components/hr/accounting/DashboardVendorRank.js';
+
+        // 1. Register Widgets
+        dashboardRegistry.register('KPI', DashboardKPI, { formatter: 'currency' });
+        dashboardRegistry.register('TREND', DashboardTrend, { title: '월별 매출/매입 추이' });
+        dashboardRegistry.register('RECENT', DashboardRecentList, { title: '최근 거래 내역' });
+        dashboardRegistry.register('VENDOR', DashboardVendorRank, { title: '상위 매출 거래처' });
+
+        // 2. Define Layout Configuration
+        const dashboardLayout = [
+            { id: 'kpi_sales', type: 'KPI', config: { title: '이번 달 매출', metric: 'SALES', trend: 12.5 } },
+            { id: 'kpi_purchase', type: 'KPI', config: { title: '이번 달 매입', metric: 'PURCHASE', trend: -5.2 } },
+            { id: 'kpi_profit', type: 'KPI', config: { title: '순이익', metric: 'PROFIT', trend: 8.1 } },
+            { id: 'kpi_pending', type: 'KPI', config: { title: '대기 거래 건수', metric: 'PENDING_COUNT', formatter: 'number' } },
+            { id: 'kpi_unsettled', type: 'KPI', config: { title: '미정산 금액', metric: 'UNSETTLED' } },
+            { id: 'kpi_vat', type: 'KPI', config: { title: '부가세 합계', metric: 'VAT' } },
+            { id: 'chart_trend', type: 'TREND' },
+            { id: 'list_recent', type: 'RECENT' },
+            { id: 'list_vendor', type: 'VENDOR' }
+        ];
+
+        // 3. Initialize Page
+        async function init() {
+            const session = window.ddukSession.requireRole(["ADMIN", "HR"]);
+            if (!session) return;
+            window.ddukSession.bindShell(session);
+
+            window.ddukAppShell.hydratePage({
+                navItems: [
+                    { href: "../../hr/dashboard.html", label: "인사/회계 메인" },
+                    { href: "./dashboard.html", label: "회계 대시보드", current: true },
+                    { href: "./transactions.html", label: "매입/매출 관리" },
+                    { href: "./settlement.html", label: "월별 정산" },
+                    { href: "../../admin/dashboard.html", label: "관리자" },
+                    { href: "../../inventory/dashboard.html", label: "재고/발주" }
+                ]
+            });
+
+            // 4. Create and Initialize Widgets via Registry
+            dashboardRegistry.register('KPI', DashboardKPI, { formatter: 'currency' }); // Re-register with metric specific if needed, or use type mapping
+            
+            // Map type string to class for the registry (simplified mapping here)
+            const typeMap = {
+                'KPI': DashboardKPI,
+                'TREND': DashboardTrend,
+                'RECENT': DashboardRecentList,
+                'VENDOR': DashboardVendorRank
+            };
+
+            // Custom creation logic to match the refined registry needs
+            dashboardLayout.forEach(item => {
+                const widgetClass = typeMap[item.type];
+                const container = document.getElementById(item.id);
+                if (widgetClass && container) {
+                    const instance = new widgetClass(item.id, container, item.config);
+                    instance.init();
+                }
+            });
+        }
+
+        init();
+    </script>
+</body>
+</html>

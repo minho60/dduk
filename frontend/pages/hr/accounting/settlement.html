@@ -1,0 +1,154 @@
+<!DOCTYPE html>
+<html lang="ko">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>DDUK ERP - 월별 정산</title>
+    <link rel="stylesheet" href="../../../styles/common/app-shell.css">
+    <link rel="stylesheet" href="../../../styles/common/erp-components.css">
+    <link rel="stylesheet" href="../../../styles/hr/accounting.css">
+</head>
+<body>
+    <div class="app-shell">
+        <aside class="app-sidebar">
+            <h1>DDUK ERP</h1>
+            <nav data-nav></nav>
+        </aside>
+        <main class="app-main">
+            <header class="app-header">
+                <div>
+                    <h2 data-page-title>월별 정산</h2>
+                    <p data-page-description>매입/매출 데이터를 기반으로 기간별 손익을 집계하고 분석합니다.</p>
+                </div>
+                <section class="app-user">
+                    <dl>
+                        <dt>이름</dt>
+                        <dd data-user-name>-</dd>
+                        <dt>아이디</dt>
+                        <dd data-login-id>-</dd>
+                        <dt>권한</dt>
+                        <dd data-role>-</dd>
+                    </dl>
+                    <button type="button" data-action="logout">로그아웃</button>
+                </section>
+            </header>
+
+            <div class="accounting_page_container">
+                <!-- Settlement Controls -->
+                <section class="erp_filter_container" style="display: flex; gap: 16px; flex-wrap: wrap; margin-bottom: 24px; padding: 20px; background: #fff; border: 1px solid #e2e8f0; border-radius: 8px;">
+                    <div style="display: flex; align-items: center; gap: 8px;">
+                        <label style="font-size: 0.875rem; font-weight: 500;">집계 기간</label>
+                        <input type="date" id="settle_startDate" class="erp_input" style="width: 140px;">
+                        <span>~</span>
+                        <input type="date" id="settle_endDate" class="erp_input" style="width: 140px;">
+                    </div>
+
+                    <div style="display: flex; align-items: center; gap: 8px;">
+                        <label style="font-size: 0.875rem; font-weight: 500;">집계 기준</label>
+                        <select id="settle_groupBy" class="erp_select" style="width: 120px;">
+                            <option value="MONTH">월별</option>
+                            <option value="QUARTER">분기별</option>
+                            <option value="YEAR">연도별</option>
+                            <option value="VENDOR">거래처별</option>
+                        </select>
+                    </div>
+
+                    <div style="display: flex; align-items: center; gap: 8px;">
+                        <label style="font-size: 0.875rem; font-weight: 500;">날짜 기준</label>
+                        <select id="settle_referenceDate" class="erp_select" style="width: 120px;">
+                            <option value="transactionDate">거래일</option>
+                            <option value="createdAt">등록일</option>
+                        </select>
+                    </div>
+
+                    <div style="display: flex; align-items: center; gap: 12px;">
+                        <label style="display: flex; align-items: center; gap: 4px; font-size: 0.875rem; cursor: pointer;">
+                            <input type="checkbox" id="settle_excludeCanceled" checked> 취소 거래 제외
+                        </label>
+                    </div>
+
+                    <div style="display: flex; gap: 8px; margin-left: auto;">
+                        <button id="btn_settle_run" class="erp_button erp_button_primary">정산 실행</button>
+                        <button id="btn_export" class="erp_button erp_button_secondary">Excel 내보내기</button>
+                    </div>
+                </section>
+
+                <!-- Summary Cards -->
+                <section id="summary_root"></section>
+
+                <!-- Chart Section -->
+                <section id="chart_root" style="margin-bottom: 24px;"></section>
+
+                <!-- Table Section -->
+                <div class="erp_table_container" id="table_root"></div>
+            </div>
+        </main>
+    </div>
+
+    <script src="../../../services/common/session.js"></script>
+    <script src="../../../services/common/app-shell.js"></script>
+    <script type="module">
+        import { settlementService } from '../../../services/hr/settlement-service.js';
+        import { normalizeChartData } from '../../../services/hr/settlement-utils.js';
+        import { SettlementSummary } from '../../../components/hr/accounting/SettlementSummary.js';
+        import { SettlementTable } from '../../../components/hr/accounting/SettlementTable.js';
+        import { SettlementChart } from '../../../components/hr/accounting/SettlementChart.js';
+
+        // UI Components
+        const summaryComp = new SettlementSummary({ container: document.getElementById('summary_root') });
+        const tableComp = new SettlementTable({ container: document.getElementById('table_root') });
+        const chartComp = new SettlementChart({ container: document.getElementById('chart_root') });
+
+        // Initialize Page
+        async function init() {
+            const session = window.ddukSession.requireRole(["ADMIN", "HR"]);
+            if (!session) return;
+            window.ddukSession.bindShell(session);
+
+            window.ddukAppShell.hydratePage({
+                navItems: [
+                    { href: "../../hr/dashboard.html", label: "인사/회계 메인" },
+                    { href: "./transactions.html", label: "매입/매출 관리" },
+                    { href: "./settlement.html", label: "월별 정산", current: true },
+                    { href: "../../admin/dashboard.html", label: "관리자" },
+                    { href: "../../inventory/dashboard.html", label: "재고/발주" }
+                ]
+            });
+
+            // Set default date range (this year)
+            const today = new Date();
+            const firstDay = new Date(today.getFullYear(), 0, 1).toISOString().split('T')[0];
+            const lastDay = today.toISOString().split('T')[0];
+            document.getElementById('settle_startDate').value = firstDay;
+            document.getElementById('settle_endDate').value = lastDay;
+
+            loadSettlement();
+        }
+
+        async function loadSettlement() {
+            const options = {
+                startDate: document.getElementById('settle_startDate').value,
+                endDate: document.getElementById('settle_endDate').value,
+                groupBy: document.getElementById('settle_groupBy').value,
+                referenceDate: document.getElementById('settle_referenceDate').value,
+                excludeCanceled: document.getElementById('settle_excludeCanceled').checked
+            };
+
+            const response = await settlementService.getSettlement(options);
+            if (response.success) {
+                summaryComp.render(response.summary);
+                tableComp.render(response.data);
+                chartComp.render(normalizeChartData(response.data));
+            } else {
+                alert(response.message);
+            }
+        }
+
+        // Event Listeners
+        document.getElementById('btn_settle_run').addEventListener('click', loadSettlement);
+        document.getElementById('btn_export').addEventListener('click', () => alert('준비 중인 기능입니다.'));
+
+        init();
+    </script>
+</body>
+</html>

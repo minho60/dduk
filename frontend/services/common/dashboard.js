@@ -37,12 +37,17 @@
                 description: "직원, 근태, 급여, 비용 흐름을 구현하기 위한 시작 페이지",
                 navItems: [
                     { href: "../hr/dashboard.html", label: "인사/회계 메인", current: true },
+                    { href: "../hr/accounting/dashboard.html", label: "회계 대시보드" },
+                    { href: "../hr/accounting/transactions.html", label: "매입/매출 관리" },
+                    { href: "../hr/accounting/settlement.html", label: "월별 정산" },
+                    { href: "../hr/accounting/reports.html", label: "회계 리포트" },
                     { href: "../admin/dashboard.html", label: "관리자" },
                     { href: "../inventory/dashboard.html", label: "재고/발주" }
                 ],
                 cards: [
                     { title: "직원", description: "직원 목록, 등록, 상세 화면 작업 시작" },
                     { title: "근태", description: "출퇴근 기록, 월별 조회, 예외 상태 처리 연결" },
+                    { title: "매입/매출", description: "회사의 모든 거래 내역 기록 및 증빙 관리" },
                     { title: "급여/비용", description: "급여 결과, 비용 승인, 월별 회계 데이터 준비" }
                 ],
                 todoItems: [
