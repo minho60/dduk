@@ -6,7 +6,7 @@ spring:
     driver-class-name: com.mysql.cj.jdbc.Driver
   jpa:
     hibernate:
-      ddl-auto: validate # 처음에만 none, 이후엔 validate
+      ddl-auto: update # 처음에만 none, 이후엔 update
     show-sql: true 
     properties:
       hibernate:
