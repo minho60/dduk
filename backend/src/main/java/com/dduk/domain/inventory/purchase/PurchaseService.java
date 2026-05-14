@@ -1,6 +1,8 @@
 package com.dduk.domain.inventory.purchase;
 
 import com.dduk.domain.accounting.journal.AccountingService;
+import com.dduk.domain.inventory.stock.InventoryService;
+import com.dduk.domain.inventory.stock.MovementReason;
 import lombok.RequiredArgsConstructor;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
@@ -13,6 +15,7 @@ public class PurchaseService {
 
     private final PurchaseOrderRepository purchaseOrderRepository;
     private final AccountingService accountingService;
+    private final InventoryService inventoryService;
 
     public List<PurchaseOrder> getAllOrders() {
         return purchaseOrderRepository.findAll();
@@ -36,10 +39,25 @@ public class PurchaseService {
         // 1. 상태 전이 유효성 검사 (간략화)
         if (currentStatus == nextStatus) return order;
         
-        // 2. 입고 완료 시 회계 전표 생성
+        // 2. 입고 완료 시 재고 증가 및 회계 전표 생성
         if (nextStatus == PurchaseStatus.RECEIVED || nextStatus == PurchaseStatus.COMPLETED) {
-            // 중복 생성 방지는 AccountingService 내부에서 수행됨
-            accountingService.createPurchaseJournal(order);
+            
+            if (currentStatus != PurchaseStatus.RECEIVED && currentStatus != PurchaseStatus.COMPLETED) {
+                // 재고 증가
+                for (PurchaseOrderItem item : order.getItems()) {
+                    inventoryService.increaseStock(
+                            item.getItem().getId(),
+                            order.getWarehouse().getId(),
+                            item.getQuantity(),
+                            MovementReason.PURCHASE_RECEIVED,
+                            "PURCHASE",
+                            order.getPurchaseOrderNo()
+                    );
+                }
+                
+                // 중복 생성 방지는 AccountingService 내부에서 수행됨
+                accountingService.createPurchaseJournal(order);
+            }
         }
 
         order.setStatus(nextStatus);

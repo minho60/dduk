@@ -28,6 +28,10 @@ public class PurchaseOrder {
     @JoinColumn(name = "vendor_id", nullable = false)
     private Vendor vendor;
 
+    @ManyToOne(fetch = FetchType.LAZY)
+    @JoinColumn(name = "warehouse_id", nullable = false)
+    private com.dduk.domain.inventory.warehouse.Warehouse warehouse;
+
     @Enumerated(EnumType.STRING)
     @Column(nullable = false)
     private PurchaseStatus status;
