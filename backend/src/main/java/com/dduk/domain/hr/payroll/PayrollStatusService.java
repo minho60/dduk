@@ -14,6 +14,7 @@ import java.util.Map;
 public class PayrollStatusService {
 
     private final PayrollRepository payrollRepository;
+    private final com.dduk.domain.accounting.journal.AccountingService accountingService;
 
     private static final Map<String, List<String>> VALID_TRANSITIONS = new HashMap<>();
 
@@ -29,16 +30,27 @@ public class PayrollStatusService {
         VALID_TRANSITIONS.put("CANCELLED", Arrays.asList());
     }
 
-    @Transactional
+    @Transactional(rollbackFor = Exception.class)
     public Payroll transition(Long payrollId, String nextStatus, String userId, String reason) {
         Payroll payroll = payrollRepository.findById(payrollId)
                 .orElseThrow(() -> new RuntimeException("Payroll record not found"));
 
         String currentStatus = payroll.getStatus();
+        
+        // 1. 이미 POSTED인 경우 중복 처리 방지
+        if ("POSTED".equals(currentStatus) && "POSTED".equals(nextStatus)) {
+            return payroll;
+        }
+
         List<String> allowed = VALID_TRANSITIONS.getOrDefault(currentStatus, Arrays.asList());
 
         if (!allowed.contains(nextStatus)) {
             throw new RuntimeException("Invalid transition: " + currentStatus + " -> " + nextStatus);
+        }
+
+        // 2. POSTED 전환 시 회계 전표 생성 (트랜잭션 내 포함)
+        if ("POSTED".equals(nextStatus)) {
+            accountingService.createPayrollJournal(payroll);
         }
 
         payroll.setStatus(nextStatus);

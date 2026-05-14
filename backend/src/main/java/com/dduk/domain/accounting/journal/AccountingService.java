@@ -1,13 +1,16 @@
 package com.dduk.domain.accounting.journal;
 
+import com.dduk.domain.accounting.AccountingConstants;
 import com.dduk.domain.accounting.ledger.Account;
 import com.dduk.domain.accounting.ledger.AccountRepository;
+import com.dduk.domain.hr.payroll.Payroll;
 import lombok.RequiredArgsConstructor;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
 import java.math.BigDecimal;
 import java.time.LocalDate;
+import java.util.ArrayList;
 import java.util.List;
 import java.util.Map;
 
@@ -19,7 +22,7 @@ public class AccountingService {
     private final AccountRepository accountRepository;
 
     @Transactional(rollbackFor = Exception.class)
-    public JournalEntry createAndPost(LocalDate date, String description, List<Map<String, Object>> items) {
+    public JournalEntry createAndPost(LocalDate date, String description, List<Map<String, Object>> items, String sourceType, Long sourceId) {
         if (items == null || items.isEmpty()) {
             throw new RuntimeException("분개 항목이 비어 있습니다.");
         }
@@ -37,7 +40,9 @@ public class AccountingService {
                 .journalNo("JRN-" + System.currentTimeMillis())
                 .transactionDate(date)
                 .description(description)
-                .status("POSTED")
+                .status(AccountingConstants.JOURNAL_STATUS_POSTED)
+                .sourceType(sourceType)
+                .sourceId(sourceId)
                 .build();
 
         for (Map<String, Object> itemData : items) {
@@ -56,14 +61,14 @@ public class AccountingService {
 
             entry.addItem(item);
 
-            if ("DEBIT".equals(side)) {
+            if (AccountingConstants.SIDE_DEBIT.equals(side)) {
                 debitSum = debitSum.add(amount);
-            } else if ("CREDIT".equals(side)) {
+            } else if (AccountingConstants.SIDE_CREDIT.equals(side)) {
                 creditSum = creditSum.add(amount);
             }
         }
 
-        // 2. Double Entry Validation (Double Check)
+        // 2. Double Entry Validation
         if (debitSum.compareTo(BigDecimal.ZERO) == 0 || creditSum.compareTo(BigDecimal.ZERO) == 0) {
              throw new RuntimeException("금액은 0보다 커야 합니다.");
         }
@@ -73,5 +78,58 @@ public class AccountingService {
         }
 
         return journalEntryRepository.save(entry);
+    }
+
+    /**
+     * 급여 정보를 바탕으로 회계 전표 생성
+     */
+    @Transactional(rollbackFor = Exception.class)
+    public JournalEntry createPayrollJournal(Payroll payroll) {
+        // 중복 전표 체크 (Source 기반)
+        if (journalEntryRepository.existsBySourceTypeAndSourceId(AccountingConstants.SOURCE_PAYROLL, payroll.getId())) {
+             throw new RuntimeException("이미 해당 급여에 대한 회계 전표가 존재합니다.");
+        }
+
+        String description = String.format("%s 급여 확정 반영 (사번: %s)", 
+            payroll.getPayMonth(), payroll.getEmployee().getEmployeeNo());
+        
+        List<Map<String, Object>> items = new ArrayList<>();
+        items.add(Map.of("accountCode", AccountingConstants.PAYROLL_EXPENSE, "amount", payroll.getBaseSalary().add(payroll.getAllowanceAmount()), "side", AccountingConstants.SIDE_DEBIT));
+        items.add(Map.of("accountCode", AccountingConstants.WITHHOLDING_PAYABLE, "amount", payroll.getDeductionAmount(), "side", AccountingConstants.SIDE_CREDIT));
+        items.add(Map.of("accountCode", AccountingConstants.SALARY_PAYABLE, "amount", payroll.getNetSalary(), "side", AccountingConstants.SIDE_CREDIT));
+
+        return createAndPost(LocalDate.now(), description, items, AccountingConstants.SOURCE_PAYROLL, payroll.getId());
+    }
+
+    /**
+     * 매입 발주 정보를 바탕으로 회계 전표 생성
+     */
+    @Transactional(rollbackFor = Exception.class)
+    public JournalEntry createPurchaseJournal(com.dduk.domain.inventory.purchase.PurchaseOrder order) {
+        // 중복 전표 체크
+        if (journalEntryRepository.existsBySourceTypeAndSourceId(AccountingConstants.SOURCE_PURCHASE, order.getId())) {
+             throw new RuntimeException("이미 해당 발주에 대한 회계 전표가 존재합니다.");
+        }
+
+        String description = String.format("%s 매입 확정 (%s)", 
+            order.getPurchaseOrderNo(), order.getVendor().getName());
+
+        List<Map<String, Object>> items = new ArrayList<>();
+        
+        // 차변: 재고자산
+        items.add(Map.of(
+            "accountCode", AccountingConstants.INVENTORY_ASSET,
+            "amount", order.getTotalAmount(),
+            "side", AccountingConstants.SIDE_DEBIT
+        ));
+
+        // 대변: 외상매입금
+        items.add(Map.of(
+            "accountCode", AccountingConstants.ACCOUNTS_PAYABLE,
+            "amount", order.getTotalAmount(),
+            "side", AccountingConstants.SIDE_CREDIT
+        ));
+
+        return createAndPost(order.getOrderDate(), description, items, AccountingConstants.SOURCE_PURCHASE, order.getId());
     }
 }

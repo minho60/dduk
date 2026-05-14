@@ -31,6 +31,12 @@ public class JournalEntry {
     @Column(nullable = false)
     private String status; // DRAFT, POSTED, CANCELLED
 
+    @Column(name = "source_type")
+    private String sourceType;
+
+    @Column(name = "source_id")
+    private Long sourceId;
+
     @OneToMany(mappedBy = "journalEntry", cascade = CascadeType.ALL, orphanRemoval = true)
     @Builder.Default
     private List<JournalItem> items = new ArrayList<>();

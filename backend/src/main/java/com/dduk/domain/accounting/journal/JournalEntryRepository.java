@@ -5,4 +5,6 @@ import org.springframework.stereotype.Repository;
 
 @Repository
 public interface JournalEntryRepository extends JpaRepository<JournalEntry, Long> {
+    boolean existsByDescription(String description);
+    boolean existsBySourceTypeAndSourceId(String sourceType, Long sourceId);
 }

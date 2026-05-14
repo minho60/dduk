@@ -1,0 +1,48 @@
+package com.dduk.domain.inventory.purchase;
+
+import com.dduk.domain.accounting.journal.AccountingService;
+import lombok.RequiredArgsConstructor;
+import org.springframework.stereotype.Service;
+import org.springframework.transaction.annotation.Transactional;
+
+import java.util.List;
+
+@Service
+@RequiredArgsConstructor
+public class PurchaseService {
+
+    private final PurchaseOrderRepository purchaseOrderRepository;
+    private final AccountingService accountingService;
+
+    public List<PurchaseOrder> getAllOrders() {
+        return purchaseOrderRepository.findAll();
+    }
+
+    public PurchaseOrder getOrder(Long id) {
+        return purchaseOrderRepository.findById(id)
+                .orElseThrow(() -> new RuntimeException("Purchase Order not found"));
+    }
+
+    @Transactional
+    public PurchaseOrder createOrder(PurchaseOrder order) {
+        return purchaseOrderRepository.save(order);
+    }
+
+    @Transactional(rollbackFor = Exception.class)
+    public PurchaseOrder transitionStatus(Long id, PurchaseStatus nextStatus) {
+        PurchaseOrder order = getOrder(id);
+        PurchaseStatus currentStatus = order.getStatus();
+
+        // 1. 상태 전이 유효성 검사 (간략화)
+        if (currentStatus == nextStatus) return order;
+        
+        // 2. 입고 완료 시 회계 전표 생성
+        if (nextStatus == PurchaseStatus.RECEIVED || nextStatus == PurchaseStatus.COMPLETED) {
+            // 중복 생성 방지는 AccountingService 내부에서 수행됨
+            accountingService.createPurchaseJournal(order);
+        }
+
+        order.setStatus(nextStatus);
+        return purchaseOrderRepository.save(order);
+    }
+}

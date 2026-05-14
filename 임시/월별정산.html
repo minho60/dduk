@@ -1,0 +1,949 @@
+<!doctype html>
+<html lang="ko" class="h-full">
+ <head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>DDUK ERP - 월별 정산</title>
+  <script src="/_sdk/element_sdk.js"></script>
+  <script src="https://cdn.jsdelivr.net/npm/lucide@0.263.0/dist/umd/lucide.min.js"></script>
+  <link href="https://fonts.googleapis.com/css2?family=Noto+Sans+KR:wght@300;400;500;600;700&amp;display=swap" rel="stylesheet">
+  <style>
+:root {
+  --primary: #6366f1;
+  --primary_soft: #eef2ff;
+  --primary_medium: #c7d2fe;
+  --border: #e5e7eb;
+  --bg: #f5f7fb;
+  --bg_gradient_top: #f8faff;
+  --bg_gradient_bottom: #f0f3f9;
+  --surface: #ffffff;
+  --text_primary: #111827;
+  --text_secondary: #6b7280;
+  --text_tertiary: #9ca3af;
+  --success: #10b981;
+  --success_soft: #ecfdf5;
+  --warning: #f59e0b;
+  --warning_soft: #fffbeb;
+  --danger: #ef4444;
+  --danger_soft: #fef2f2;
+  --info: #3b82f6;
+  --info_soft: #eff6ff;
+  --sidebar_w: 240px;
+  --topbar_h: 56px;
+  --glass_bg: rgba(255,255,255,0.72);
+  --glass_border: rgba(255,255,255,0.5);
+  --glass_blur: 16px;
+  --shadow_sm: 0 1px 2px rgba(0,0,0,0.04);
+  --shadow_md: 0 2px 8px rgba(0,0,0,0.06);
+  --shadow_lg: 0 4px 16px rgba(0,0,0,0.08);
+  --radius_sm: 6px;
+  --radius_md: 10px;
+  --radius_lg: 14px;
+}
+*, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
+html, body { height: 100%; }
+body {
+  font-family: 'Noto Sans KR', -apple-system, sans-serif;
+  background: linear-gradient(180deg, var(--bg_gradient_top) 0%, var(--bg_gradient_bottom) 100%);
+  color: var(--text_primary);
+  font-size: 0.875rem;
+  line-height: 1.5;
+  overflow: hidden;
+}
+
+/* Sidebar */
+.sidebar {
+  position: fixed; left: 0; top: 0; bottom: 0;
+  width: var(--sidebar_w);
+  background: var(--glass_bg);
+  backdrop-filter: blur(var(--glass_blur));
+  -webkit-backdrop-filter: blur(var(--glass_blur));
+  border-right: 1px solid var(--glass_border);
+  z-index: 100;
+  display: flex; flex-direction: column;
+  transition: transform 0.25s ease;
+}
+.sidebar_logo {
+  padding: 16px 20px;
+  display: flex; align-items: center; gap: 10px;
+  border-bottom: 1px solid var(--border);
+}
+.sidebar_logo_icon {
+  width: 32px; height: 32px; border-radius: 8px;
+  background: var(--primary);
+  display: flex; align-items: center; justify-content: center;
+  color: #fff; font-weight: 700; font-size: 0.8rem;
+}
+.sidebar_logo_text { font-weight: 700; font-size: 1rem; color: var(--text_primary); }
+.sidebar_logo_sub { font-size: 0.65rem; color: var(--text_tertiary); font-weight: 400; }
+.sidebar_nav { flex: 1; padding: 12px 10px; overflow-y: auto; }
+.sidebar_section_label {
+  font-size: 0.65rem; font-weight: 600; color: var(--text_tertiary);
+  text-transform: uppercase; letter-spacing: 0.05em;
+  padding: 12px 10px 6px;
+}
+.sidebar_item {
+  display: flex; align-items: center; gap: 10px;
+  padding: 9px 12px; border-radius: var(--radius_sm);
+  color: var(--text_secondary); cursor: pointer;
+  font-size: 0.8125rem; font-weight: 400;
+  transition: all 0.15s ease; text-decoration: none;
+}
+.sidebar_item:hover { background: rgba(99,102,241,0.06); color: var(--text_primary); }
+.sidebar_item.active {
+  background: var(--primary_soft); color: var(--primary); font-weight: 500;
+}
+.sidebar_item i { width: 18px; height: 18px; flex-shrink: 0; }
+.sidebar_badge {
+  margin-left: auto; background: var(--danger); color: #fff;
+  font-size: 0.625rem; font-weight: 600; padding: 1px 6px;
+  border-radius: 10px;
+}
+.sidebar_footer {
+  padding: 14px 20px; border-top: 1px solid var(--border);
+  display: flex; align-items: center; gap: 10px;
+}
+.sidebar_avatar {
+  width: 30px; height: 30px; border-radius: 50%;
+  background: var(--primary_medium); display: flex; align-items: center; justify-content: center;
+  color: var(--primary); font-weight: 600; font-size: 0.7rem;
+}
+.sidebar_user_name { font-size: 0.75rem; font-weight: 500; }
+.sidebar_user_role { font-size: 0.625rem; color: var(--text_tertiary); }
+
+/* Main */
+.main_area {
+  margin-left: var(--sidebar_w);
+  height: 100%; display: flex; flex-direction: column;
+  overflow: hidden;
+}
+
+/* Topbar */
+.topbar {
+  height: var(--topbar_h); flex-shrink: 0;
+  background: var(--glass_bg);
+  backdrop-filter: blur(var(--glass_blur));
+  -webkit-backdrop-filter: blur(var(--glass_blur));
+  border-bottom: 1px solid var(--border);
+  display: flex; align-items: center; justify-content: space-between;
+  padding: 0 24px;
+}
+.topbar_left { display: flex; align-items: center; gap: 12px; }
+.topbar_burger { display: none; background: none; border: none; cursor: pointer; color: var(--text_secondary); }
+.topbar_breadcrumb { display: flex; align-items: center; gap: 6px; font-size: 0.75rem; color: var(--text_tertiary); }
+.topbar_breadcrumb span { color: var(--text_primary); font-weight: 500; }
+.topbar_right { display: flex; align-items: center; gap: 16px; }
+.topbar_search {
+  display: flex; align-items: center; gap: 6px;
+  background: var(--bg); border: 1px solid var(--border); border-radius: var(--radius_sm);
+  padding: 6px 12px; font-size: 0.75rem; color: var(--text_tertiary); cursor: pointer;
+}
+.topbar_search kbd {
+  background: var(--surface); border: 1px solid var(--border); border-radius: 3px;
+  padding: 0 4px; font-size: 0.625rem; font-family: inherit;
+}
+.topbar_icon_btn {
+  position: relative; background: none; border: none; cursor: pointer;
+  color: var(--text_secondary); padding: 4px;
+}
+.topbar_icon_btn i { width: 18px; height: 18px; }
+.topbar_dot {
+  position: absolute; top: 2px; right: 2px;
+  width: 6px; height: 6px; border-radius: 50%;
+  background: var(--danger); border: 1.5px solid var(--surface);
+}
+
+/* Content */
+.content_scroll {
+  flex: 1; overflow-y: auto; padding: 24px;
+}
+
+/* Page Header */
+.page_header {
+  display: flex; align-items: center; justify-content: space-between;
+  margin-bottom: 24px; flex-wrap: wrap; gap: 12px;
+}
+.page_header_left {}
+.page_title { font-size: 1.35rem; font-weight: 700; color: var(--text_primary); }
+.page_subtitle { font-size: 0.8rem; color: var(--text_secondary); margin-top: 2px; }
+.page_header_actions { display: flex; gap: 8px; flex-wrap: wrap; }
+.btn {
+  display: inline-flex; align-items: center; gap: 6px;
+  padding: 8px 16px; border-radius: var(--radius_sm);
+  font-size: 0.8rem; font-weight: 500; cursor: pointer;
+  border: 1px solid var(--border); background: var(--surface); color: var(--text_primary);
+  transition: all 0.15s ease; font-family: inherit; white-space: nowrap;
+}
+.btn:hover { border-color: var(--text_tertiary); }
+.btn i { width: 15px; height: 15px; }
+.btn_primary { background: var(--primary); color: #fff; border-color: var(--primary); }
+.btn_primary:hover { background: #5558e6; }
+
+/* KPI Grid */
+.kpi_grid {
+  display: grid;
+  grid-template-columns: repeat(6, 1fr);
+  gap: 14px; margin-bottom: 24px;
+}
+.kpi_card {
+  background: var(--surface);
+  border: 1px solid var(--border);
+  border-radius: var(--radius_md);
+  padding: 16px 18px;
+  box-shadow: var(--shadow_sm);
+  position: relative; overflow: hidden;
+}
+.kpi_card::after {
+  content: ''; position: absolute; top: 0; left: 0; right: 0; height: 2.5px;
+}
+.kpi_card:nth-child(1)::after { background: var(--primary); }
+.kpi_card:nth-child(2)::after { background: var(--warning); }
+.kpi_card:nth-child(3)::after { background: var(--success); }
+.kpi_card:nth-child(4)::after { background: var(--info); }
+.kpi_card:nth-child(5)::after { background: var(--text_secondary); }
+.kpi_card:nth-child(6)::after { background: var(--primary); }
+.kpi_label { font-size: 0.7rem; color: var(--text_tertiary); font-weight: 500; margin-bottom: 8px; }
+.kpi_amount { font-size: 1.2rem; font-weight: 700; color: var(--text_primary); margin-bottom: 4px; }
+.kpi_trend { display: flex; align-items: center; gap: 4px; font-size: 0.675rem; font-weight: 500; }
+.kpi_trend.up { color: var(--success); }
+.kpi_trend.down { color: var(--danger); }
+.kpi_indicator {
+  display: inline-block; width: 6px; height: 6px; border-radius: 50%;
+  margin-left: auto;
+}
+
+/* Main Grid */
+.main_grid {
+  display: grid; grid-template-columns: 1fr 340px; gap: 20px; margin-bottom: 24px;
+}
+
+/* Calendar */
+.card {
+  background: var(--surface); border: 1px solid var(--border);
+  border-radius: var(--radius_md); box-shadow: var(--shadow_sm);
+}
+.card_header {
+  padding: 14px 18px; border-bottom: 1px solid var(--border);
+  display: flex; align-items: center; justify-content: space-between;
+}
+.card_title { font-size: 0.85rem; font-weight: 600; color: var(--text_primary); }
+.card_body { padding: 16px 18px; }
+
+.cal_nav { display: flex; align-items: center; gap: 8px; }
+.cal_nav_btn {
+  background: none; border: 1px solid var(--border); border-radius: var(--radius_sm);
+  width: 28px; height: 28px; display: flex; align-items: center; justify-content: center;
+  cursor: pointer; color: var(--text_secondary);
+}
+.cal_nav_btn:hover { border-color: var(--primary); color: var(--primary); }
+.cal_grid { display: grid; grid-template-columns: repeat(7,1fr); gap: 2px; }
+.cal_day_head {
+  text-align: center; font-size: 0.65rem; font-weight: 600;
+  color: var(--text_tertiary); padding: 6px 0;
+}
+.cal_cell {
+  aspect-ratio: 1; border-radius: var(--radius_sm);
+  display: flex; flex-direction: column; align-items: center; justify-content: center;
+  font-size: 0.75rem; cursor: pointer; position: relative;
+  transition: background 0.12s ease; gap: 3px;
+}
+.cal_cell:hover { background: var(--bg); }
+.cal_cell.other_month { color: var(--text_tertiary); opacity: 0.4; }
+.cal_cell.today { background: var(--primary_soft); font-weight: 600; color: var(--primary); }
+.cal_dots { display: flex; gap: 2px; }
+.cal_dot {
+  width: 4px; height: 4px; border-radius: 50%;
+}
+.cal_dot.paid { background: var(--success); }
+.cal_dot.pending { background: var(--warning); }
+.cal_dot.delayed { background: var(--danger); }
+.cal_dot.auto { background: var(--info); }
+
+/* Right Summary */
+.summary_stack { display: flex; flex-direction: column; gap: 14px; }
+.stat_item {
+  display: flex; align-items: center; justify-content: space-between;
+  padding: 10px 0; border-bottom: 1px solid var(--border);
+}
+.stat_item:last-child { border-bottom: none; }
+.stat_label { font-size: 0.75rem; color: var(--text_secondary); }
+.stat_value { font-size: 0.85rem; font-weight: 600; }
+
+.progress_bar_bg {
+  height: 6px; background: var(--bg); border-radius: 3px; overflow: hidden;
+  margin-top: 8px;
+}
+.progress_bar_fill {
+  height: 100%; border-radius: 3px; transition: width 0.5s ease;
+}
+
+.vendor_row {
+  display: flex; align-items: center; gap: 10px; padding: 8px 0;
+  border-bottom: 1px solid var(--border);
+}
+.vendor_row:last-child { border-bottom: none; }
+.vendor_icon {
+  width: 28px; height: 28px; border-radius: 6px;
+  display: flex; align-items: center; justify-content: center;
+  font-size: 0.65rem; font-weight: 700; color: #fff; flex-shrink: 0;
+}
+.vendor_name { font-size: 0.75rem; font-weight: 500; flex: 1; }
+.vendor_amount { font-size: 0.75rem; font-weight: 600; }
+
+/* Table */
+.table_wrapper {
+  overflow-x: auto; margin-bottom: 24px;
+}
+.settle_table {
+  width: 100%; border-collapse: collapse; font-size: 0.78rem;
+}
+.settle_table thead th {
+  text-align: left; padding: 10px 14px;
+  font-size: 0.68rem; font-weight: 600; color: var(--text_tertiary);
+  text-transform: uppercase; letter-spacing: 0.03em;
+  border-bottom: 1px solid var(--border); background: var(--bg);
+  white-space: nowrap;
+}
+.settle_table tbody tr {
+  border-bottom: 1px solid var(--border); cursor: pointer;
+  transition: background 0.1s ease;
+}
+.settle_table tbody tr:hover { background: rgba(99,102,241,0.02); }
+.settle_table tbody tr.selected { background: var(--primary_soft); }
+.settle_table tbody td {
+  padding: 12px 14px; white-space: nowrap;
+}
+.status_badge {
+  display: inline-flex; align-items: center; gap: 4px;
+  padding: 3px 10px; border-radius: 12px;
+  font-size: 0.68rem; font-weight: 500;
+}
+.status_badge.paid { background: var(--success_soft); color: var(--success); }
+.status_badge.processing { background: var(--primary_soft); color: var(--primary); }
+.status_badge.waiting { background: var(--warning_soft); color: var(--warning); }
+.status_badge.delayed { background: var(--danger_soft); color: var(--danger); }
+.status_badge.auto { background: var(--info_soft); color: var(--info); }
+.status_dot {
+  width: 5px; height: 5px; border-radius: 50%; background: currentColor;
+}
+
+/* Detail Panel */
+.detail_overlay {
+  position: fixed; top: 0; right: 0; bottom: 0;
+  width: 420px; background: var(--surface);
+  border-left: 1px solid var(--border);
+  box-shadow: -4px 0 24px rgba(0,0,0,0.08);
+  z-index: 200; transform: translateX(100%);
+  transition: transform 0.25s ease;
+  display: flex; flex-direction: column;
+}
+.detail_overlay.open { transform: translateX(0); }
+.detail_header {
+  padding: 16px 20px; border-bottom: 1px solid var(--border);
+  display: flex; align-items: center; justify-content: space-between;
+}
+.detail_close {
+  background: none; border: none; cursor: pointer; color: var(--text_tertiary);
+  padding: 4px;
+}
+.detail_close:hover { color: var(--text_primary); }
+.detail_body { flex: 1; overflow-y: auto; padding: 20px; }
+.detail_section { margin-bottom: 20px; }
+.detail_section_title {
+  font-size: 0.7rem; font-weight: 600; color: var(--text_tertiary);
+  text-transform: uppercase; letter-spacing: 0.04em; margin-bottom: 10px;
+}
+.detail_row {
+  display: flex; justify-content: space-between; padding: 7px 0;
+  font-size: 0.78rem;
+}
+.detail_row_label { color: var(--text_secondary); }
+.detail_row_value { font-weight: 500; text-align: right; }
+.detail_timeline_item {
+  display: flex; gap: 10px; padding: 8px 0; font-size: 0.75rem;
+}
+.detail_timeline_dot {
+  width: 8px; height: 8px; border-radius: 50%;
+  margin-top: 4px; flex-shrink: 0;
+}
+.detail_timeline_time { color: var(--text_tertiary); font-size: 0.68rem; }
+.detail_footer {
+  padding: 14px 20px; border-top: 1px solid var(--border);
+  display: flex; gap: 8px;
+}
+
+/* Activity */
+.activity_grid { display: grid; grid-template-columns: 1fr 1fr; gap: 20px; }
+.activity_item {
+  display: flex; gap: 10px; padding: 10px 0;
+  border-bottom: 1px solid var(--border);
+}
+.activity_item:last-child { border-bottom: none; }
+.activity_icon_wrap {
+  width: 30px; height: 30px; border-radius: var(--radius_sm);
+  display: flex; align-items: center; justify-content: center; flex-shrink: 0;
+}
+.activity_icon_wrap i { width: 14px; height: 14px; }
+.activity_text { font-size: 0.75rem; color: var(--text_secondary); }
+.activity_text strong { color: var(--text_primary); font-weight: 500; }
+.activity_time { font-size: 0.65rem; color: var(--text_tertiary); margin-top: 2px; }
+
+/* Chart placeholder */
+.mini_chart {
+  height: 120px; display: flex; align-items: flex-end; gap: 6px; padding-top: 10px;
+}
+.mini_bar {
+  flex: 1; border-radius: 3px 3px 0 0;
+  transition: height 0.4s ease; cursor: pointer; position: relative;
+}
+.mini_bar:hover { opacity: 0.8; }
+.mini_bar_tooltip {
+  display: none; position: absolute; top: -28px; left: 50%; transform: translateX(-50%);
+  background: var(--text_primary); color: #fff; font-size: 0.6rem; padding: 3px 6px;
+  border-radius: 4px; white-space: nowrap;
+}
+.mini_bar:hover .mini_bar_tooltip { display: block; }
+
+/* Backdrop */
+.panel_backdrop {
+  position: fixed; inset: 0; background: rgba(0,0,0,0.15);
+  z-index: 190; opacity: 0; pointer-events: none;
+  transition: opacity 0.2s ease;
+}
+.panel_backdrop.show { opacity: 1; pointer-events: auto; }
+
+/* Mobile overlay */
+.sidebar_backdrop {
+  position: fixed; inset: 0; background: rgba(0,0,0,0.3);
+  z-index: 90; opacity: 0; pointer-events: none; transition: opacity 0.2s;
+}
+.sidebar_backdrop.show { opacity: 1; pointer-events: auto; }
+
+/* Responsive */
+@media (max-width: 1200px) {
+  .kpi_grid { grid-template-columns: repeat(3, 1fr); }
+}
+@media (max-width: 1024px) {
+  .main_grid { grid-template-columns: 1fr; }
+  .activity_grid { grid-template-columns: 1fr; }
+}
+@media (max-width: 768px) {
+  .sidebar { transform: translateX(-100%); }
+  .sidebar.mobile_open { transform: translateX(0); }
+  .main_area { margin-left: 0; }
+  .topbar_burger { display: flex; }
+  .kpi_grid { grid-template-columns: repeat(2, 1fr); }
+  .detail_overlay { width: 100%; }
+  .topbar_search { display: none; }
+}
+@media (max-width: 576px) {
+  .kpi_grid { grid-template-columns: 1fr; }
+  .page_header { flex-direction: column; align-items: flex-start; }
+  .content_scroll { padding: 16px; }
+}
+</style>
+  <style>body { box-sizing: border-box; }</style>
+  <script src="https://cdn.tailwindcss.com/3.4.17" type="text/javascript"></script>
+  <script src="/_sdk/data_sdk.js" type="text/javascript"></script>
+ </head>
+ <body class="h-full"><!-- Sidebar -->
+  <aside class="sidebar" id="sidebar">
+   <div class="sidebar_logo">
+    <div class="sidebar_logo_icon">
+     D
+    </div>
+    <div>
+     <div class="sidebar_logo_text" id="company_display">
+      DDUK ERP
+     </div>
+     <div class="sidebar_logo_sub">
+      Enterprise Resource Planning
+     </div>
+    </div>
+   </div>
+   <nav class="sidebar_nav">
+    <div class="sidebar_section_label">
+     메인
+    </div><a class="sidebar_item" href="#"><i data-lucide="layout-dashboard"></i> 대시보드</a> <a class="sidebar_item" href="#"><i data-lucide="shopping-bag"></i> 주문 관리</a> <a class="sidebar_item" href="#"><i data-lucide="package"></i> 재고 관리</a>
+    <div class="sidebar_section_label">
+     재무
+    </div><a class="sidebar_item active" href="#"><i data-lucide="wallet"></i> 월별 정산 <span class="sidebar_badge">3</span></a> <a class="sidebar_item" href="#"><i data-lucide="receipt"></i> 세금계산서</a> <a class="sidebar_item" href="#"><i data-lucide="trending-up"></i> 매출 분석</a> <a class="sidebar_item" href="#"><i data-lucide="landmark"></i> 계좌 관리</a>
+    <div class="sidebar_section_label">
+     관리
+    </div><a class="sidebar_item" href="#"><i data-lucide="users"></i> 거래처 관리</a> <a class="sidebar_item" href="#"><i data-lucide="file-text"></i> 문서 관리</a> <a class="sidebar_item" href="#"><i data-lucide="settings"></i> 설정</a>
+   </nav>
+   <div class="sidebar_footer">
+    <div class="sidebar_avatar">
+     김
+    </div>
+    <div>
+     <div class="sidebar_user_name">
+      김재무
+     </div>
+     <div class="sidebar_user_role">
+      재무팀 · 매니저
+     </div>
+    </div>
+   </div>
+  </aside>
+  <div class="sidebar_backdrop" id="sidebarBackdrop"></div><!-- Main -->
+  <div class="main_area"><!-- Topbar -->
+   <header class="topbar">
+    <div class="topbar_left"><button class="topbar_burger" id="burgerBtn"><i data-lucide="menu" style="width:20px;height:20px;"></i></button>
+     <div class="topbar_breadcrumb">
+      재무 <i data-lucide="chevron-right" style="width:12px;height:12px;"></i> <span id="breadcrumb_title">월별 정산</span>
+     </div>
+    </div>
+    <div class="topbar_right">
+     <div class="topbar_search">
+      <i data-lucide="search" style="width:14px;height:14px;"></i> 검색 <kbd>⌘K</kbd>
+     </div><button class="topbar_icon_btn"><i data-lucide="bell"></i><span class="topbar_dot"></span></button> <button class="topbar_icon_btn"><i data-lucide="help-circle"></i></button>
+    </div>
+   </header><!-- Scroll Content -->
+   <div class="content_scroll"><!-- Page Header -->
+    <div class="page_header">
+     <div class="page_header_left">
+      <h1 class="page_title" id="pageTitle">월별 정산</h1>
+      <p class="page_subtitle">2025년 7월 정산 현황 · 마지막 업데이트 10분 전</p>
+     </div>
+     <div class="page_header_actions"><button class="btn"><i data-lucide="download"></i> 내보내기</button> <button class="btn"><i data-lucide="filter"></i> 필터</button> <button class="btn btn_primary"><i data-lucide="plus"></i> 정산 생성</button>
+     </div>
+    </div><!-- KPI -->
+    <div class="kpi_grid" id="kpiGrid"></div><!-- Main Grid -->
+    <div class="main_grid"><!-- Calendar -->
+     <div class="card">
+      <div class="card_header">
+       <div class="card_title">
+        정산 캘린더
+       </div>
+       <div class="cal_nav"><button class="cal_nav_btn" id="calPrev"><i data-lucide="chevron-left" style="width:14px;height:14px;"></i></button> <span id="calMonth" style="font-size:0.8rem;font-weight:600;min-width:100px;text-align:center;">2025년 7월</span> <button class="cal_nav_btn" id="calNext"><i data-lucide="chevron-right" style="width:14px;height:14px;"></i></button>
+       </div>
+      </div>
+      <div class="card_body">
+       <div class="cal_grid" id="calGrid"></div>
+       <div style="display:flex;gap:14px;margin-top:12px;flex-wrap:wrap;"><span style="display:flex;align-items:center;gap:4px;font-size:0.65rem;color:var(--text_tertiary);"><span class="cal_dot paid" style="display:inline-block;"></span> 지급완료</span> <span style="display:flex;align-items:center;gap:4px;font-size:0.65rem;color:var(--text_tertiary);"><span class="cal_dot pending" style="display:inline-block;"></span> 승인대기</span> <span style="display:flex;align-items:center;gap:4px;font-size:0.65rem;color:var(--text_tertiary);"><span class="cal_dot delayed" style="display:inline-block;"></span> 지연</span> <span style="display:flex;align-items:center;gap:4px;font-size:0.65rem;color:var(--text_tertiary);"><span class="cal_dot auto" style="display:inline-block;"></span> 자동정산</span>
+       </div>
+      </div>
+     </div><!-- Right Summary -->
+     <div class="summary_stack">
+      <div class="card">
+       <div class="card_header">
+        <div class="card_title">
+         지급 진행률
+        </div>
+       </div>
+       <div class="card_body">
+        <div style="display:flex;justify-content:space-between;font-size:0.8rem;">
+         <span style="font-weight:600;">72.4%</span><span style="color:var(--text_tertiary);">18/24건</span>
+        </div>
+        <div class="progress_bar_bg">
+         <div class="progress_bar_fill" style="width:72.4%;background:var(--primary);"></div>
+        </div>
+        <div style="margin-top:12px;">
+         <div class="stat_item">
+          <span class="stat_label">지급 완료</span><span class="stat_value" style="color:var(--success);">18건</span>
+         </div>
+         <div class="stat_item">
+          <span class="stat_label">승인 대기</span><span class="stat_value" style="color:var(--warning);">3건</span>
+         </div>
+         <div class="stat_item">
+          <span class="stat_label">정산 중</span><span class="stat_value" style="color:var(--primary);">2건</span>
+         </div>
+         <div class="stat_item">
+          <span class="stat_label">지연</span><span class="stat_value" style="color:var(--danger);">1건</span>
+         </div>
+        </div>
+       </div>
+      </div>
+      <div class="card">
+       <div class="card_header">
+        <div class="card_title">
+         거래처별 정산
+        </div>
+       </div>
+       <div class="card_body" id="vendorList"></div>
+      </div>
+      <div class="card">
+       <div class="card_header">
+        <div class="card_title">
+         월별 정산 추이
+        </div>
+       </div>
+       <div class="card_body">
+        <div class="mini_chart" id="miniChart"></div>
+        <div style="display:flex;justify-content:space-between;margin-top:6px;font-size:0.6rem;color:var(--text_tertiary);"><span>1월</span><span>2월</span><span>3월</span><span>4월</span><span>5월</span><span>6월</span><span>7월</span>
+        </div>
+       </div>
+      </div>
+     </div>
+    </div><!-- Settlement Table -->
+    <div class="card" style="margin-bottom:24px;">
+     <div class="card_header">
+      <div class="card_title">
+       정산 현황 <span style="font-weight:400;color:var(--text_tertiary);font-size:0.75rem;margin-left:6px;">24건</span>
+      </div>
+      <div style="display:flex;gap:6px;" id="tableFilters"><button class="btn" style="padding:5px 10px;font-size:0.72rem;" data-filter="all" onclick="filterTable('all',this)">전체</button> <button class="btn" style="padding:5px 10px;font-size:0.72rem;" data-filter="paid" onclick="filterTable('paid',this)">지급완료</button> <button class="btn" style="padding:5px 10px;font-size:0.72rem;" data-filter="processing" onclick="filterTable('processing',this)">정산중</button> <button class="btn" style="padding:5px 10px;font-size:0.72rem;" data-filter="waiting" onclick="filterTable('waiting',this)">승인대기</button> <button class="btn" style="padding:5px 10px;font-size:0.72rem;" data-filter="delayed" onclick="filterTable('delayed',this)">지연</button>
+      </div>
+     </div>
+     <div class="table_wrapper">
+      <table class="settle_table">
+       <thead>
+        <tr>
+         <th>정산번호</th>
+         <th>거래처</th>
+         <th>정산기간</th>
+         <th>공급가액</th>
+         <th>VAT</th>
+         <th>정산금액</th>
+         <th>상태</th>
+         <th>지급예정일</th>
+         <th>담당자</th>
+        </tr>
+       </thead>
+       <tbody id="tableBody"></tbody>
+      </table>
+     </div>
+    </div><!-- Activity -->
+    <div class="activity_grid">
+     <div class="card">
+      <div class="card_header">
+       <div class="card_title">
+        최근 활동
+       </div>
+      </div>
+      <div class="card_body" id="activityList"></div>
+     </div>
+     <div class="card">
+      <div class="card_header">
+       <div class="card_title">
+        정산 완료율 추이
+       </div>
+      </div>
+      <div class="card_body">
+       <div class="mini_chart" id="rateChart" style="height:100px;"></div>
+       <div style="display:flex;justify-content:space-between;margin-top:6px;font-size:0.6rem;color:var(--text_tertiary);"><span>월</span><span>화</span><span>수</span><span>목</span><span>금</span>
+       </div>
+      </div>
+     </div>
+    </div>
+   </div>
+  </div><!-- Detail Panel -->
+  <div class="panel_backdrop" id="panelBackdrop"></div>
+  <div class="detail_overlay" id="detailPanel">
+   <div class="detail_header">
+    <div>
+     <div style="font-size:0.9rem;font-weight:600;" id="detailTitle">
+      정산 상세
+     </div>
+     <div style="font-size:0.7rem;color:var(--text_tertiary);" id="detailSubtitle"></div>
+    </div><button class="detail_close" id="detailClose"><i data-lucide="x" style="width:18px;height:18px;"></i></button>
+   </div>
+   <div class="detail_body" id="detailBody"></div>
+   <div class="detail_footer"><button class="btn" style="flex:1;justify-content:center;"><i data-lucide="printer"></i> 인쇄</button> <button class="btn btn_primary" style="flex:1;justify-content:center;"><i data-lucide="check"></i> 승인 처리</button>
+   </div>
+  </div>
+  <script>
+// ===== DATA =====
+const settlements = [
+  { id:'STL-2507-001', vendor:'(주)한밭식품', period:'07.01~07.15', supply:12500000, vat:1250000, status:'paid', dueDate:'07.20', manager:'김재무', account:'국민 123-456-789', memo:'7월 상반기 원자재' },
+  { id:'STL-2507-002', vendor:'대전농산', period:'07.01~07.15', supply:8300000, vat:830000, status:'paid', dueDate:'07.20', manager:'이정산', account:'신한 987-654-321', memo:'쌀 납품 대금' },
+  { id:'STL-2507-003', vendor:'세종유통', period:'07.01~07.31', supply:15600000, vat:1560000, status:'processing', dueDate:'07.25', manager:'김재무', account:'우리 111-222-333', memo:'월간 유통 수수료' },
+  { id:'STL-2507-004', vendor:'충남포장', period:'07.01~07.15', supply:3200000, vat:320000, status:'paid', dueDate:'07.18', manager:'박회계', account:'하나 444-555-666', memo:'포장재 대금' },
+  { id:'STL-2507-005', vendor:'(주)미래물류', period:'07.01~07.31', supply:9800000, vat:980000, status:'waiting', dueDate:'07.28', manager:'이정산', account:'농협 777-888-999', memo:'물류비 정산' },
+  { id:'STL-2507-006', vendor:'한국식자재', period:'07.01~07.15', supply:6700000, vat:670000, status:'paid', dueDate:'07.20', manager:'김재무', account:'기업 222-333-444', memo:'부자재 납품' },
+  { id:'STL-2507-007', vendor:'글로벌수출', period:'07.01~07.31', supply:22000000, vat:2200000, status:'delayed', dueDate:'07.15', manager:'박회계', account:'외환 555-666-777', memo:'수출 대행 수수료' },
+  { id:'STL-2507-008', vendor:'로컬팜', period:'07.16~07.31', supply:4500000, vat:450000, status:'auto', dueDate:'07.31', manager:'김재무', account:'농협 888-999-000', memo:'친환경 원자재' },
+  { id:'STL-2507-009', vendor:'(주)테크솔루션', period:'07.01~07.31', supply:5500000, vat:550000, status:'paid', dueDate:'07.22', manager:'이정산', account:'신한 111-333-555', memo:'시스템 유지보수' },
+  { id:'STL-2507-010', vendor:'대한인쇄', period:'07.01~07.15', supply:2100000, vat:210000, status:'paid', dueDate:'07.19', manager:'박회계', account:'국민 222-444-666', memo:'라벨 인쇄' },
+];
+
+const calEvents = {
+  5: ['paid'], 10: ['paid','auto'], 15: ['delayed'], 18: ['paid'],
+  19: ['paid'], 20: ['paid','paid','pending'], 22: ['paid'],
+  25: ['pending'], 28: ['pending'], 31: ['auto']
+};
+
+const vendors = [
+  { name:'글로벌수출', color:'#6366f1', amount:'24,200,000' },
+  { name:'세종유통', color:'#10b981', amount:'17,160,000' },
+  { name:'한밭식품', color:'#f59e0b', amount:'13,750,000' },
+  { name:'미래물류', color:'#3b82f6', amount:'10,780,000' },
+  { name:'기타 (6)', color:'#9ca3af', amount:'28,430,000' },
+];
+
+const kpis = [
+  { label:'이번달 정산 금액', amount:'₩94,320,000', trend:'+12.3%', dir:'up' },
+  { label:'미정산 금액', amount:'₩12,430,000', trend:'-8.1%', dir:'down' },
+  { label:'지급 완료', amount:'₩68,550,000', trend:'+15.7%', dir:'up' },
+  { label:'예정 지급', amount:'₩13,340,000', trend:'+3.2%', dir:'up' },
+  { label:'거래처 수', amount:'14', trend:'+2', dir:'up' },
+  { label:'정산 완료율', amount:'72.4%', trend:'+5.1%p', dir:'up' },
+];
+
+const activities = [
+  { icon:'check-circle', bg:'var(--success_soft)', color:'var(--success)', text:'<strong>한밭식품</strong> 정산 지급 완료', time:'10분 전' },
+  { icon:'clock', bg:'var(--warning_soft)', color:'var(--warning)', text:'<strong>미래물류</strong> 승인 요청', time:'32분 전' },
+  { icon:'alert-triangle', bg:'var(--danger_soft)', color:'var(--danger)', text:'<strong>글로벌수출</strong> 지급 지연 알림', time:'1시간 전' },
+  { icon:'zap', bg:'var(--info_soft)', color:'var(--info)', text:'<strong>로컬팜</strong> 자동 정산 예약됨', time:'2시간 전' },
+  { icon:'file-text', bg:'var(--primary_soft)', color:'var(--primary)', text:'세금계산서 3건 자동 발행', time:'3시간 전' },
+];
+
+const chartData = [42, 55, 48, 62, 58, 71, 65];
+const rateData = [68, 72, 70, 75, 72];
+
+// ===== RENDER FUNCTIONS =====
+function formatNum(n) { return n.toLocaleString('ko-KR'); }
+
+function renderKPIs() {
+  const g = document.getElementById('kpiGrid');
+  g.innerHTML = kpis.map(k => `
+    <div class="kpi_card">
+      <div class="kpi_label">${k.label}</div>
+      <div class="kpi_amount">${k.amount}</div>
+      <div class="kpi_trend ${k.dir}">${k.dir==='up'?'↑':'↓'} ${k.trend}</div>
+    </div>
+  `).join('');
+}
+
+function renderCalendar() {
+  const g = document.getElementById('calGrid');
+  const days = ['일','월','화','수','목','금','토'];
+  let html = days.map(d => `<div class="cal_day_head">${d}</div>`).join('');
+  const year = 2025, month = 6; // July
+  const first = new Date(year, month, 1).getDay();
+  const daysInMonth = new Date(year, month+1, 0).getDate();
+  const prevDays = new Date(year, month, 0).getDate();
+  const today = 14;
+
+  for (let i = 0; i < first; i++) {
+    html += `<div class="cal_cell other_month">${prevDays - first + i + 1}</div>`;
+  }
+  for (let d = 1; d <= daysInMonth; d++) {
+    const isToday = d === today;
+    const ev = calEvents[d];
+    let dots = '';
+    if (ev) dots = `<div class="cal_dots">${ev.map(e=>`<span class="cal_dot ${e}"></span>`).join('')}</div>`;
+    html += `<div class="cal_cell${isToday?' today':''}">${d}${dots}</div>`;
+  }
+  const remaining = (7 - (first + daysInMonth) % 7) % 7;
+  for (let i = 1; i <= remaining; i++) {
+    html += `<div class="cal_cell other_month">${i}</div>`;
+  }
+  g.innerHTML = html;
+}
+
+function renderVendors() {
+  document.getElementById('vendorList').innerHTML = vendors.map(v => `
+    <div class="vendor_row">
+      <div class="vendor_icon" style="background:${v.color};">${v.name[0]}</div>
+      <div class="vendor_name">${v.name}</div>
+      <div class="vendor_amount">₩${v.amount}</div>
+    </div>
+  `).join('');
+}
+
+function renderChart(id, data, color) {
+  const max = Math.max(...data);
+  document.getElementById(id).innerHTML = data.map((v,i) => {
+    const h = (v / max) * 100;
+    return `<div class="mini_bar" style="height:${h}%;background:${color||'var(--primary)'};opacity:${i===data.length-1?1:0.5};">
+      <div class="mini_bar_tooltip">₩${(v*1.34).toFixed(1)}M</div>
+    </div>`;
+  }).join('');
+}
+
+const statusMap = {
+  paid: { label:'지급완료', cls:'paid' },
+  processing: { label:'정산중', cls:'processing' },
+  waiting: { label:'승인대기', cls:'waiting' },
+  delayed: { label:'지연', cls:'delayed' },
+  auto: { label:'자동처리', cls:'auto' },
+};
+
+let currentFilter = 'all';
+
+function renderTable(filter) {
+  currentFilter = filter || 'all';
+  const filtered = currentFilter === 'all' ? settlements : settlements.filter(s => s.status === currentFilter);
+  document.getElementById('tableBody').innerHTML = filtered.map(s => {
+    const st = statusMap[s.status];
+    return `<tr data-id="${s.id}" onclick="openDetail('${s.id}')">
+      <td style="font-weight:500;color:var(--primary);">${s.id}</td>
+      <td>${s.vendor}</td>
+      <td>${s.period}</td>
+      <td>₩${formatNum(s.supply)}</td>
+      <td>₩${formatNum(s.vat)}</td>
+      <td style="font-weight:600;">₩${formatNum(s.supply+s.vat)}</td>
+      <td><span class="status_badge ${st.cls}"><span class="status_dot"></span>${st.label}</span></td>
+      <td>${s.dueDate}</td>
+      <td>${s.manager}</td>
+    </tr>`;
+  }).join('');
+}
+
+function filterTable(f, btn) {
+  document.querySelectorAll('#tableFilters .btn').forEach(b => b.style.cssText = 'padding:5px 10px;font-size:0.72rem;');
+  if (btn) { btn.style.background = 'var(--primary)'; btn.style.color = '#fff'; btn.style.borderColor = 'var(--primary)'; }
+  renderTable(f);
+}
+
+function renderActivities() {
+  document.getElementById('activityList').innerHTML = activities.map(a => `
+    <div class="activity_item">
+      <div class="activity_icon_wrap" style="background:${a.bg};color:${a.color};"><i data-lucide="${a.icon}"></i></div>
+      <div>
+        <div class="activity_text">${a.text}</div>
+        <div class="activity_time">${a.time}</div>
+      </div>
+    </div>
+  `).join('');
+}
+
+// Detail panel
+function openDetail(id) {
+  const s = settlements.find(x => x.id === id);
+  if (!s) return;
+  const st = statusMap[s.status];
+  document.getElementById('detailSubtitle').textContent = s.id;
+  document.getElementById('detailBody').innerHTML = `
+    <div class="detail_section">
+      <div class="detail_section_title">거래처 정보</div>
+      <div class="detail_row"><span class="detail_row_label">거래처명</span><span class="detail_row_value">${s.vendor}</span></div>
+      <div class="detail_row"><span class="detail_row_label">지급 계좌</span><span class="detail_row_value">${s.account}</span></div>
+      <div class="detail_row"><span class="detail_row_label">담당자</span><span class="detail_row_value">${s.manager}</span></div>
+    </div>
+    <div class="detail_section">
+      <div class="detail_section_title">정산 내역</div>
+      <div class="detail_row"><span class="detail_row_label">정산 기간</span><span class="detail_row_value">${s.period}</span></div>
+      <div class="detail_row"><span class="detail_row_label">공급가액</span><span class="detail_row_value">₩${formatNum(s.supply)}</span></div>
+      <div class="detail_row"><span class="detail_row_label">VAT (10%)</span><span class="detail_row_value">₩${formatNum(s.vat)}</span></div>
+      <div class="detail_row"><span class="detail_row_label">총 정산금액</span><span class="detail_row_value" style="font-weight:700;color:var(--primary);">₩${formatNum(s.supply+s.vat)}</span></div>
+      <div class="detail_row"><span class="detail_row_label">상태</span><span class="detail_row_value"><span class="status_badge ${st.cls}"><span class="status_dot"></span>${st.label}</span></span></div>
+      <div class="detail_row"><span class="detail_row_label">지급 예정일</span><span class="detail_row_value">2025.${s.dueDate}</span></div>
+    </div>
+    <div class="detail_section">
+      <div class="detail_section_title">메모</div>
+      <div style="font-size:0.78rem;color:var(--text_secondary);padding:8px 12px;background:var(--bg);border-radius:var(--radius_sm);">${s.memo}</div>
+    </div>
+    <div class="detail_section">
+      <div class="detail_section_title">승인 이력</div>
+      <div class="detail_timeline_item">
+        <div class="detail_timeline_dot" style="background:var(--success);"></div>
+        <div><div style="font-size:0.75rem;">정산 요청 생성</div><div class="detail_timeline_time">2025.07.01 09:00</div></div>
+      </div>
+      <div class="detail_timeline_item">
+        <div class="detail_timeline_dot" style="background:var(--primary);"></div>
+        <div><div style="font-size:0.75rem;">팀장 승인 완료</div><div class="detail_timeline_time">2025.07.03 14:22</div></div>
+      </div>
+      <div class="detail_timeline_item">
+        <div class="detail_timeline_dot" style="background:${s.status==='paid'?'var(--success)':'var(--warning)'}"></div>
+        <div><div style="font-size:0.75rem;">${s.status==='paid'?'지급 완료':'처리 진행 중'}</div><div class="detail_timeline_time">${s.status==='paid'?'2025.07.'+s.dueDate.split('.')[1]+' 10:00':'진행 중'}</div></div>
+      </div>
+    </div>
+  `;
+  document.getElementById('detailPanel').classList.add('open');
+  document.getElementById('panelBackdrop').classList.add('show');
+  // highlight row
+  document.querySelectorAll('.settle_table tbody tr').forEach(r => r.classList.remove('selected'));
+  const row = document.querySelector(`tr[data-id="${id}"]`);
+  if (row) row.classList.add('selected');
+  lucide.createIcons();
+}
+
+function closeDetail() {
+  document.getElementById('detailPanel').classList.remove('open');
+  document.getElementById('panelBackdrop').classList.remove('show');
+  document.querySelectorAll('.settle_table tbody tr').forEach(r => r.classList.remove('selected'));
+}
+
+// Sidebar mobile
+document.getElementById('burgerBtn').addEventListener('click', () => {
+  document.getElementById('sidebar').classList.toggle('mobile_open');
+  document.getElementById('sidebarBackdrop').classList.toggle('show');
+});
+document.getElementById('sidebarBackdrop').addEventListener('click', () => {
+  document.getElementById('sidebar').classList.remove('mobile_open');
+  document.getElementById('sidebarBackdrop').classList.remove('show');
+});
+document.getElementById('detailClose').addEventListener('click', closeDetail);
+document.getElementById('panelBackdrop').addEventListener('click', closeDetail);
+
+// ===== ELEMENT SDK =====
+const defaultConfig = {
+  page_title: '월별 정산',
+  company_name: 'DDUK ERP',
+  background_color: '#f5f7fb',
+  surface_color: '#ffffff',
+  text_color: '#111827',
+  primary_color: '#6366f1',
+  secondary_color: '#6b7280',
+  font_family: 'Noto Sans KR',
+  font_size: 14,
+};
+
+function applyConfig(config) {
+  const t = config.page_title || defaultConfig.page_title;
+  const c = config.company_name || defaultConfig.company_name;
+  document.getElementById('pageTitle').textContent = t;
+  document.getElementById('breadcrumb_title').textContent = t;
+  document.getElementById('company_display').textContent = c;
+
+  const bg = config.background_color || defaultConfig.background_color;
+  const sf = config.surface_color || defaultConfig.surface_color;
+  const tx = config.text_color || defaultConfig.text_color;
+  const pr = config.primary_color || defaultConfig.primary_color;
+  const sc = config.secondary_color || defaultConfig.secondary_color;
+  document.documentElement.style.setProperty('--bg', bg);
+  document.documentElement.style.setProperty('--bg_gradient_top', bg);
+  document.documentElement.style.setProperty('--surface', sf);
+  document.documentElement.style.setProperty('--text_primary', tx);
+  document.documentElement.style.setProperty('--primary', pr);
+  document.documentElement.style.setProperty('--text_secondary', sc);
+
+  const ff = config.font_family || defaultConfig.font_family;
+  const fs = config.font_size || defaultConfig.font_size;
+  document.body.style.fontFamily = `${ff}, -apple-system, sans-serif`;
+  document.body.style.fontSize = `${fs * 0.0625}rem`;
+}
+
+window.elementSdk.init({
+  defaultConfig,
+  onConfigChange: async (config) => { applyConfig(config); },
+  mapToCapabilities: (config) => ({
+    recolorables: [
+      { get: () => config.background_color || defaultConfig.background_color, set: (v) => { config.background_color = v; window.elementSdk.setConfig({ background_color: v }); } },
+      { get: () => config.surface_color || defaultConfig.surface_color, set: (v) => { config.surface_color = v; window.elementSdk.setConfig({ surface_color: v }); } },
+      { get: () => config.text_color || defaultConfig.text_color, set: (v) => { config.text_color = v; window.elementSdk.setConfig({ text_color: v }); } },
+      { get: () => config.primary_color || defaultConfig.primary_color, set: (v) => { config.primary_color = v; window.elementSdk.setConfig({ primary_color: v }); } },
+      { get: () => config.secondary_color || defaultConfig.secondary_color, set: (v) => { config.secondary_color = v; window.elementSdk.setConfig({ secondary_color: v }); } },
+    ],
+    borderables: [],
+    fontEditable: {
+      get: () => config.font_family || defaultConfig.font_family,
+      set: (v) => { config.font_family = v; window.elementSdk.setConfig({ font_family: v }); }
+    },
+    fontSizeable: {
+      get: () => config.font_size || defaultConfig.font_size,
+      set: (v) => { config.font_size = v; window.elementSdk.setConfig({ font_size: v }); }
+    },
+  }),
+  mapToEditPanelValues: (config) => new Map([
+    ['page_title', config.page_title || defaultConfig.page_title],
+    ['company_name', config.company_name || defaultConfig.company_name],
+  ]),
+});
+
+// ===== INIT =====
+renderKPIs();
+renderCalendar();
+renderVendors();
+renderChart('miniChart', chartData, 'var(--primary)');
+renderChart('rateChart', rateData, 'var(--success)');
+renderTable('all');
+renderActivities();
+// Set first filter active
+document.querySelector('#tableFilters .btn').style.cssText = 'padding:5px 10px;font-size:0.72rem;background:var(--primary);color:#fff;border-color:var(--primary);';
+lucide.createIcons();
+</script>
+ <script>(function(){function c(){var b=a.contentDocument||a.contentWindow.document;if(b){var d=b.createElement('script');d.innerHTML="window.__CF$cv$params={r:'9fb7b68b953caa36',t:'MTc3ODczODc0Ni4wMDAwMDA='};var a=document.createElement('script');a.nonce='';a.src='/cdn-cgi/challenge-platform/scripts/jsd/main.js';document.getElementsByTagName('head')[0].appendChild(a);";b.getElementsByTagName('head')[0].appendChild(d)}}if(document.body){var a=document.createElement('iframe');a.height=1;a.width=1;a.style.position='absolute';a.style.top=0;a.style.left=0;a.style.border='none';a.style.visibility='hidden';document.body.appendChild(a);if('loading'!==document.readyState)c();else if(window.addEventListener)document.addEventListener('DOMContentLoaded',c);else{var e=document.onreadystatechange||function(){};document.onreadystatechange=function(b){e(b);'loading'!==document.readyState&&(document.onreadystatechange=e,c())}}}})();</script></body>
+</html>

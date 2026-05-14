@@ -23,7 +23,7 @@ public class AccountingController {
         LocalDate date = LocalDate.parse((String) request.get("date"));
         String description = (String) request.get("description");
         List<Map<String, Object>> items = (List<Map<String, Object>>) request.get("items");
-        return accountingService.createAndPost(date, description, items);
+        return accountingService.createAndPost(date, description, items, null, null);
     }
 
     @GetMapping("/report/balance-sheet")
