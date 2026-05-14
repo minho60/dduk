@@ -4,6 +4,7 @@ const API_BASE_URL = window.location.hostname === "localhost"
 
 const loginForm = document.getElementById("loginForm");
 const loginButton = document.getElementById("loginBtn");
+const loginButtonText = loginButton.querySelector("span");
 const messageElement = document.getElementById("message");
 const passwordInput = document.getElementById("password");
 const passwordToggle = document.querySelector(".password-toggle");
@@ -17,6 +18,15 @@ const roleRedirectMap = {
 function setMessage(text, type) {
     messageElement.textContent = text;
     messageElement.className = `message ${type}`;
+}
+
+function setLoginButtonText(text) {
+    if (loginButtonText) {
+        loginButtonText.textContent = text;
+        return;
+    }
+
+    loginButton.textContent = text;
 }
 
 function storeSession(data) {
@@ -62,11 +72,12 @@ loginForm.addEventListener("submit", async (event) => {
 
     const loginId = document.getElementById("loginId").value.trim();
     const password = passwordInput.value;
+    let loginSucceeded = false;
 
     setMessage("", "");
     loginButton.disabled = true;
     loginButton.classList.add("is-loading");
-    loginButton.textContent = "로그인 중...";
+    setLoginButtonText("Authenticating...");
 
     try {
         const response = await fetch(`${API_BASE_URL}/api/v1/auth/login`, {
@@ -85,7 +96,9 @@ loginForm.addEventListener("submit", async (event) => {
         }
 
         storeSession(data);
+        loginSucceeded = true;
         setMessage("로그인에 성공했습니다. 페이지로 이동합니다.", "success");
+        setLoginButtonText("Access Granted");
 
         const redirectPath = roleRedirectMap[data.role] || roleRedirectMap.INVENTORY;
         window.setTimeout(() => {
@@ -95,8 +108,13 @@ loginForm.addEventListener("submit", async (event) => {
         console.error("로그인 중 오류 발생:", error);
         setMessage("서버와 통신할 수 없습니다.", "error");
     } finally {
+        if (loginSucceeded) {
+            loginButton.classList.remove("is-loading");
+            return;
+        }
+
         loginButton.disabled = false;
         loginButton.classList.remove("is-loading");
-        loginButton.textContent = "로그인";
+        setLoginButtonText("로그인");
     }
 });
