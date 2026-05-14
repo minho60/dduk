@@ -1,6 +1,26 @@
 (function () {
     // 1. 모든 도메인별 대시보드 데이터 통합 관리
     const dashboardRegistry = {
+        COMMON: {
+            allowedRoles: ["ADMIN", "HR", "INVENTORY"],
+            pageData: {
+                title: "통합 대시보드",
+                description: "DDUK ERP 시스템의 전사적 실시간 지표를 통합하여 제공합니다.",
+                cards: [
+                    { title: "전체 직원", value: "342", trend: "+2" },
+                    { title: "운영 서버", value: "99.9%", trend: "Stable" },
+                    { title: "재고 자산", value: "₩45.2M", trend: "+1.2%" },
+                    { title: "미결제 요청", value: "12", trend: "-3" }
+                ],
+                todoItems: [
+                    "전사 시스템 통합 모니터링",
+                    "도메인별 주요 지표 요약 확인",
+                    "최근 시스템 활동 로그 검토"
+                ],
+                tables: ["통합 현황 테이블", "실시간 알림"],
+                apis: ["GET /api/v1/dashboard/summary"]
+            }
+        },
         ADMIN: {
             allowedRoles: ["ADMIN"],
             pageData: {
@@ -41,9 +61,10 @@
                     { href: "../inventory/dashboard.html", label: "재고/발주" }
                 ],
                 cards: [
-                    { title: "직원", description: "직원 목록, 등록, 상세 화면 작업 시작" },
-                    { title: "근태", description: "출퇴근 기록, 월별 조회, 예외 상태 처리 연결" },
-                    { title: "급여/비용", description: "급여 결과, 비용 승인, 월별 회계 데이터 준비" }
+                    { title: "전체 직원", value: "342", trend: "+4" },
+                    { title: "오늘 출근", value: "312", trend: "91%" },
+                    { title: "휴가/외출", value: "15", trend: "-2" },
+                    { title: "급여 정산일", value: "D-5", trend: "Normal" }
                 ],
                 todoItems: [
                     "직원 목록/등록 화면 우선 구현",
@@ -69,9 +90,10 @@
                     { href: "../hr/dashboard.html", label: "인사/회계" }
                 ],
                 cards: [
-                    { title: "거래처", description: "거래처 목록, 등록, 상태 관리 시작" },
-                    { title: "재고", description: "품목, 현재 수량, 안전 재고 화면 작업 시작" },
-                    { title: "발주", description: "발주 등록, 상태 변경, 입고 연계 흐름 정리" }
+                    { title: "총 품목 수", value: "2,450", trend: "+120" },
+                    { title: "재고 자산", value: "₩45.2M", trend: "+1.2%" },
+                    { title: "금일 입고", value: "45", trend: "+5" },
+                    { title: "미결제 발주", value: "8", trend: "-2" }
                 ],
                 todoItems: [
                     "거래처 목록/등록 화면 구현",
@@ -92,10 +114,13 @@
      * 현재 페이지의 도메인(ADMIN, HR, INVENTORY)을 URL 경로에서 추론합니다.
      */
     function detectDomain() {
+        const params = new URLSearchParams(window.location.search);
+        const domainParam = params.get("domain");
+        
+        if (domainParam) return domainParam;
+        
         const path = window.location.pathname;
-        if (path.includes("/admin/")) return "ADMIN";
-        if (path.includes("/hr/")) return "HR";
-        if (path.includes("/inventory/")) return "INVENTORY";
+        if (path.includes("dashboard.html")) return "COMMON";
         return null;
     }
 
