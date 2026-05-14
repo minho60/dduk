@@ -12,4 +12,8 @@ public interface InventoryRepository extends JpaRepository<Inventory, Long> {
 
     @Query("SELECT i FROM Inventory i WHERE i.currentStock <= i.safetyStock")
     List<Inventory> findItemsNeedingReorder();
+
+    List<Inventory> findByWarehouseId(Long warehouseId);
+    List<Inventory> findByItemId(Long itemId);
+    List<Inventory> findByWarehouseIdAndItemId(Long warehouseId, Long itemId);
 }

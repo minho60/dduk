@@ -3,6 +3,8 @@ package com.dduk.domain.inventory.purchase;
 import com.dduk.domain.accounting.journal.AccountingService;
 import com.dduk.domain.inventory.stock.InventoryService;
 import com.dduk.domain.inventory.stock.MovementReason;
+import com.dduk.domain.inventory.stock.MovementType;
+import com.dduk.domain.inventory.stock.StockMovementRepository;
 import lombok.RequiredArgsConstructor;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
@@ -16,6 +18,7 @@ public class PurchaseService {
     private final PurchaseOrderRepository purchaseOrderRepository;
     private final AccountingService accountingService;
     private final InventoryService inventoryService;
+    private final StockMovementRepository stockMovementRepository;
 
     public List<PurchaseOrder> getAllOrders() {
         return purchaseOrderRepository.findAll();
@@ -43,16 +46,23 @@ public class PurchaseService {
         if (nextStatus == PurchaseStatus.RECEIVED || nextStatus == PurchaseStatus.COMPLETED) {
             
             if (currentStatus != PurchaseStatus.RECEIVED && currentStatus != PurchaseStatus.COMPLETED) {
-                // 재고 증가
-                for (PurchaseOrderItem item : order.getItems()) {
-                    inventoryService.increaseStock(
-                            item.getItem().getId(),
-                            order.getWarehouse().getId(),
-                            item.getQuantity(),
-                            MovementReason.PURCHASE_RECEIVED,
-                            "PURCHASE",
-                            order.getPurchaseOrderNo()
-                    );
+                // 중복 입고 방지 (재고)
+                boolean alreadyReceived = stockMovementRepository.existsByReferenceTypeAndReferenceIdAndMovementType(
+                        "PURCHASE", order.getPurchaseOrderNo(), MovementType.IN
+                );
+                
+                if (!alreadyReceived) {
+                    // 재고 증가
+                    for (PurchaseOrderItem item : order.getItems()) {
+                        inventoryService.increaseStock(
+                                item.getItem().getId(),
+                                order.getWarehouse().getId(),
+                                item.getQuantity(),
+                                MovementReason.PURCHASE_RECEIVED,
+                                "PURCHASE",
+                                order.getPurchaseOrderNo()
+                        );
+                    }
                 }
                 
                 // 중복 생성 방지는 AccountingService 내부에서 수행됨

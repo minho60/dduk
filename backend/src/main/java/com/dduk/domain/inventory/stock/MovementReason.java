@@ -4,5 +4,6 @@ public enum MovementReason {
     PURCHASE_RECEIVED,
     SALES_SHIPPED,
     MANUAL_ADJUST,
-    TRANSFER
+    TRANSFER,
+    REBUILD_ADJUSTMENT
 }
