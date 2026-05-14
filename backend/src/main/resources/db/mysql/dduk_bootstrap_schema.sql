@@ -277,3 +277,11 @@ CREATE TABLE IF NOT EXISTS stock_movements (
         ON DELETE RESTRICT
         ON UPDATE CASCADE
 ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci;
+/*
+reference_type = PURCHASE_ORDER      → purchase_orders.id 참조
+reference_type = PURCHASE_ORDER_ITEM → purchase_order_items.id 참조
+reference_type = RETURN              → returns.id 참조
+
+reference_type: 재고 이동의 원인 업무 종류
+reference_id: 그 원인 데이터의 ID
+*/
