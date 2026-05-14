@@ -1,15 +1,3 @@
--- DDUK ERP MySQL 8.0 members seed data
--- Run this after dduk_members_schema.sql.
--- Purpose:
--- - Bootstrap one admin account
--- - Bootstrap one inventory/purchase account
--- - Bootstrap one hr/accounting account
---
--- Passwords are stored as BCrypt hashes to match the current Spring Security setup.
--- If the same login_id already exists, the account will be updated in place.
-
-USE dduk_erp;
-
 INSERT INTO members (
     login_id,
     password,

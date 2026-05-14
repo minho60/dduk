@@ -1,16 +1,3 @@
--- DDUK ERP MySQL 8.0 schema draft
--- Source: docs/DB_DRAFT.md
--- Current recommendation:
--- 1. Keep auth/account management on `members` for the MVP.
--- 2. Lock the core HR and inventory tables first.
--- 3. Defer larger role/menu models until the project actually needs them.
-
-CREATE DATABASE IF NOT EXISTS dduk_erp
-  DEFAULT CHARACTER SET utf8mb4
-  DEFAULT COLLATE utf8mb4_unicode_ci;
-
-USE dduk_erp;
-
 CREATE TABLE IF NOT EXISTS members (
     id BIGINT NOT NULL AUTO_INCREMENT,
     login_id VARCHAR(50) NOT NULL,
@@ -206,7 +193,6 @@ CREATE TABLE IF NOT EXISTS purchase_order_items (
         ON UPDATE CASCADE
 ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci;
 
--- Deferred but recommended for the next phase.
 CREATE TABLE IF NOT EXISTS audit_logs (
     id BIGINT NOT NULL AUTO_INCREMENT,
     member_id BIGINT NULL,
