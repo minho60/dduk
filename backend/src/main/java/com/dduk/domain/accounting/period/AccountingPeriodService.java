@@ -16,11 +16,13 @@ public class AccountingPeriodService {
 
     private final AccountingPeriodRepository accountingPeriodRepository;
 
+    private final com.dduk.domain.accounting.journal.JournalEntryRepository journalEntryRepository;
+
     @Transactional(readOnly = true)
     public List<AccountingPeriod> getAllPeriods() {
         return accountingPeriodRepository.findAll();
     }
-
+    
     @Transactional(readOnly = true)
     public boolean isClosed(int fiscalYear, int fiscalMonth) {
         return accountingPeriodRepository
@@ -29,11 +31,19 @@ public class AccountingPeriodService {
 
     /**
      * 회계 기간 마감
+     * - 미결 전표(DRAFT, APPROVED)가 존재하면 마감 불가
      * - 이미 마감된 기간은 예외 발생
-     * - 존재하지 않는 기간이면 신규 생성 후 마감
      */
     @Transactional
     public AccountingPeriod closePeriod(int fiscalYear, int fiscalMonth, String closedBy) {
+        // 미결 전표 체크
+        boolean hasPending = journalEntryRepository.existsByFiscalYearAndFiscalMonthAndStatusIn(
+                fiscalYear, fiscalMonth, List.of("DRAFT", "APPROVED"));
+        if (hasPending) {
+            throw new IllegalStateException(
+                    String.format("%d-%02d 기간에 승인되지 않거나 기표되지 않은 전표가 존재하여 마감할 수 없습니다.", fiscalYear, fiscalMonth));
+        }
+
         AccountingPeriod period = accountingPeriodRepository
                 .findByFiscalYearAndFiscalMonth(fiscalYear, fiscalMonth)
                 .orElseGet(() -> AccountingPeriod.builder()

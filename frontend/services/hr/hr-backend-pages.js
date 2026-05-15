@@ -168,29 +168,213 @@ function addJournalRow() {
     container.appendChild(row);
 }
 
+function updateJournalBalances() {
+    const items = readJournalItems();
+    let totalDebit = 0;
+    let totalCredit = 0;
+
+    items.forEach(item => {
+        if (item.side === 'DEBIT') totalDebit += item.amount;
+        else totalCredit += item.amount;
+    });
+
+    const sumDebitEl = byId('sum_debit');
+    const sumCreditEl = byId('sum_credit');
+    const badgeEl = byId('balance_badge');
+    const msgEl = byId('validation_msg');
+    const btnSubmit = byId('btn_submit_journal');
+
+    if (sumDebitEl) sumDebitEl.textContent = money(totalDebit);
+    if (sumCreditEl) sumCreditEl.textContent = money(totalCredit);
+
+    const isBalanced = totalDebit > 0 && totalDebit === totalCredit;
+    
+    if (badgeEl) {
+        badgeEl.textContent = isBalanced ? '대차 일치' : '차대 불일치';
+        badgeEl.className = `hr_badge ${isBalanced ? 'ok' : 'warn'}`;
+    }
+
+    if (msgEl) {
+        msgEl.textContent = isBalanced ? '전표를 생성할 수 있습니다.' : '차대 금액이 일치하지 않거나 0입니다.';
+        msgEl.className = isBalanced ? 'hr_text_ok' : 'hr_text_error';
+    }
+
+    if (btnSubmit) btnSubmit.disabled = !isBalanced;
+}
+
+async function renderJournalList() {
+    const statusId = 'page_status';
+    try {
+        const response = await hrBackendApi.getJournals();
+        const journals = response.data || [];
+        const tbody = byId('journal_list_rows');
+        if (!tbody) return;
+
+        if (!journals.length) {
+            tbody.innerHTML = '<tr><td colspan="7">표시할 전표가 없습니다.</td></tr>';
+            return;
+        }
+
+        tbody.innerHTML = journals.map(j => {
+            const statusClass = {
+                'DRAFT': '',
+                'APPROVED': 'info',
+                'POSTED': 'ok',
+                'REVERSED': 'warn'
+            }[j.status] || '';
+
+            const canApprove = j.status === 'DRAFT';
+            const canPost = j.status === 'APPROVED';
+            const canReverse = j.status === 'POSTED';
+            const canDelete = j.status === 'DRAFT';
+
+            return `
+                <tr style="cursor: pointer;" onclick="handleJournalAction(${j.id}, 'view')">
+                    <td>${j.transactionDate || '-'}</td>
+                    <td><code>${j.journalNo || '-'}</code></td>
+                    <td>${j.description || '-'}</td>
+                    <td class="amount">${money(j.totalDebit)}</td>
+                    <td class="amount">${money(j.totalCredit)}</td>
+                    <td><span class="hr_badge ${statusClass}">${j.status}</span></td>
+                    <td>
+                        <div class="hr_actions" style="gap: 4px;" onclick="event.stopPropagation()">
+                            ${canApprove ? `<button class="hr_button small" onclick="handleJournalAction(${j.id}, 'approve')">승인</button>` : ''}
+                            ${canPost ? `<button class="hr_button small primary" onclick="handleJournalAction(${j.id}, 'post')">기표</button>` : ''}
+                            ${canReverse ? `<button class="hr_button small warn" onclick="handleJournalAction(${j.id}, 'reverse')">역분개</button>` : ''}
+                            ${canDelete ? `<button class="hr_button small error" onclick="handleJournalAction(${j.id}, 'delete')">삭제</button>` : ''}
+                        </div>
+                    </td>
+                </tr>
+            `;
+        }).join('');
+        if (window.lucide) lucide.createIcons();
+    } catch (error) {
+        console.error('Failed to load journals:', error);
+    }
+}
+
+window.handleJournalAction = async function(id, action) {
+    if (action === 'view') {
+        await openJournalModal(id);
+        return;
+    }
+
+    const messages = {
+        approve: '이 전표를 승인하시겠습니까?',
+        post: '이 전표를 기표하시겠습니까? 기표 후에는 수정할 수 없습니다.',
+        reverse: '이 전표를 역분개하시겠습니까?',
+        delete: '이 전표를 삭제하시겠습니까?'
+    };
+
+    if (!confirm(messages[action] || '계속하시겠습니까?')) return;
+
+    await safeRun('page_status', async () => {
+        if (action === 'approve') await hrBackendApi.approveJournal(id);
+        else if (action === 'post') await hrBackendApi.postJournal(id);
+        else if (action === 'reverse') await hrBackendApi.reverseJournal(id);
+        else if (action === 'delete') await hrBackendApi.deleteJournal(id);
+        
+        await renderJournalList();
+        // 리포트도 갱신될 수 있으므로 대시보드라면 갱신 고려 (여기선 목록만)
+    });
+};
+
+async function openJournalModal(id) {
+    await safeRun('page_status', async () => {
+        const response = await hrBackendApi.getJournals();
+        const journal = (response.data || []).find(j => j.id === id);
+        if (!journal) throw new Error('전표 정보를 찾을 수 없습니다.');
+
+        setText('detail_journal_no', journal.journalNo);
+        setText('detail_date', journal.transactionDate);
+        setText('detail_desc', journal.description);
+        
+        const statusEl = byId('detail_status');
+        if (statusEl) {
+            statusEl.textContent = journal.status;
+            const statusClass = { 'DRAFT': '', 'APPROVED': 'info', 'POSTED': 'ok', 'REVERSED': 'warn' }[journal.status] || '';
+            statusEl.className = `hr_badge ${statusClass}`;
+        }
+
+        const tbody = byId('detail_line_rows');
+        if (tbody) {
+            tbody.innerHTML = (journal.lines || []).map(l => `
+                <tr>
+                    <td>${l.account?.code || '-'}</td>
+                    <td>${l.account?.name || '-'}</td>
+                    <td class="amount">${money(l.debitAmount)}</td>
+                    <td class="amount">${money(l.creditAmount)}</td>
+                    <td>${l.description || '-'}</td>
+                </tr>
+            `).join('');
+        }
+
+        setText('detail_sum_debit', money(journal.totalDebit));
+        setText('detail_sum_credit', money(journal.totalCredit));
+
+        const modal = byId('journal_detail_modal');
+        if (modal) modal.style.display = 'flex';
+    });
+}
+
+window.closeJournalModal = function() {
+    const modal = byId('journal_detail_modal');
+    if (modal) modal.style.display = 'none';
+};
+
 function initJournalPage() {
-    byId('btn_add_journal_row')?.addEventListener('click', addJournalRow);
+    byId('btn_add_journal_row')?.addEventListener('click', () => {
+        addJournalRow();
+        updateJournalBalances();
+    });
+
+    byId('journal_items')?.addEventListener('keyup', (e) => {
+        if (e.target.dataset.field === 'amount') {
+            updateJournalBalances();
+        }
+    });
+
+    byId('journal_items')?.addEventListener('change', (e) => {
+        if (e.target.dataset.field === 'side' || e.target.dataset.field === 'amount') {
+            updateJournalBalances();
+        }
+    });
+
     byId('journal_form')?.addEventListener('submit', event => {
         event.preventDefault();
         safeRun('page_status', async () => {
             const payload = {
                 date: byId('journal_date').value,
                 description: byId('journal_description').value.trim(),
-                items: readJournalItems()
+                lines: readJournalItems().map(item => ({
+                    accountCode: item.accountCode,
+                    debitAmount: item.side === 'DEBIT' ? item.amount : 0,
+                    creditAmount: item.side === 'CREDIT' ? item.amount : 0,
+                    description: byId('journal_description').value.trim()
+                }))
             };
 
-            if (!payload.date || !payload.description || payload.items.length < 2) {
+            if (!payload.date || !payload.description || payload.lines.length < 2) {
                 throw new Error('일자, 설명, 최소 2개 이상의 전표 항목을 입력하세요.');
             }
 
-            const result = await hrBackendApi.createJournal(payload);
-            showJson('journal_result', result);
+            await hrBackendApi.createJournal(payload);
+            await renderJournalList();
+            byId('journal_form').reset();
+            byId('journal_items').innerHTML = '';
+            addJournalRow();
+            addJournalRow();
+            updateJournalBalances();
         });
     });
+
+    byId('btn_refresh_journals')?.addEventListener('click', renderJournalList);
 
     byId('journal_date').value = new Date().toISOString().slice(0, 10);
     addJournalRow();
     addJournalRow();
+    updateJournalBalances();
+    renderJournalList();
 }
 
 async function initTrialBalance() {

@@ -106,6 +106,7 @@ public class AccountingService {
     @Transactional
     public JournalEntry approveJournal(Long id) {
         JournalEntry entry = findById(id);
+        journalValidationService.validatePeriodNotClosed(entry.getTransactionDate());
         entry.approve();
         return journalEntryRepository.save(entry);
     }
@@ -114,6 +115,7 @@ public class AccountingService {
     @Transactional
     public JournalEntry postJournal(Long id) {
         JournalEntry entry = findById(id);
+        journalValidationService.validatePeriodNotClosed(entry.getTransactionDate());
         entry.post();
         return journalEntryRepository.save(entry);
     }
@@ -126,7 +128,22 @@ public class AccountingService {
     @Transactional
     public JournalEntry reverseJournal(Long id) {
         JournalEntry original = findById(id);
+        
+        // 1. 기간 마감 체크
         journalValidationService.validatePeriodNotClosed(original.getTransactionDate());
+
+        // 2. 이미 역분개된 전표인지 체크 (JournalEntry.markReversed() 내부에서도 체크하지만 서비스 레벨에서 명시적 처리)
+        if (AccountingConstants.JOURNAL_STATUS_REVERSED.equals(original.getStatus())) {
+            throw new IllegalStateException("이미 역분개된 전표입니다.");
+        }
+        if (!AccountingConstants.JOURNAL_STATUS_POSTED.equals(original.getStatus())) {
+            throw new IllegalStateException("기표(POSTED) 상태의 전표만 역분개할 수 있습니다.");
+        }
+        
+        // 3. 중복 역분개 전표 생성 방지 (sourceType/sourceId 유니크 체크 활용)
+        if (journalEntryRepository.existsBySourceTypeAndSourceId(AccountingConstants.SOURCE_REVERSAL, original.getId())) {
+            throw new IllegalStateException("이미 해당 전표에 대한 역분개 전표가 존재합니다.");
+        }
 
         // 역분개 라인 생성 (차대변 반전)
         List<JournalLineRequest> reversedLines = new ArrayList<>();
@@ -166,6 +183,8 @@ public class AccountingService {
     @Transactional
     public void deleteJournal(Long id) {
         JournalEntry entry = findById(id);
+        journalValidationService.validatePeriodNotClosed(entry.getTransactionDate());
+        
         if (!AccountingConstants.JOURNAL_STATUS_DRAFT.equals(entry.getStatus())) {
             throw new IllegalStateException("DRAFT 상태의 전표만 삭제할 수 있습니다.");
         }

@@ -15,6 +15,8 @@ public interface JournalEntryRepository extends JpaRepository<JournalEntry, Long
     List<JournalEntry> findByStatus(String status);
 
     List<JournalEntry> findByFiscalYearAndFiscalMonth(Integer fiscalYear, Integer fiscalMonth);
+    
+    boolean existsByFiscalYearAndFiscalMonthAndStatusIn(Integer fiscalYear, Integer fiscalMonth, List<String> statuses);
 
     List<JournalEntry> findByFiscalYearOrderByTransactionDateDesc(Integer fiscalYear);
 
@@ -25,7 +27,7 @@ public interface JournalEntryRepository extends JpaRepository<JournalEntry, Long
                SUM(l.creditAmount)
         FROM JournalEntry e
         JOIN e.lines l
-        WHERE e.status = 'POSTED'
+        WHERE e.status IN ('POSTED', 'REVERSED')
           AND (:fiscalYear IS NULL OR e.fiscalYear = :fiscalYear)
           AND (:fiscalMonth IS NULL OR e.fiscalMonth = :fiscalMonth)
         GROUP BY l.account.code
@@ -41,7 +43,7 @@ public interface JournalEntryRepository extends JpaRepository<JournalEntry, Long
                l.debitAmount, l.creditAmount, l.description
         FROM JournalEntry e
         JOIN e.lines l
-        WHERE e.status = 'POSTED'
+        WHERE e.status IN ('POSTED', 'REVERSED')
           AND l.account.code = :accountCode
           AND (:fiscalYear IS NULL OR e.fiscalYear = :fiscalYear)
           AND (:fiscalMonth IS NULL OR e.fiscalMonth = :fiscalMonth)
