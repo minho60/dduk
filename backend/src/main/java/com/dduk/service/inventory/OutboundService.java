@@ -8,8 +8,14 @@ import org.springframework.stereotype.Service;
     PurchaseService: 구매 요청, 구매 승인, 구매 내역
     PurchaseOrderService: 발주 생성, 발주 상태 변경, 발주서 조회
     InventoryService: 현재 재고 조회, 재고 반영, 안전재고 확인
+
+   Outbound 기능은 OutboundService에 구현
+   Repository는 StockMovementRepository + InventoryRepository 사용
+   OutboundRepository는 꼭 필요하지 않음
  */
 
 @Service
 public class OutboundService {
+
+
 }
