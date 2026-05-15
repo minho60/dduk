@@ -18,11 +18,11 @@
             id: 'inventory',
             label: '재고관리',
             items: [
-                { label: '재고관리 대시보드', icon: 'bar-chart-3', href: '#' },
-                { label: '재고 조회', icon: 'search', href: '#' },
-                { label: '입출고 이력', icon: 'history', href: '#' },
-                { label: '창고 이동', icon: 'truck', href: '#' },
-                { label: '자동 발주 추천', icon: 'zap', href: '#' }
+                { label: '재고관리 대시보드', icon: 'bar-chart-3', href: 'pages/inventory/dashboard.html' },
+                { label: '재고 조회', icon: 'search', href: 'pages/inventory/list.html' },
+                { label: '입출고 이력', icon: 'history', href: 'pages/inventory/movements.html' },
+                { label: '창고 이동', icon: 'truck', href: 'pages/inventory/transfers.html' },
+                { label: '자동 발주 추천', icon: 'zap', href: 'pages/inventory/reorder.html' }
             ]
         },
         {

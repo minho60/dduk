@@ -1,5 +1,7 @@
 package com.dduk.domain.inventory.stock;
 
+import com.fasterxml.jackson.annotation.JsonIgnoreProperties;
+
 import com.dduk.domain.inventory.item.Item;
 import com.dduk.domain.inventory.warehouse.Warehouse;
 import jakarta.persistence.*;
@@ -13,6 +15,7 @@ import java.time.LocalDateTime;
 @NoArgsConstructor(access = AccessLevel.PROTECTED)
 @AllArgsConstructor
 @Builder
+@JsonIgnoreProperties({"hibernateLazyInitializer", "handler"})
 public class StockMovement {
     @Id
     @GeneratedValue(strategy = GenerationType.IDENTITY)
@@ -33,6 +36,21 @@ public class StockMovement {
     @Enumerated(EnumType.STRING)
     @Column(name = "movement_reason", nullable = false, updatable = false)
     private MovementReason movementReason;
+
+    @Column(name = "reference_no", nullable = false, unique = true, updatable = false)
+    private String referenceNo;
+
+    @Column(name = "unit_cost", nullable = false, precision = 19, scale = 4)
+    private java.math.BigDecimal unitCost;
+
+    @Column(name = "total_amount", nullable = false, precision = 19, scale = 4)
+    private java.math.BigDecimal totalAmount;
+
+    @Column(name = "source_type", updatable = false)
+    private String sourceType;
+
+    @Column(name = "source_id", updatable = false)
+    private String sourceId;
 
     @Column(nullable = false, updatable = false)
     private Integer quantity;

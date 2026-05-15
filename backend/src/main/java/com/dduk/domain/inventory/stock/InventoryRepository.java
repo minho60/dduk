@@ -16,4 +16,17 @@ public interface InventoryRepository extends JpaRepository<Inventory, Long> {
     List<Inventory> findByWarehouseId(Long warehouseId);
     List<Inventory> findByItemId(Long itemId);
     List<Inventory> findByWarehouseIdAndItemId(Long warehouseId, Long itemId);
+
+    @Query("SELECT SUM(i.currentStock) FROM Inventory i")
+    Long getTotalStockQuantity();
+
+    @Query("SELECT SUM(i.inventoryValue) FROM Inventory i")
+    java.math.BigDecimal getTotalInventoryValue();
+
+    @Query("SELECT COUNT(i) FROM Inventory i WHERE i.currentStock <= i.safetyStock")
+    Long countLowStockItems();
+
+    @Query("SELECT i.warehouse.warehouseName, SUM(i.currentStock), SUM(i.inventoryValue) " +
+           "FROM Inventory i GROUP BY i.warehouse.warehouseName")
+    List<Object[]> getStockDistributionByWarehouse();
 }

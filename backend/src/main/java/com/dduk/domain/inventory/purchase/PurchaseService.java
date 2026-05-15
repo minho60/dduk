@@ -49,7 +49,7 @@ public class PurchaseService {
             if (currentStatus != PurchaseStatus.RECEIVED && currentStatus != PurchaseStatus.COMPLETED) {
                 // 중복 입고 방지 (재고)
                 boolean alreadyReceived = stockMovementRepository.existsByReferenceTypeAndReferenceIdAndMovementType(
-                        "PURCHASE", order.getPurchaseOrderNo(), MovementType.IN
+                        "PURCHASE", order.getPurchaseOrderNo(), MovementType.INBOUND
                 );
                 
                 if (!alreadyReceived) {
@@ -59,6 +59,7 @@ public class PurchaseService {
                                 item.getItem().getId(),
                                 order.getWarehouse().getId(),
                                 item.getQuantity(),
+                                item.getUnitPrice(),
                                 MovementReason.PURCHASE_RECEIVED,
                                 "PURCHASE",
                                 order.getPurchaseOrderNo()

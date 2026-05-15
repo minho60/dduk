@@ -17,6 +17,9 @@ import java.util.Map;
 import com.dduk.domain.inventory.stock.InventoryValidationService;
 import com.dduk.domain.inventory.stock.InventoryRebuildService;
 import com.dduk.domain.inventory.stock.api.dto.ValidationResultDto;
+import com.dduk.domain.inventory.stock.api.dto.InboundRequest;
+import com.dduk.domain.inventory.stock.api.dto.OutboundRequest;
+import com.dduk.domain.inventory.stock.MovementReason;
 
 @RestController
 @RequestMapping("/api/v1/inventories")
@@ -59,6 +62,33 @@ public class InventoryController {
                 request.getReferenceId()
         );
         return buildSuccessResponse("Transfer completed successfully");
+    }
+
+    @PostMapping("/inbound")
+    public ResponseEntity<Map<String, Object>> inboundStock(@RequestBody InboundRequest request) {
+        inventoryService.increaseStock(
+                request.getItemId(),
+                request.getWarehouseId(),
+                request.getQuantity(),
+                request.getUnitCost(),
+                request.getReason() != null ? request.getReason() : MovementReason.PURCHASE_RECEIVED,
+                request.getReferenceType(),
+                request.getReferenceId()
+        );
+        return buildSuccessResponse("Inbound completed successfully");
+    }
+
+    @PostMapping("/outbound")
+    public ResponseEntity<Map<String, Object>> outboundStock(@RequestBody OutboundRequest request) {
+        inventoryService.decreaseStock(
+                request.getItemId(),
+                request.getWarehouseId(),
+                request.getQuantity(),
+                request.getReason() != null ? request.getReason() : MovementReason.SALES_SHIPPED,
+                request.getReferenceType(),
+                request.getReferenceId()
+        );
+        return buildSuccessResponse("Outbound completed successfully");
     }
 
     @GetMapping("/reorder-recommendations")

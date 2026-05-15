@@ -1,9 +1,10 @@
 package com.dduk.domain.inventory.stock;
 
 public enum MovementType {
-    IN,
-    OUT,
+    INBOUND,
+    OUTBOUND,
     TRANSFER_IN,
     TRANSFER_OUT,
-    ADJUST
+    ADJUSTMENT,
+    RETURN
 }

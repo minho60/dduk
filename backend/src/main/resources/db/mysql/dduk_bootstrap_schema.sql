@@ -81,15 +81,30 @@ CREATE TABLE IF NOT EXISTS vendors (
     UNIQUE KEY uk_vendors_business_registration_no (business_registration_no)
 ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci;
 
+CREATE TABLE IF NOT EXISTS warehouses (
+    id BIGINT NOT NULL AUTO_INCREMENT,
+    warehouse_code VARCHAR(50) NOT NULL,
+    warehouse_name VARCHAR(100) NOT NULL,
+    location VARCHAR(255) NULL,
+    manager_name VARCHAR(100) NULL,
+    status VARCHAR(30) NOT NULL DEFAULT 'ACTIVE',
+    created_at DATETIME NOT NULL DEFAULT CURRENT_TIMESTAMP,
+    updated_at DATETIME NOT NULL DEFAULT CURRENT_TIMESTAMP ON UPDATE CURRENT_TIMESTAMP,
+    PRIMARY KEY (id),
+    UNIQUE KEY uk_warehouses_code (warehouse_code)
+) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci;
+
 CREATE TABLE IF NOT EXISTS items (
     id BIGINT NOT NULL AUTO_INCREMENT,
     item_code VARCHAR(50) NOT NULL,
     name VARCHAR(100) NOT NULL,
+    item_type VARCHAR(30) NOT NULL DEFAULT 'FINISHED_GOOD',
     category VARCHAR(100) NULL,
     spec VARCHAR(100) NULL,
     barcode VARCHAR(100) NULL,
     unit VARCHAR(30) NOT NULL,
     default_vendor_id BIGINT NULL,
+    standard_cost DECIMAL(15,2) NOT NULL DEFAULT 0.00,
     unit_price DECIMAL(15,2) NOT NULL DEFAULT 0.00,
     safety_stock INT NOT NULL DEFAULT 0,
     is_active TINYINT(1) NOT NULL DEFAULT 1,
@@ -108,24 +123,25 @@ CREATE TABLE IF NOT EXISTS items (
 CREATE TABLE IF NOT EXISTS inventories (
     id BIGINT NOT NULL AUTO_INCREMENT,
     item_id BIGINT NOT NULL,
-    location VARCHAR(100) NOT NULL,
-    quantity INT NOT NULL DEFAULT 0,
-    allocated_quantity INT NOT NULL DEFAULT 0,
+    warehouse_id BIGINT NOT NULL,
+    current_stock INT NOT NULL DEFAULT 0,
+    allocated_stock INT NOT NULL DEFAULT 0,
     safety_stock INT NOT NULL DEFAULT 0,
-    lot_no VARCHAR(100) NOT NULL DEFAULT '',
-    expiration_date DATE NOT NULL DEFAULT '9999-12-31',
-    status VARCHAR(30) NOT NULL DEFAULT 'AVAILABLE',
-    last_adjusted_at DATETIME NULL,
+    average_cost DECIMAL(19,4) NOT NULL DEFAULT 0.0000,
+    inventory_value DECIMAL(19,4) NOT NULL DEFAULT 0.0000,
+    version BIGINT NOT NULL DEFAULT 0,
     created_at DATETIME NOT NULL DEFAULT CURRENT_TIMESTAMP,
     updated_at DATETIME NOT NULL DEFAULT CURRENT_TIMESTAMP ON UPDATE CURRENT_TIMESTAMP,
     PRIMARY KEY (id),
-    UNIQUE KEY uk_inventories_item_location_lot_expiration (item_id, location, lot_no, expiration_date),
+    UNIQUE KEY uk_inventories_item_warehouse (item_id, warehouse_id),
     KEY idx_inventories_item_id (item_id),
-    CONSTRAINT chk_inventories_quantity_non_negative CHECK (quantity >= 0),
-    CONSTRAINT chk_inventories_allocated_quantity_non_negative CHECK (allocated_quantity >= 0),
-    CONSTRAINT chk_inventories_allocated_quantity_available CHECK (allocated_quantity <= quantity),
+    KEY idx_inventories_warehouse_id (warehouse_id),
     CONSTRAINT fk_inventories_item
         FOREIGN KEY (item_id) REFERENCES items (id)
+        ON DELETE RESTRICT
+        ON UPDATE CASCADE,
+    CONSTRAINT fk_inventories_warehouse
+        FOREIGN KEY (warehouse_id) REFERENCES warehouses (id)
         ON DELETE RESTRICT
         ON UPDATE CASCADE
 ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci;
@@ -256,25 +272,29 @@ CREATE TABLE IF NOT EXISTS expenses (
 CREATE TABLE IF NOT EXISTS stock_movements (
     id BIGINT NOT NULL AUTO_INCREMENT,
     item_id BIGINT NOT NULL,
-    inventory_id BIGINT NOT NULL,
+    warehouse_id BIGINT NOT NULL,
     movement_type VARCHAR(30) NOT NULL,
+    movement_reason VARCHAR(50) NOT NULL,
+    reference_no VARCHAR(50) NULL,
     quantity INT NOT NULL,
+    unit_cost DECIMAL(19,4) NOT NULL DEFAULT 0.0000,
+    total_amount DECIMAL(19,4) NOT NULL DEFAULT 0.0000,
+    before_quantity INT NOT NULL,
+    after_quantity INT NOT NULL,
     reference_type VARCHAR(50) NULL,
-    reference_id BIGINT NULL,
-    moved_at DATETIME NOT NULL,
-    note VARCHAR(255) NULL,
+    reference_id VARCHAR(50) NULL,
     created_at DATETIME NOT NULL DEFAULT CURRENT_TIMESTAMP,
     PRIMARY KEY (id),
     KEY idx_stock_movements_item_id (item_id),
-    KEY idx_stock_movements_inventory_id (inventory_id),
+    KEY idx_stock_movements_warehouse_id (warehouse_id),
+    KEY idx_stock_movements_ref_no (reference_no),
     KEY idx_stock_movements_reference (reference_type, reference_id),
-    CONSTRAINT chk_stock_movements_quantity_positive CHECK (quantity > 0),
     CONSTRAINT fk_stock_movements_item
         FOREIGN KEY (item_id) REFERENCES items (id)
         ON DELETE RESTRICT
         ON UPDATE CASCADE,
-    CONSTRAINT fk_stock_movements_inventory
-        FOREIGN KEY (inventory_id) REFERENCES inventories (id)
+    CONSTRAINT fk_stock_movements_warehouse
+        FOREIGN KEY (warehouse_id) REFERENCES warehouses (id)
         ON DELETE RESTRICT
         ON UPDATE CASCADE
 ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci;

@@ -15,7 +15,6 @@ public class PayrollStatusService {
 
     private final PayrollRepository payrollRepository;
     private final com.dduk.domain.accounting.autojounal.AutoJournalService autoJournalService;
-    private final com.dduk.domain.accounting.AccountingConstants accountingConstants;
 
     private static final Map<String, List<String>> VALID_TRANSITIONS = new HashMap<>();
 

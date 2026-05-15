@@ -1,0 +1,144 @@
+<!doctype html>
+<html lang="ko">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>창고 이동 등록 | DDUK ERP</title>
+    <script src="https://cdn.tailwindcss.com/3.4.17"></script>
+    <script src="https://cdn.jsdelivr.net/npm/lucide@0.263.0/dist/umd/lucide.min.js"></script>
+    <link href="https://fonts.googleapis.com/css2?family=DM+Sans:wght@400;500;600;700&display=swap" rel="stylesheet">
+    <link rel="stylesheet" href="../../styles/common/dashboard.css">
+</head>
+<body class="bg-gray-50 min-h-screen">
+    <aside data-dduk-sidebar></aside>
+    <div class="main_wrap">
+        <header class="topbar px-6 py-4 bg-white border-b flex items-center justify-between">
+            <div class="flex items-center gap-4">
+                <button id="mobile_menu_btn" class="lg:hidden p-2 hover:bg-gray-100 rounded-lg"><i data-lucide="menu"></i></button>
+                <h1 class="text-xl font-bold text-gray-800">창고 이동 등록</h1>
+            </div>
+        </header>
+
+        <main class="content_area p-6 max-w-4xl mx-auto">
+            <div class="bg-white rounded-2xl shadow-sm border border-gray-100 p-8">
+                <div class="grid grid-cols-2 gap-8 mb-8">
+                    <!-- From Warehouse -->
+                    <div class="space-y-4">
+                        <label class="block text-sm font-semibold text-gray-700">출고 창고 (Source)</label>
+                        <select id="from-warehouse" class="w-full p-3 border rounded-xl bg-gray-50 focus:ring-2 focus:ring-indigo-500 outline-none">
+                            <option value="">출고 창고 선택</option>
+                        </select>
+                    </div>
+                    <!-- To Warehouse -->
+                    <div class="space-y-4">
+                        <label class="block text-sm font-semibold text-gray-700">입고 창고 (Destination)</label>
+                        <select id="to-warehouse" class="w-full p-3 border rounded-xl bg-gray-50 focus:ring-2 focus:ring-indigo-500 outline-none">
+                            <option value="">입고 창고 선택</option>
+                        </select>
+                    </div>
+                </div>
+
+                <div class="space-y-6">
+                    <h3 class="text-lg font-bold text-gray-800 border-b pb-2">이동 품목 설정</h3>
+                    <div class="grid grid-cols-12 gap-4 items-end">
+                        <div class="col-span-6 space-y-2">
+                            <label class="text-xs font-bold text-gray-500 uppercase">품목 선택</label>
+                            <select id="item-select" class="w-full p-3 border rounded-xl bg-gray-50 focus:ring-2 focus:ring-indigo-500 outline-none">
+                                <option value="">품목 선택</option>
+                            </select>
+                        </div>
+                        <div class="col-span-3 space-y-2">
+                            <label class="text-xs font-bold text-gray-500 uppercase">이동 수량</label>
+                            <input id="transfer-qty" type="number" min="1" placeholder="0" class="w-full p-3 border rounded-xl bg-gray-50 focus:ring-2 focus:ring-indigo-500 outline-none">
+                        </div>
+                        <div class="col-span-3">
+                            <p id="available-info" class="text-xs text-indigo-600 font-bold mb-2">가용: -</p>
+                        </div>
+                    </div>
+                </div>
+
+                <div class="mt-12 flex justify-end gap-3">
+                    <button onclick="history.back()" class="px-6 py-3 border rounded-xl font-bold text-gray-600 hover:bg-gray-50 transition-colors">취소</button>
+                    <button id="submit-btn" class="px-8 py-3 bg-indigo-600 text-white rounded-xl font-bold hover:bg-indigo-700 transition-colors shadow-lg shadow-indigo-200">이동 실행 (원장 기입)</button>
+                </div>
+            </div>
+        </main>
+    </div>
+
+    <script src="../../services/inventory/inventory-service.js"></script>
+    <script src="../../services/common/sidebar.js"></script>
+    <script>
+        document.addEventListener('DOMContentLoaded', async () => {
+            lucide.createIcons();
+            await loadMetadata();
+            
+            document.getElementById('from-warehouse').addEventListener('change', loadItemsInWarehouse);
+            document.getElementById('item-select').addEventListener('change', updateAvailableInfo);
+            document.getElementById('submit-btn').addEventListener('click', executeTransfer);
+        });
+
+        async function loadMetadata() {
+            // In a real app, you'd have a warehouse API. For now, we'll use a mocked list or fetch from stocks.
+            // Let's assume we can fetch all warehouses.
+            const response = await fetch('/api/v1/warehouses'); // Assuming this exists from docs
+            const data = await response.json();
+            const fromWh = document.getElementById('from-warehouse');
+            const toWh = document.getElementById('to-warehouse');
+            
+            const options = data.map(w => `<option value="${w.id}">${w.warehouseName}</option>`).join('');
+            fromWh.innerHTML += options;
+            toWh.innerHTML += options;
+        }
+
+        async function loadItemsInWarehouse() {
+            const whId = document.getElementById('from-warehouse').value;
+            if (!whId) return;
+
+            const response = await InventoryService.getStocks({ warehouseId: whId });
+            const itemSelect = document.getElementById('item-select');
+            itemSelect.innerHTML = '<option value="">품목 선택</option>' + 
+                response.data.map(i => `<option value="${i.item.id}" data-available="${i.currentStock - i.allocatedStock}">${i.item.name} (${i.item.itemCode})</option>`).join('');
+        }
+
+        function updateAvailableInfo() {
+            const select = document.getElementById('item-select');
+            const selected = select.options[select.selectedIndex];
+            const available = selected.dataset.available || '-';
+            document.getElementById('available-info').textContent = `가용: ${available}`;
+        }
+
+        async function executeTransfer() {
+            const itemId = document.getElementById('item-select').value;
+            const fromWarehouseId = document.getElementById('from-warehouse').value;
+            const toWarehouseId = document.getElementById('to-warehouse').value;
+            const quantity = parseInt(document.getElementById('transfer-qty').value);
+
+            if (!itemId || !fromWarehouseId || !toWarehouseId || !quantity) {
+                alert('모든 필드를 입력해주세요.');
+                return;
+            }
+
+            if (fromWarehouseId === toWarehouseId) {
+                alert('출고 창고와 입고 창고가 동일합니다.');
+                return;
+            }
+
+            try {
+                const response = await InventoryService.transfer({
+                    itemId, fromWarehouseId, toWarehouseId, quantity,
+                    referenceType: 'MANUAL_TRANSFER'
+                });
+
+                if (response.status === 'success') {
+                    alert('창고 이동 원장이 성공적으로 기록되었습니다.');
+                    location.href = 'movements.html';
+                } else {
+                    alert('실패: ' + response.message);
+                }
+            } catch (error) {
+                alert('오류가 발생했습니다.');
+            }
+        }
+    </script>
+</body>
+</html>

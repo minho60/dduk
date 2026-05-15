@@ -10,7 +10,7 @@ spring:
 
   jpa:
     hibernate:
-      ddl-auto: ${JPA_DDL_AUTO:validate}
+      ddl-auto: ${JPA_DDL_AUTO:create}
     show-sql: true
     properties:
       hibernate:
@@ -19,7 +19,6 @@ spring:
   sql:
     init:
       mode: always
-      schema-locations: classpath:db/mysql/dduk_bootstrap_schema.sql
       data-locations: classpath:db/mysql/dduk_bootstrap_data.sql
 
 # JWT 설정
