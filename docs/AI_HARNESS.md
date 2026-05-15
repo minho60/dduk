@@ -105,12 +105,13 @@ AI는 작업 요청 시:
 
 ## 5. Backend 규칙 (Spring Boot)
 
-구조 원칙:
+구조 원칙 (Domain-Driven Structure):
 
-- Controller: 요청/응답 처리
-- Service: 비즈니스 로직 처리
-- Repository: DB 접근 처리
-- DTO / Entity 역할 분리
+- 모든 백엔드 코드는 `com.dduk.domain.[도메인].[기능]` 구조를 따른다.
+- **Controller**: `...[기능].api` 패키지에 위치하며 요청/응답 처리를 담당한다.
+- **Service/Repository/Entity**: `...[기능]` 패키지에 위치한다.
+- **DTO**: `...[기능].dto` 또는 `...[기능].api.dto` 패키지에 위치한다.
+- **역할 분리**: Controller에 비즈니스 로직 작성을 금지하며, 반드시 Service Layer를 거친다.
 
 네이밍:
 
