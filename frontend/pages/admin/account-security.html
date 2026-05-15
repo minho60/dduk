@@ -1,0 +1,190 @@
+<!doctype html>
+<html lang="ko">
+
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>DDUK ERP - 계정 및 권한 관리</title>
+  <script src="https://cdn.tailwindcss.com/3.4.17"></script>
+  <script src="https://cdn.jsdelivr.net/npm/lucide@0.263.0/dist/umd/lucide.min.js"></script>
+  <link href="https://fonts.googleapis.com/css2?family=DM+Sans:wght@400;500;600;700&amp;display=swap" rel="stylesheet">
+  <link rel="stylesheet" href="../../styles/common/dashboard.css">
+  <link rel="stylesheet" href="../../styles/admin/admin-pages.css">
+</head>
+
+<body class="w-full">
+  <aside data-dduk-sidebar></aside>
+  
+  <div class="main_wrap">
+    <header class="topbar">
+      <button class="sidebar_icon_btn dduk-inline-027" onclick="toggleSidebar()" id="mobile_menu_btn" aria-label="메뉴">
+        <i class="dduk-inline-028" data-lucide="menu"></i>
+      </button>
+      <div class="flex-1 px-4">
+        <h2 class="text-lg font-semibold text-gray-800">계정 및 보안 센터</h2>
+      </div>
+      <div class="flex items-center gap-4 px-6">
+        <button class="sidebar_icon_btn" aria-label="알림"><i data-lucide="bell"></i></button>
+        <button class="sidebar_icon_btn" aria-label="프로필"><i data-lucide="user"></i></button>
+      </div>
+    </header>
+
+    <main class="content_area p-6 space-y-6">
+      <div class="mb-8">
+        <h2 class="text-2xl font-bold text-gray-900">계정 및 권한 관리</h2>
+        <p class="text-gray-500 mt-1">시스템 접근 권한 및 사용자 계정을 통합 제어합니다.</p>
+      </div>
+
+      <div class="kpi_grid mb-8">
+        <div class="kpi_card">
+          <p class="text-xs text-gray-500 uppercase tracking-wider font-medium">전체 사용자</p>
+          <p class="text-2xl font-bold text-gray-900 mt-1">124명</p>
+          <p class="text-xs text-emerald-600 mt-2 flex items-center gap-1">
+            <i data-lucide="trending-up" class="w-3 h-3"></i> 5명 이번주 증가
+          </p>
+        </div>
+        <div class="kpi_card">
+          <p class="text-xs text-gray-500 uppercase tracking-wider font-medium">관리자(ADMIN)</p>
+          <p class="text-2xl font-bold text-gray-900 mt-1">5명</p>
+          <p class="text-xs text-gray-400 mt-2">전체 대비 4%</p>
+        </div>
+        <div class="kpi_card">
+          <p class="text-xs text-gray-500 uppercase tracking-wider font-medium">보안 위험 감지</p>
+          <p class="text-2xl font-bold text-gray-900 mt-1">0건</p>
+          <p class="text-xs text-emerald-600 mt-2">안전 상태</p>
+        </div>
+        <div class="kpi_card">
+          <p class="text-xs text-gray-500 uppercase tracking-wider font-medium">평균 로그인 빈도</p>
+          <p class="text-2xl font-bold text-gray-900 mt-1">8.2회</p>
+          <p class="text-xs text-blue-600 mt-2">사용자당/일</p>
+        </div>
+      </div>
+
+      <div class="grid grid-cols-1 lg:grid-cols-3 gap-6">
+        <div class="lg:col-span-1">
+          <section class="section_card h-full">
+            <div class="flex items-center gap-2 mb-6">
+              <i data-lucide="user-plus" class="text-blue-600"></i>
+              <h3 class="text-lg font-semibold text-gray-800">신규 계정 생성</h3>
+            </div>
+            <form id="memberCreateForm" class="space-y-4">
+              <div>
+                <label class="block text-sm font-medium text-gray-700 mb-1">아이디</label>
+                <input type="text" id="loginId" name="loginId" required placeholder="예: admin_id" class="w-full px-4 py-2 border border-gray-200 rounded-lg focus:ring-2 focus:ring-blue-500 focus:outline-none transition-all">
+              </div>
+              <div>
+                <label class="block text-sm font-medium text-gray-700 mb-1">임시 비밀번호</label>
+                <input type="password" id="password" name="password" required placeholder="••••••••" class="w-full px-4 py-2 border border-gray-200 rounded-lg focus:ring-2 focus:ring-blue-500 focus:outline-none transition-all">
+              </div>
+              <div>
+                <label class="block text-sm font-medium text-gray-700 mb-1">사용자 이름</label>
+                <input type="text" id="name" name="name" required placeholder="홍길동" class="w-full px-4 py-2 border border-gray-200 rounded-lg focus:ring-2 focus:ring-blue-500 focus:outline-none transition-all">
+              </div>
+              <div>
+                <label class="block text-sm font-medium text-gray-700 mb-1">시스템 역할</label>
+                <select id="role" name="role" required class="w-full px-4 py-2 border border-gray-200 rounded-lg focus:ring-2 focus:ring-blue-500 focus:outline-none transition-all appearance-none bg-white">
+                  <option value="ADMIN">ADMIN (최고 관리자)</option>
+                  <option value="HR">HR (인사/회계 담당)</option>
+                  <option value="INVENTORY">INVENTORY (구매/재고 담당)</option>
+                </select>
+              </div>
+              <button type="submit" class="w-full bg-blue-600 text-white font-semibold py-3 rounded-lg hover:bg-blue-700 transition-colors mt-6">
+                계정 생성하기
+              </button>
+            </form>
+            <p id="memberMessage" class="mt-4 text-center text-sm font-medium"></p>
+          </section>
+        </div>
+
+        <div class="lg:col-span-2">
+          <section class="section_card">
+            <div class="flex items-center justify-between mb-6">
+              <div class="flex items-center gap-2">
+                <i data-lucide="shield-check" class="text-emerald-600"></i>
+                <h3 class="text-lg font-semibold text-gray-800">역할별 세부 권한 설정</h3>
+              </div>
+              <button type="button" class="text-sm text-blue-600 font-medium hover:underline">권한 프리셋 관리</button>
+            </div>
+            
+            <div class="overflow-x-auto">
+              <table class="w-full text-left">
+                <thead class="bg-gray-50 text-gray-500 text-xs uppercase tracking-wider">
+                  <tr>
+                    <th class="px-4 py-3 font-semibold">메뉴/기능 카테고리</th>
+                    <th class="px-4 py-3 font-semibold">ADMIN</th>
+                    <th class="px-4 py-3 font-semibold">HR</th>
+                    <th class="px-4 py-3 font-semibold">INVENTORY</th>
+                  </tr>
+                </thead>
+                <tbody class="divide-y divide-gray-100 text-sm">
+                  <tr>
+                    <td class="px-4 py-4 font-medium text-gray-700">통합 대시보드</td>
+                    <td class="px-4 py-4"><select class="matrix-select"><option>Full Access</option><option>Read Only</option></select></td>
+                    <td class="px-4 py-4"><select class="matrix-select"><option>Read Only</option><option>Denied</option></select></td>
+                    <td class="px-4 py-4"><select class="matrix-select"><option>Read Only</option><option>Denied</option></select></td>
+                  </tr>
+                  <tr>
+                    <td class="px-4 py-4 font-medium text-gray-700">인사/급여 관리</td>
+                    <td class="px-4 py-4"><select class="matrix-select"><option>Full Access</option></select></td>
+                    <td class="px-4 py-4"><select class="matrix-select"><option>Full Access</option></select></td>
+                    <td class="px-4 py-4"><select class="matrix-select"><option>Denied</option></select></td>
+                  </tr>
+                </tbody>
+              </table>
+            </div>
+          </section>
+        </div>
+      </div>
+
+      <section class="section_card mt-8">
+        <div class="flex flex-col md:flex-row md:items-center justify-between gap-4 mb-6">
+          <div class="flex items-center gap-2">
+            <i data-lucide="users" class="text-purple-600"></i>
+            <h3 class="text-lg font-semibold text-gray-800">활성 사용자 목록</h3>
+          </div>
+          <div class="flex items-center gap-2">
+            <div class="relative">
+              <i data-lucide="search" class="absolute left-3 top-1/2 -translate-y-1/2 text-gray-400 w-4 h-4"></i>
+              <input type="text" placeholder="검색..." class="pl-10 pr-4 py-2 border border-gray-200 rounded-lg text-sm focus:ring-2 focus:ring-blue-500 focus:outline-none transition-all">
+            </div>
+          </div>
+        </div>
+        
+        <div class="overflow-x-auto">
+          <table class="w-full text-left text-sm">
+            <thead class="bg-gray-50 text-gray-500 uppercase text-[10px] tracking-widest">
+              <tr>
+                <th class="px-4 py-3 font-semibold">사용자명</th>
+                <th class="px-4 py-3 font-semibold">아이디</th>
+                <th class="px-4 py-3 font-semibold text-center">상태</th>
+              </tr>
+            </thead>
+            <tbody id="memberTableBody" class="divide-y divide-gray-100">
+              <tr>
+                <td class="px-4 py-4 font-semibold text-gray-900">김민호</td>
+                <td class="px-4 py-4 text-gray-600 font-mono">minho60</td>
+                <td class="px-4 py-4 text-center"><span class="px-2 py-1 bg-emerald-50 text-emerald-700 rounded text-[10px] font-bold">활성</span></td>
+              </tr>
+            </tbody>
+          </table>
+        </div>
+      </section>
+    </main>
+  </div>
+
+  <script src="../../services/common/session.js"></script>
+  <script src="../../services/common/app-shell.js"></script>
+  <script src="../../services/common/sidebar.js"></script>
+  <script src="../../services/admin/member-management.js"></script>
+  <script>
+    document.addEventListener('DOMContentLoaded', function() {
+      if (window.lucide) lucide.createIcons();
+      window.ddukAppShell.hydratePage({
+        title: "계정 및 권한 관리",
+        description: "사용자 계정 생성 및 시스템 역할별 상세 권한을 관리합니다."
+      });
+    });
+  </script>
+</body>
+
+</html>

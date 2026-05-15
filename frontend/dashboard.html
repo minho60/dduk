@@ -1,71 +1,151 @@
-<!DOCTYPE html>
+<!doctype html>
 <html lang="ko">
+
 <head>
-    <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>DDUK ERP - 통합 대시보드</title>
-    <link rel="stylesheet" href="styles/common/app-shell.css">
-    <link rel="stylesheet" href="styles/common/dashboard.css">
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>DDUK ERP Dashboard</title>
+  <script src="https://cdn.tailwindcss.com/3.4.17"></script>
+  <script src="https://cdn.jsdelivr.net/npm/lucide@0.263.0/dist/umd/lucide.min.js"></script>
+  <link href="https://fonts.googleapis.com/css2?family=DM+Sans:wght@400;500;600;700&amp;display=swap" rel="stylesheet">
+  <link rel="stylesheet" href="styles/common/dashboard.css">
 </head>
-<body>
-    <div class="app-shell">
-        <aside class="app-sidebar">
-            <div class="sidebar-header">
-                <div class="sidebar-logo">
-                    <img src="assets/ERP-ROGO.svg" alt="DDUK ERP Logo">
-                    <h1>DDUK ERP</h1>
-                    <button class="home-btn" title="Home">🏠</button>
-                </div>
+
+<body class="w-full">
+  <aside data-dduk-sidebar></aside>
+  
+  <div class="main_wrap">
+    <header class="topbar">
+      <button class="sidebar_icon_btn dduk-inline-027" onclick="toggleSidebar()" id="mobile_menu_btn" aria-label="메뉴">
+        <i class="dduk-inline-028" data-lucide="menu"></i>
+      </button>
+      <div class="flex-1 px-4">
+        <h2 class="text-lg font-semibold text-gray-800">통합 대시보드</h2>
+      </div>
+      <div class="flex items-center gap-4 px-6">
+        <button class="sidebar_icon_btn" aria-label="알림"><i data-lucide="bell"></i></button>
+        <button class="sidebar_icon_btn" aria-label="프로필"><i data-lucide="user"></i></button>
+      </div>
+    </header>
+
+    <main class="content_area p-6 space-y-6">
+      <div class="kpi_grid">
+        <div class="kpi_card">
+          <p class="text-xs text-gray-500 uppercase tracking-wider font-medium">오늘의 매출</p>
+          <p class="text-2xl font-bold text-gray-900 mt-1">₩ 12,450,000</p>
+          <p class="text-xs text-emerald-600 mt-2 flex items-center gap-1">
+            <i data-lucide="trending-up" class="w-3 h-3"></i> 12.5% 증가
+          </p>
+        </div>
+        <div class="kpi_card">
+          <p class="text-xs text-gray-500 uppercase tracking-wider font-medium">미결재 서류</p>
+          <p class="text-2xl font-bold text-gray-900 mt-1">14건</p>
+          <p class="text-xs text-amber-600 mt-2">확인 필요</p>
+        </div>
+        <div class="kpi_card">
+          <p class="text-xs text-gray-500 uppercase tracking-wider font-medium">재고 부족 품목</p>
+          <p class="text-2xl font-bold text-gray-900 mt-1">5종</p>
+          <p class="text-xs text-red-600 mt-2">발주 필요</p>
+        </div>
+        <div class="kpi_card">
+          <p class="text-xs text-gray-500 uppercase tracking-wider font-medium">AI 엔진 상태</p>
+          <div class="flex items-center gap-2 mt-1">
+            <div class="w-2 h-2 bg-emerald-500 rounded-full animate-pulse"></div>
+            <p class="text-lg font-bold text-gray-900">Online</p>
+          </div>
+          <p class="text-xs text-gray-400 mt-2">정상 작동 중</p>
+        </div>
+      </div>
+
+      <div class="section_card">
+        <div class="flex items-center justify-between mb-6">
+          <h3 class="text-lg font-semibold text-gray-800">최근 시스템 활동</h3>
+          <button class="text-sm text-blue-600 hover:underline">전체 보기</button>
+        </div>
+        <div class="overflow-x-auto">
+          <table class="w-full text-left text-sm">
+            <thead class="bg-gray-50 text-gray-500 uppercase text-[10px] tracking-widest">
+              <tr>
+                <th class="px-4 py-3">시간</th>
+                <th class="px-4 py-3">사용자</th>
+                <th class="px-4 py-3">작업</th>
+                <th class="px-4 py-3">상태</th>
+              </tr>
+            </thead>
+            <tbody class="divide-y divide-gray-100">
+              <tr>
+                <td class="px-4 py-4 font-mono text-gray-500">14:22:31</td>
+                <td class="px-4 py-4 font-medium text-gray-900">admin</td>
+                <td class="px-4 py-4 text-gray-600">사용자 계정 생성 (user_012)</td>
+                <td class="px-4 py-4"><span class="px-2 py-1 bg-emerald-50 text-emerald-700 rounded text-[10px] font-bold uppercase">SUCCESS</span></td>
+              </tr>
+              <tr>
+                <td class="px-4 py-4 font-mono text-gray-500">14:15:10</td>
+                <td class="px-4 py-4 font-medium text-gray-900">admin</td>
+                <td class="px-4 py-4 text-gray-600">부서 권한 변경 (HR_DEPT)</td>
+                <td class="px-4 py-4"><span class="px-2 py-1 bg-emerald-50 text-emerald-700 rounded text-[10px] font-bold uppercase">SUCCESS</span></td>
+              </tr>
+            </tbody>
+          </table>
+        </div>
+      </div>
+
+      <div class="grid grid-cols-1 md:grid-cols-2 gap-6">
+        <div class="section_card">
+          <div class="flex items-center gap-2 mb-4">
+            <i data-lucide="brain" class="text-purple-600"></i>
+            <h3 class="text-lg font-semibold text-gray-800">AI 비즈니스 인사이트</h3>
+          </div>
+          <div class="space-y-3">
+            <div class="p-3 bg-purple-50 rounded-lg border border-purple-100">
+              <p class="text-sm font-semibold text-purple-900">재고 부족 예측</p>
+              <p class="text-xs text-purple-700 mt-1">녹차 원재료 3일 내 안전재고 하회 예상</p>
             </div>
-
-            <nav data-nav></nav>
-            
-            <div class="sidebar-footer">
-                <div class="app-user">
-                    <div class="user-info">
-                        <span class="user-name" data-user-name>-</span>
-                        <span class="user-role" data-role>-</span>
-                    </div>
-                    <button type="button" data-action="logout" title="Logout">로그아웃</button>
-                </div>
+            <div class="p-3 bg-blue-50 rounded-lg border border-blue-100">
+              <p class="text-sm font-semibold text-blue-900">자동 발주 추천</p>
+              <p class="text-xs text-blue-700 mt-1">포장재 A 발주 최적 시점 도래</p>
             </div>
-        </aside>
+          </div>
+        </div>
 
-        <main class="app-main">
-            <header class="app-header">
-                <div>
-                    <h2 data-page-title>대시보드</h2>
-                    <p data-page-description>시스템의 실시간 현황을 한눈에 파악합니다.</p>
-                </div>
-            </header>
-
-            <!-- 상단 통계 카드 -->
-            <section class="panel-grid" data-summary-cards></section>
-
-            <!-- 중앙 대형 패널 -->
-            <section class="panel chart-placeholder-container">
-                <h3>실시간 지표 추이</h3>
-                <div class="chart-placeholder">
-                    [ 차트 라이브러리 연결 예정 영역 ]
-                </div>
-            </section>
-
-            <div class="content-grid">
-                <section class="panel">
-                    <h3>최근 활동 및 알림</h3>
-                    <ul class="stack todo-list-container" data-todo-list></ul>
-                </section>
-
-                <section class="panel">
-                    <h3>관련 데이터베이스</h3>
-                    <ul data-table-list></ul>
-                </section>
+        <div class="section_card">
+          <div class="flex items-center gap-2 mb-4">
+            <i data-lucide="megaphone" class="text-amber-600"></i>
+            <h3 class="text-lg font-semibold text-gray-800">공지사항</h3>
+          </div>
+          <div class="space-y-4">
+            <div class="flex items-start justify-between">
+              <div>
+                <p class="text-sm font-semibold text-gray-900">시스템 점검 안내</p>
+                <p class="text-xs text-gray-500 mt-1">2026.05.18 02:00~04:00</p>
+              </div>
+              <span class="px-2 py-0.5 bg-red-50 text-red-700 rounded text-[10px] font-bold">중요</span>
             </div>
-        </main>
-    </div>
+            <div class="flex items-start justify-between">
+              <div>
+                <p class="text-sm font-semibold text-gray-900">OCR 엔진 v3.2 업데이트</p>
+                <p class="text-xs text-gray-500 mt-1">2026.05.12 · 기술팀</p>
+              </div>
+              <span class="px-2 py-0.5 bg-blue-50 text-blue-700 rounded text-[10px] font-bold">새소식</span>
+            </div>
+          </div>
+        </div>
+      </div>
+    </main>
+  </div>
 
-    <script src="services/common/session.js"></script>
-    <script src="services/common/app-shell.js"></script>
-    <script src="services/common/dashboard.js"></script>
+  <script src="services/common/session.js"></script>
+  <script src="services/common/app-shell.js"></script>
+  <script src="services/common/sidebar.js"></script>
+  <script>
+    document.addEventListener('DOMContentLoaded', function () {
+      if (window.lucide) lucide.createIcons();
+      window.ddukAppShell.hydratePage({
+        title: "통합 대시보드",
+        description: "ERP 시스템의 주요 지표와 최근 활동 내역을 확인합니다."
+      });
+    });
+  </script>
 </body>
+
 </html>

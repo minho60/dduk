@@ -1,0 +1,103 @@
+<!doctype html>
+<html lang="ko">
+
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>DDUK ERP - 시스템 운영 관리</title>
+  <script src="https://cdn.tailwindcss.com/3.4.17"></script>
+  <script src="https://cdn.jsdelivr.net/npm/lucide@0.263.0/dist/umd/lucide.min.js"></script>
+  <link href="https://fonts.googleapis.com/css2?family=DM+Sans:wght@400;500;600;700&amp;display=swap" rel="stylesheet">
+  <link rel="stylesheet" href="../../styles/common/dashboard.css">
+  <link rel="stylesheet" href="../../styles/admin/admin-pages.css">
+</head>
+
+<body class="w-full">
+  <aside data-dduk-sidebar></aside>
+  
+  <div class="main_wrap">
+    <header class="topbar">
+      <button class="sidebar_icon_btn dduk-inline-027" onclick="toggleSidebar()" id="mobile_menu_btn" aria-label="메뉴">
+        <i class="dduk-inline-028" data-lucide="menu"></i>
+      </button>
+      <div class="flex-1 px-4">
+        <h2 class="text-lg font-semibold text-gray-800">시스템 관리 허브</h2>
+      </div>
+    </header>
+
+    <main class="content_area p-6 space-y-6">
+      <div class="flex items-end justify-between mb-8">
+        <div>
+          <h2 class="text-2xl font-bold text-gray-900">시스템 운영 관리</h2>
+          <p class="text-gray-500 mt-1">ERP 핵심 인프라 및 전역 환경 설정을 통합 모니터링합니다.</p>
+        </div>
+      </div>
+
+      <div class="kpi_grid mb-8">
+        <div class="kpi_card">
+          <p class="text-xs text-gray-500 font-bold uppercase tracking-widest">Server Load</p>
+          <p class="text-2xl font-bold text-gray-900 mt-2">12.4%</p>
+        </div>
+        <div class="kpi_card">
+          <p class="text-xs text-gray-500 font-bold uppercase tracking-widest">Database</p>
+          <div class="flex items-center gap-2 mt-2">
+            <div class="status-pulse"></div>
+            <p class="text-2xl font-bold text-gray-900">Healthy</p>
+          </div>
+        </div>
+      </div>
+
+      <div class="grid grid-cols-1 lg:grid-cols-2 gap-6">
+        <section class="section_card">
+          <div class="flex items-center gap-2 mb-6">
+            <i data-lucide="layers" class="text-blue-600"></i>
+            <h3 class="text-lg font-semibold text-gray-800">공통 코드 마스터</h3>
+          </div>
+          <table class="w-full text-left text-sm">
+            <thead class="bg-gray-50 text-gray-500 uppercase text-[10px] tracking-widest">
+              <tr>
+                <th class="px-4 py-3">그룹명</th>
+                <th class="px-4 py-3 text-center">상태</th>
+              </tr>
+            </thead>
+            <tbody class="divide-y divide-gray-100">
+              <tr>
+                <td class="px-4 py-4 font-medium text-gray-700">품목 카테고리</td>
+                <td class="px-4 py-4 text-center"><span class="px-2 py-1 bg-emerald-50 text-emerald-700 rounded text-[10px] font-bold">활성</span></td>
+              </tr>
+            </tbody>
+          </table>
+        </section>
+
+        <section class="section_card">
+          <div class="flex items-center gap-2 mb-6">
+            <i data-lucide="sliders" class="text-purple-600"></i>
+            <h3 class="text-lg font-semibold text-gray-800">시스템 환경 설정</h3>
+          </div>
+          <form class="space-y-4">
+            <div>
+              <label class="block text-sm font-bold text-gray-600 mb-1">ERP 시스템 명칭</label>
+              <input type="text" value="DDUK ERP Project" class="w-full px-4 py-2 bg-gray-50 border border-gray-200 rounded-lg text-gray-900 font-semibold focus:ring-2 focus:ring-purple-500 outline-none">
+            </div>
+            <button type="submit" class="w-full bg-gray-900 text-white font-bold py-3 rounded-lg mt-4">설정 저장</button>
+          </form>
+        </section>
+      </div>
+    </main>
+  </div>
+
+  <script src="../../services/common/session.js"></script>
+  <script src="../../services/common/app-shell.js"></script>
+  <script src="../../services/common/sidebar.js"></script>
+  <script>
+    document.addEventListener('DOMContentLoaded', function() {
+      if (window.lucide) lucide.createIcons();
+      window.ddukAppShell.hydratePage({
+        title: "시스템 운영 관리",
+        description: "ERP 인프라 및 전역 환경 설정을 모니터링합니다."
+      });
+    });
+  </script>
+</body>
+
+</html>

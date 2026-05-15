@@ -1,69 +1,95 @@
 <!DOCTYPE html>
 <html lang="ko">
+
 <head>
-    <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>DDUK ERP - 로그인</title>
-    <link rel="stylesheet" href="styles/admin/login.css">
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>DDUK ERP - 로그인</title>
+  <link rel="stylesheet" href="styles/admin/login.css">
 </head>
+
 <body>
-    <main class="login-layout">
-        <section class="login-intro">
-            <div class="sidebar-logo">
-                <img src="assets/ERP-ROGO.svg" alt="DDUK ERP Logo">
-                <h1>DDUK ERP</h1>
-            </div>
-            <p class="eyebrow">Enterprise Resource Planning</p>
-            <h1>팀 프로젝트 시작 화면</h1>
-            <p class="description">
-                로그인 후 역할별 메인 페이지로 이동해 각 도메인 작업을 바로 시작할 수 있습니다.
-            </p>
+  <main class="login-page" aria-label="DDUK ERP 로그인">
+    <section class="login-card" aria-label="로그인">
+      <header class="login-header">
+        <p class="product-name">DDUK ERP</p>
+        <h1>로그인</h1>
+        <p>시스템 접근을 위해 계정 정보를 입력하세요</p>
+      </header>
 
-            <div class="info-card-group">
-                <article class="info-card">
-                    <h2>Admin</h2>
-                    <p>인증, 권한, 공통 운영 기능 작업 시작</p>
-                </article>
-                <article class="info-card">
-                    <h2>HR</h2>
-                    <p>직원, 근태, 급여, 비용 관리 화면 작업 시작</p>
-                </article>
-                <article class="info-card">
-                    <h2>Inventory</h2>
-                    <p>거래처, 재고, 발주, 입출고 흐름 작업 시작</p>
-                </article>
-            </div>
+      <form id="loginForm" class="login-form">
+        <div class="input-group">
+          <label for="companyCode">회사 코드</label>
+          <div class="field-control">
+            <svg class="field-icon" viewBox="0 0 24 24" aria-hidden="true">
+              <path d="M3 21h18" />
+              <path d="M5 21V5a2 2 0 0 1 2-2h8a2 2 0 0 1 2 2v16" />
+              <path d="M9 7h1" />
+              <path d="M14 7h1" />
+              <path d="M9 11h1" />
+              <path d="M14 11h1" />
+              <path d="M9 15h1" />
+              <path d="M14 15h1" />
+            </svg>
+            <input type="text" id="companyCode" name="companyCode" placeholder="회사 코드" autocomplete="organization">
+          </div>
+        </div>
 
-            <section class="guide-panel">
-                <h2>작업 시작 전 체크</h2>
-                <ul>
-                    <li>백엔드가 `http://localhost:8080`에서 실행 중인지 확인</li>
-                    <li>자기 도메인 `admin`, `hr`, `inventory` 경계를 먼저 확인</li>
-                    <li>공용 계약 변경 시 문서를 먼저 갱신</li>
-                </ul>
-            </section>
-        </section>
+        <div class="input-group">
+          <label for="loginId">아이디</label>
+          <div class="field-control">
+            <svg class="field-icon" viewBox="0 0 24 24" aria-hidden="true">
+              <path d="M20 21a8 8 0 0 0-16 0" />
+              <circle cx="12" cy="7" r="4" />
+            </svg>
+            <input type="text" id="loginId" name="loginId" required placeholder="아이디" autocomplete="username">
+          </div>
+        </div>
 
-        <section class="login-panel">
-            <div class="login-container">
-                <h2>로그인</h2>
-                <p class="form-helper">백엔드 로그인 API와 연결된 최소 로그인 폼</p>
-                <form id="loginForm">
-                    <div class="input-group">
-                        <label for="loginId">아이디</label>
-                        <input type="text" id="loginId" name="loginId" required placeholder="아이디를 입력하세요" autocomplete="username">
-                    </div>
-                    <div class="input-group">
-                        <label for="password">비밀번호</label>
-                        <input type="password" id="password" name="password" required placeholder="비밀번호를 입력하세요" autocomplete="current-password">
-                    </div>
-                    <button type="submit" id="loginBtn">로그인</button>
-                </form>
-                <p id="message" class="message" aria-live="polite"></p>
-            </div>
-        </section>
-    </main>
+        <div class="input-group">
+          <label for="password">비밀번호</label>
+          <div class="field-control password-field">
+            <svg class="field-icon" viewBox="0 0 24 24" aria-hidden="true">
+              <rect x="3" y="11" width="18" height="10" rx="2" />
+              <path d="M7 11V7a5 5 0 0 1 10 0v4" />
+            </svg>
+            <input type="password" id="password" name="password" required placeholder="비밀번호"
+              autocomplete="current-password">
+            <button type="button" class="password-toggle" aria-label="비밀번호 보기" aria-pressed="false">
+              <svg viewBox="0 0 24 24" aria-hidden="true">
+                <path d="M2.25 12s3.5-6.25 9.75-6.25S21.75 12 21.75 12s-3.5 6.25-9.75 6.25S2.25 12 2.25 12Z" />
+                <circle cx="12" cy="12" r="2.5" />
+              </svg>
+            </button>
+          </div>
+        </div>
 
-    <script src="services/admin/auth.js"></script>
+        <div class="form-options">
+          <label class="checkbox-label">
+            <input type="checkbox" name="rememberId">
+            <span>아이디 저장</span>
+          </label>
+          <label class="checkbox-label">
+            <input type="checkbox" name="autoLogin">
+            <span>자동 로그인</span>
+          </label>
+        </div>
+
+        <p class="security-note">공용 PC에서는 자동 로그인을 사용하지 마세요</p>
+
+        <button type="submit" id="loginBtn">로그인</button>
+      </form>
+
+      <p id="message" class="message" aria-live="polite"></p>
+
+      <footer class="login-footer">
+        <span>ERP v2.4 Enterprise System</span>
+        <span>모든 접속 기록은 저장됩니다</span>
+      </footer>
+    </section>
+  </main>
+
+  <script src="services/admin/auth.js"></script>
 </body>
+
 </html>
