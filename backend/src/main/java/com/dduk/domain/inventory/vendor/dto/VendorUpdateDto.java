@@ -1,4 +1,4 @@
-package com.dduk.dto.inventory;
+package com.dduk.domain.inventory.vendor.dto;
 
 import lombok.Getter;
 

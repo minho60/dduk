@@ -1,6 +1,6 @@
-package com.dduk.dto.inventory;
+package com.dduk.domain.inventory.vendor.dto;
 
-import com.dduk.entity.inventory.Vendor;
+import com.dduk.domain.inventory.vendor.Vendor;
 import lombok.Builder;
 import lombok.Getter;
 
