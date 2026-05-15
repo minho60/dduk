@@ -10,9 +10,9 @@ const passwordInput = document.getElementById("password");
 const passwordToggle = document.querySelector(".password-toggle");
 
 const roleRedirectMap = {
-    ADMIN: "pages/admin/dashboard.html",
-    HR: "pages/hr/dashboard.html",
-    INVENTORY: "pages/inventory/dashboard.html"
+    ADMIN: "dashboard.html",
+    HR: "dashboard.html",
+    INVENTORY: "dashboard.html"
 };
 
 function setMessage(text, type) {
