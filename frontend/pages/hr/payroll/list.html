@@ -1,155 +1,93 @@
-﻿<!DOCTYPE html>
+<!DOCTYPE html>
 <html lang="ko">
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-        <script src="https://cdn.jsdelivr.net/npm/lucide@0.263.0/dist/umd/lucide.min.js"></script>
-<title>DDUK ERP - 湲됱뿬 ???/title>
+    <title>DDUK ERP - 급여 계산</title>
+    <script src="https://cdn.jsdelivr.net/npm/lucide@0.263.0/dist/umd/lucide.min.js"></script>
     <link rel="stylesheet" href="../../../styles/common/app-shell.css">
-        <link rel="stylesheet" href="../../../styles/common/dashboard.css">
-<link rel="stylesheet" href="../../../styles/common/erp-components.css">
+    <link rel="stylesheet" href="../../../styles/common/dashboard.css">
+    <link rel="stylesheet" href="../../../styles/hr/hr-backend-pages.css">
 </head>
-<body>
+<body data-hr-page="payroll-list">
     <aside data-dduk-sidebar></aside>
     <div class="main_wrap">
-        <main class="app-main">
-            <header class="app-header">
-                <div>
-                    <h2 data-page-title>湲됱뿬 ???愿由?/h2>
-                    <p data-page-description>吏곸썝蹂?湲됱뿬 ?곗텧 ?꾪솴 諛??뚭퀎 ?꾪몴 ?곕룞 ?곹깭瑜?愿由ы빀?덈떎.</p>
+        <main class="app-main hr_page">
+            <header class="hr_topbar">
+                <button class="sidebar_icon_btn dduk-inline-027" onclick="toggleSidebar()" id="mobile_menu_btn" aria-label="메뉴">
+                    <i class="dduk-inline-028" data-lucide="menu"></i>
+                </button>
+                <div class="hr_title">
+                    <h2>급여 계산</h2>
+                    <p>POST /api/v1/hr/payroll/calculate API로 직원 급여를 계산하고 저장합니다.</p>
                 </div>
-                <section class="app-user">
-                    <dl>
-                        <dt>?대쫫</dt><dd data-user-name>-</dd>
-                        <dt>?꾩씠??/dt><dd data-login-id>-</dd>
-                        <dt>沅뚰븳</dt><dd data-role>-</dd>
-                    </dl>
-                    <button type="button" data-action="logout">濡쒓렇?꾩썐</button>
-                </section>
+                <div class="hr_actions">
+                    <a class="hr_button" href="./detail.html"><i data-lucide="workflow"></i>상태 전환</a>
+                </div>
             </header>
 
-            <div class="payroll_page_container" style="padding: 24px;">
-                <!-- Summary Cards -->
-                <div class="payroll_summary" style="display: grid; grid-template-columns: repeat(4, 1fr); gap: 16px; margin-bottom: 24px;">
-                    <div class="erp_widget" style="padding: 20px; background: #fff; border-radius: 8px; border: 1px solid #e2e8f0;">
-                        <div style="font-size: 0.75rem; color: #64748b;">?대쾲 ??珥?吏湲됱븸</div>
-                        <div id="summary_gross" style="font-size: 1.5rem; font-weight: 700; color: #1e293b;">??0</div>
+            <section class="hr_grid">
+                <form class="hr_card span_4" id="payroll_form">
+                    <div class="hr_card_header">
+                        <h3>계산 입력</h3>
+                        <span class="hr_badge warn">직원 ID 필요</span>
                     </div>
-                    <div class="erp_widget" style="padding: 20px; background: #fff; border-radius: 8px; border: 1px solid #e2e8f0;">
-                        <div style="font-size: 0.75rem; color: #64748b;">怨듭젣/?멸툑 ?⑷퀎</div>
-                        <div id="summary_deduction" style="font-size: 1.5rem; font-weight: 700; color: #e53e3e;">??0</div>
+                    <div class="hr_form_grid" style="grid-template-columns: 1fr;">
+                        <div class="hr_field">
+                            <label for="employee_id">직원 ID</label>
+                            <input class="hr_input" id="employee_id" type="number" min="1" placeholder="예: 1" required>
+                        </div>
+                        <div class="hr_field">
+                            <label for="pay_month">지급월</label>
+                            <input class="hr_input" id="pay_month" type="month" required>
+                        </div>
+                        <div class="hr_field">
+                            <label for="overtime_hours">연장근무 시간</label>
+                            <input class="hr_input" id="overtime_hours" type="number" min="0" step="0.5" value="0">
+                        </div>
+                        <div class="hr_field">
+                            <label for="bonus">상여금</label>
+                            <input class="hr_input" id="bonus" type="number" min="0" step="1" value="0">
+                        </div>
+                        <div class="hr_field">
+                            <label for="allowance">기타 수당</label>
+                            <input class="hr_input" id="allowance" type="number" min="0" step="1" value="0">
+                        </div>
                     </div>
-                    <div id="summary_pending" class="erp_widget" style="padding: 20px; background: #fff; border-radius: 8px; border: 1px solid #e2e8f0;">
-                        <div style="font-size: 0.75rem; color: #64748b;">?뱀씤 ?湲?/div>
-                        <div style="font-size: 1.5rem; font-weight: 700; color: #d97706;">0 嫄?/div>
+                    <div class="hr_actions" style="margin-top: 16px;">
+                        <button class="hr_button primary" type="submit"><i data-lucide="calculator"></i>계산 실행</button>
                     </div>
-                    <div id="summary_unposted" class="erp_widget" style="padding: 20px; background: #fff; border-radius: 8px; border: 1px solid #e2e8f0;">
-                        <div style="font-size: 0.75rem; color: #64748b;">誘몄쟾???꾪몴</div>
-                        <div style="font-size: 1.5rem; font-weight: 700; color: #3182ce;">0 嫄?/div>
-                    </div>
-                </div>
+                </form>
 
-                <!-- Filters -->
-                <section id="payroll_filter_container" style="margin-bottom: 24px;"></section>
-
-                <!-- Action Bar -->
-                <div style="display: flex; gap: 8px; margin-bottom: 16px;">
-                    <button id="btn_batch_calculate" class="erp_button erp_button_primary">?쇨큵 湲됱뿬 怨꾩궛</button>
-                    <button id="btn_export_csv" class="erp_button erp_button_secondary">湲됱뿬 ????대낫?닿린</button>
-                </div>
-
-                <!-- Table -->
-                <section id="payroll_table_container" style="background: #fff; border: 1px solid #e2e8f0; border-radius: 8px;"></section>
-            </div>
+                <article class="hr_card span_8">
+                    <div class="hr_card_header">
+                        <h3>계산 결과</h3>
+                        <span class="hr_badge" id="payroll_status">-</span>
+                    </div>
+                    <div class="hr_grid">
+                        <div class="hr_card span_3"><div class="hr_kpi_label">급여 ID</div><div class="hr_kpi_value" id="payroll_id">-</div></div>
+                        <div class="hr_card span_3"><div class="hr_kpi_label">직원</div><div class="hr_kpi_value" id="payroll_employee">-</div></div>
+                        <div class="hr_card span_3"><div class="hr_kpi_label">지급월</div><div class="hr_kpi_value" id="payroll_month">-</div></div>
+                        <div class="hr_card span_3"><div class="hr_kpi_label">실지급액</div><div class="hr_kpi_value" id="payroll_net">-</div></div>
+                    </div>
+                    <table class="hr_table" style="margin-top: 16px;">
+                        <tbody>
+                            <tr><th>기본급</th><td class="amount" id="payroll_base">-</td></tr>
+                            <tr><th>수당 합계</th><td class="amount" id="payroll_allowance">-</td></tr>
+                            <tr><th>공제 합계</th><td class="amount" id="payroll_deduction">-</td></tr>
+                        </tbody>
+                    </table>
+                    <pre class="hr_result" id="payroll_trace" style="margin-top: 16px;">계산 trace가 여기에 표시됩니다.</pre>
+                    <div class="hr_status" id="page_status" style="margin-top: 12px;"></div>
+                    <div class="hr_notice" style="margin-top: 12px;">급여 목록 조회 API는 아직 백엔드에 없어서, 최근 계산 결과를 브라우저에 임시 보관해 상세/대조 화면에서 사용합니다.</div>
+                </article>
+            </section>
         </main>
     </div>
+
     <script src="../../../services/common/session.js"></script>
     <script src="../../../services/common/app-shell.js"></script>
-        <script src="../../../services/common/sidebar.js"></script>
-<script type="module">
-        import { BaseFilter } from '../../../components/common/BaseFilter.js';
-        import { BaseTable } from '../../../components/common/BaseTable.js';
-        import { payrollService } from '../../../services/hr/payroll/payroll-service.js';
-        import { formatCurrency, getStatusBadgeClass } from '../../../services/common/formatters.js';
-
-        let table = null;
-
-        async function init() {
-            const session = window.ddukSession.requireRole(["ADMIN", "HR", "FINANCE"]);
-            if (!session) return;
-            window.ddukSession.bindShell(session);
-
-            window.ddukAppShell.hydratePage({
-                navItems: [
-                    { href: "../../hr/dashboard.html", label: "?몄궗/?뚭퀎 硫붿씤" },
-                    { href: "../accounting/dashboard.html", label: "?뚭퀎 愿由? },
-                    { href: "./list.html", label: "湲됱뿬 ???, current: true },
-                    { href: "../accounting/reports.html", label: "?뚭퀎 由ы룷?? }
-                ]
-            });
-
-            initFilter();
-            initTable();
-            loadData();
-        }
-
-        function initFilter() {
-            const filter = new BaseFilter({
-                container: document.getElementById('payroll_filter_container'),
-                fields: [
-                    { id: 'yearMonth', label: '吏湲됱썡', type: 'select', options: [
-                        { value: '2026-05', label: '2026??05?? },
-                        { value: '2026-04', label: '2026??04?? }
-                    ]},
-                    { id: 'status', label: '?곹깭', type: 'select', options: [
-                        { value: '', label: '?꾩껜' },
-                        { value: 'DRAFT', label: '?묒꽦以? },
-                        { value: 'APPROVED', label: '?뱀씤?꾨즺' },
-                        { value: 'POSTED', label: '?꾪몴?꾩넚?꾨즺' }
-                    ]},
-                    { id: 'keyword', label: '吏곸썝紐?, type: 'text' }
-                ],
-                onFilter: (values) => loadData(values)
-            });
-            filter.render();
-        }
-
-        function initTable() {
-            table = new BaseTable({
-                container: document.getElementById('payroll_table_container'),
-                columns: [
-                    { key: 'id', label: 'ID', width: '120px' },
-                    { key: 'employeeName', label: '吏곸썝紐?, width: '120px' },
-                    { key: 'yearMonth', label: '吏湲됱썡', align: 'center' },
-                    { key: 'grossPay', label: '吏湲됱킑??, align: 'right', render: (v, row) => formatCurrency(row.amounts.grossPay) },
-                    { key: 'netPay', label: '?ㅼ?湲됱븸', align: 'right', render: (v, row) => formatCurrency(row.amounts.netPay) },
-                    { key: 'status', label: '?곹깭', align: 'center', render: (v) => `<span class="erp_badge ${getStatusBadgeClass(v)}">${v}</span>` },
-                    { key: 'revision', label: '由щ퉬??, align: 'center', render: (v) => `v${v}` }
-                ],
-                onRowClick: (row) => {
-                    location.href = `./detail.html?id=${row.id}`;
-                }
-            });
-        }
-
-        async function loadData(filters = {}) {
-            table.setLoading(true);
-            const res = await payrollService.getPayrolls(filters);
-            if (res.success) {
-                table.setData(res.data);
-                updateSummary(res.data);
-            }
-            table.setLoading(false);
-        }
-
-        function updateSummary(data) {
-            const gross = data.reduce((acc, r) => acc + r.amounts.grossPay, 0);
-            const deduction = data.reduce((acc, r) => acc + r.amounts.totalDeductions, 0);
-            document.getElementById('summary_gross').textContent = formatCurrency(gross);
-            document.getElementById('summary_deduction').textContent = formatCurrency(deduction);
-        }
-
-        init();
-    </script>
+    <script src="../../../services/common/sidebar.js"></script>
+    <script type="module" src="../../../services/hr/hr-backend-pages.js"></script>
 </body>
 </html>

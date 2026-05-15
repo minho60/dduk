@@ -1,180 +1,72 @@
-﻿<!DOCTYPE html>
+<!DOCTYPE html>
 <html lang="ko">
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>DDUK ERP - 湲됱뿬-?뚭퀎 ?議??쇳꽣</title>
-        <script src="https://cdn.jsdelivr.net/npm/lucide@0.263.0/dist/umd/lucide.min.js"></script>
-<link rel="stylesheet" href="../../../styles/common/app-shell.css">
-        <link rel="stylesheet" href="../../../styles/common/dashboard.css">
-<link rel="stylesheet" href="../../../styles/common/erp-components.css">
-    <style>
-        .recon_grid { display: grid; grid-template-columns: 1fr 1fr; gap: 24px; padding: 24px; }
-        .recon_card { background: #fff; border: 1px solid #e2e8f0; border-radius: 8px; padding: 24px; }
-        .diff_highlight { background: #fee2e2; color: #b91c1c; font-weight: 700; padding: 2px 4px; border-radius: 2px; }
-        .match_highlight { background: #dcfce7; color: #15803d; font-weight: 700; padding: 2px 4px; border-radius: 2px; }
-    </style>
+    <title>DDUK ERP - 급여 회계 대조</title>
+    <script src="https://cdn.jsdelivr.net/npm/lucide@0.263.0/dist/umd/lucide.min.js"></script>
+    <link rel="stylesheet" href="../../../styles/common/app-shell.css">
+    <link rel="stylesheet" href="../../../styles/common/dashboard.css">
+    <link rel="stylesheet" href="../../../styles/hr/hr-backend-pages.css">
 </head>
-<body>
+<body data-hr-page="payroll-reconciliation">
     <aside data-dduk-sidebar></aside>
     <div class="main_wrap">
-        <main class="app-main">
-            <header class="app-header">
-                <div>
-                    <h2 data-page-title>Advanced Reconciliation Center</h2>
-                    <p data-page-description>湲됱뿬 ?먯옣怨??뚭퀎 ?먯옣 媛꾩쓽 ?섏튂 ?뺥빀?깆쓣 ?ㅼ떆媛꾩쑝濡??議고븯怨?遺꾩꽍?⑸땲??</p>
+        <main class="app-main hr_page">
+            <header class="hr_topbar">
+                <button class="sidebar_icon_btn dduk-inline-027" onclick="toggleSidebar()" id="mobile_menu_btn" aria-label="메뉴">
+                    <i class="dduk-inline-028" data-lucide="menu"></i>
+                </button>
+                <div class="hr_title">
+                    <h2>급여 회계 대조</h2>
+                    <p>최근 급여 계산 결과와 백엔드 손익계산서 API의 비용 잔액을 비교합니다.</p>
                 </div>
-                <div style="display: flex; gap: 8px;">
-                    <button id="btn_run_recon" class="erp_button erp_button_primary">?뺥빀???議??ㅽ뻾</button>
-                    <button id="btn_retry_posting" class="erp_button erp_button_secondary">?ㅽ뙣 ?꾪몴 ?ъ쟾??/button>
+                <div class="hr_actions">
+                    <button class="hr_button" id="btn_refresh_recon" type="button"><i data-lucide="refresh-cw"></i>새로고침</button>
                 </div>
             </header>
 
-            <div class="recon_grid">
-                <!-- Payroll Ledger Side -->
-                <div class="recon_card">
-                    <h3 style="font-size: 0.875rem; font-weight: 700; margin-bottom: 20px; color: #334155; border-bottom: 2px solid #3182ce; padding-bottom: 8px; display: inline-block;">Payroll Ledger (湲됱뿬 ?먯옣)</h3>
-                    <div id="payroll_stats">
-                        <div style="display: flex; justify-content: space-between; margin-bottom: 12px;">
-                            <span>????몄썝</span><span id="p_count" class="data_value">0 紐?/span>
-                        </div>
-                        <div style="display: flex; justify-content: space-between; margin-bottom: 12px;">
-                            <span>吏湲?珥앹븸 (Gross)</span><span id="p_gross" class="data_value">??0</span>
-                        </div>
-                        <div style="display: flex; justify-content: space-between; margin-bottom: 12px;">
-                            <span>怨듭젣/?멸툑 珥앹븸</span><span id="p_deduction" class="data_value">??0</span>
-                        </div>
-                        <div style="display: flex; justify-content: space-between;">
-                            <span>?ㅼ?湲됱븸 ?⑷퀎 (Net)</span><span id="p_net" class="data_value">??0</span>
-                        </div>
+            <section class="hr_grid">
+                <article class="hr_card span_6">
+                    <div class="hr_card_header">
+                        <h3>최근 급여 계산</h3>
+                        <span class="hr_badge" id="recon_payroll_status">-</span>
                     </div>
-                </div>
-
-                <!-- Accounting Ledger Side -->
-                <div class="recon_card">
-                    <h3 style="font-size: 0.875rem; font-weight: 700; margin-bottom: 20px; color: #334155; border-bottom: 2px solid #e53e3e; padding-bottom: 8px; display: inline-block;">Accounting Ledger (?뚭퀎 ?먯옣)</h3>
-                    <div id="accounting_stats">
-                        <div style="display: flex; justify-content: space-between; margin-bottom: 12px;">
-                            <span>?꾩넚???꾪몴 ??/span><span id="a_count" class="data_value">0 嫄?/span>
-                        </div>
-                        <div style="display: flex; justify-content: space-between; margin-bottom: 12px;">
-                            <span>?뚭퀎???멸굔鍮?鍮꾩쨷</span><span id="a_gross" class="data_value">??0</span>
-                        </div>
-                        <div style="display: flex; justify-content: space-between; margin-bottom: 12px;">
-                            <span>?덉닔湲???ぉ ?⑷퀎</span><span id="a_deduction" class="data_value">??0</span>
-                        </div>
-                        <div style="display: flex; justify-content: space-between;">
-                            <span>誘몄?湲됯툑(湲됱뿬) ?붿븸</span><span id="a_net" class="data_value">??0</span>
-                        </div>
-                    </div>
-                </div>
-
-                <!-- Comparison Result -->
-                <div class="recon_card" style="grid-column: span 2;">
-                    <h3 style="font-size: 0.875rem; font-weight: 700; margin-bottom: 20px;">?議?寃곌낵 遺꾩꽍 (Reconciliation Analysis)</h3>
-                    <div id="recon_result_box" style="padding: 20px; border-radius: 8px; text-align: center; font-size: 1.125rem; font-weight: 700;">
-                        ?곷떒 踰꾪듉???뚮윭 ?議곕? ?쒖옉?섏꽭??
-                    </div>
-                    
-                    <table class="erp_table" style="margin-top: 24px; width: 100%;">
-                        <thead>
-                            <tr>
-                                <th>??ぉ</th>
-                                <th>湲됱뿬 ?먯옣</th>
-                                <th>?뚭퀎 ?먯옣</th>
-                                <th>李⑥씠 (Diff)</th>
-                                <th>?곹깭</th>
-                            </tr>
-                        </thead>
-                        <tbody id="recon_table_body">
-                            <!-- Rows will be injected -->
+                    <table class="hr_table">
+                        <tbody>
+                            <tr><th>지급 총액</th><td class="amount" id="recon_payroll_gross">-</td></tr>
+                            <tr><th>공제 합계</th><td class="amount" id="recon_payroll_deduction">-</td></tr>
+                            <tr><th>실지급액</th><td class="amount" id="recon_payroll_net">-</td></tr>
                         </tbody>
                     </table>
-                </div>
-            </div>
+                </article>
+                <article class="hr_card span_6">
+                    <div class="hr_card_header">
+                        <h3>회계 손익 현황</h3>
+                        <span class="hr_badge ok">Profit & Loss</span>
+                    </div>
+                    <table class="hr_table">
+                        <tbody>
+                            <tr><th>수익 합계</th><td class="amount" id="recon_revenue">-</td></tr>
+                            <tr><th>비용 합계</th><td class="amount" id="recon_expenses">-</td></tr>
+                            <tr><th>순손익</th><td class="amount" id="recon_net_income">-</td></tr>
+                        </tbody>
+                    </table>
+                </article>
+                <article class="hr_card">
+                    <div class="hr_notice">
+                        전체 급여 목록 조회 API와 전표 상세 조회 API가 아직 없어 완전한 자동 대조는 하지 않습니다.
+                        이 화면은 현재 구현된 급여 계산 결과와 손익 보고서 API를 나란히 보여주는 확인 화면입니다.
+                    </div>
+                    <div class="hr_status" id="page_status" style="margin-top: 12px;"></div>
+                </article>
+            </section>
         </main>
     </div>
+
     <script src="../../../services/common/session.js"></script>
     <script src="../../../services/common/app-shell.js"></script>
-        <script src="../../../services/common/sidebar.js"></script>
-<script type="module">
-        import { payrollService } from '../../../services/hr/payroll/payroll-service.js';
-        import { formatCurrency } from '../../../services/common/formatters.js';
-
-        async function init() {
-            const session = window.ddukSession.requireRole(["ADMIN", "FINANCE"]);
-            if (!session) return;
-            window.ddukSession.bindShell(session);
-
-            window.ddukAppShell.hydratePage({
-                navItems: [
-                    { href: "../../hr/dashboard.html", label: "?몄궗/?뚭퀎 硫붿씤" },
-                    { href: "../payroll/list.html", label: "湲됱뿬 ??? },
-                    { href: "./reconciliation.html", label: "?議??쇳꽣", current: true }
-                ]
-            });
-        }
-
-        async function runReconciliation() {
-            const res = await payrollService.getPayrolls();
-            const data = res.data;
-            
-            const pStats = {
-                gross: data.reduce((acc, r) => acc + r.amounts.grossPay, 0),
-                deduction: data.reduce((acc, r) => acc + r.amounts.totalDeductions, 0),
-                net: data.reduce((acc, r) => acc + r.amounts.netPay, 0)
-            };
-
-            // Simulating Accounting Data (Mocking mismatch if some records not posted)
-            const postedData = data.filter(r => r.status === 'POSTED');
-            const aStats = {
-                gross: postedData.reduce((acc, r) => acc + r.amounts.grossPay, 0),
-                deduction: postedData.reduce((acc, r) => acc + r.amounts.totalDeductions, 0),
-                net: postedData.reduce((acc, r) => acc + r.amounts.netPay, 0)
-            };
-
-            updateUI(pStats, aStats);
-        }
-
-        function updateUI(p, a) {
-            document.getElementById('p_gross').textContent = formatCurrency(p.gross);
-            document.getElementById('p_deduction').textContent = formatCurrency(p.deduction);
-            document.getElementById('p_net').textContent = formatCurrency(p.net);
-
-            document.getElementById('a_gross').textContent = formatCurrency(a.gross);
-            document.getElementById('a_deduction').textContent = formatCurrency(a.deduction);
-            document.getElementById('a_net').textContent = formatCurrency(a.net);
-
-            const isMatched = p.gross === a.gross && p.net === a.net;
-            const resultBox = document.getElementById('recon_result_box');
-            resultBox.textContent = isMatched ? '?뺥빀???뺤씤 ?꾨즺 (MATCHED)' : '?뺥빀??遺덉씪移??먯? (MISMATCHED)';
-            resultBox.style.background = isMatched ? '#dcfce7' : '#fee2e2';
-            resultBox.style.color = isMatched ? '#15803d' : '#b91c1c';
-
-            const tbody = document.getElementById('recon_table_body');
-            const items = [
-                { label: '吏湲?珥앹븸', p: p.gross, a: a.gross },
-                { label: '怨듭젣/?멸툑', p: p.deduction, a: a.deduction },
-                { label: '?ㅼ?湲됱븸', p: p.net, a: a.net }
-            ];
-
-            tbody.innerHTML = items.map(item => {
-                const diff = item.p - item.a;
-                return `
-                    <tr>
-                        <td>${item.label}</td>
-                        <td>${formatCurrency(item.p)}</td>
-                        <td>${formatCurrency(item.a)}</td>
-                        <td class="${diff === 0 ? '' : 'diff_highlight'}">${formatCurrency(diff)}</td>
-                        <td><span class="${diff === 0 ? 'match_highlight' : 'diff_highlight'}">${diff === 0 ? 'MATCH' : 'ERROR'}</span></td>
-                    </tr>
-                `;
-            }).join('');
-        }
-
-        document.getElementById('btn_run_recon').addEventListener('click', runReconciliation);
-
-        init();
-    </script>
+    <script src="../../../services/common/sidebar.js"></script>
+    <script type="module" src="../../../services/hr/hr-backend-pages.js"></script>
 </body>
 </html>

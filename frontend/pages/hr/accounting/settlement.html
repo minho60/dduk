@@ -1,153 +1,67 @@
-﻿<!DOCTYPE html>
+<!DOCTYPE html>
 <html lang="ko">
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>DDUK ERP - ?붾퀎 ?뺤궛</title>
-        <script src="https://cdn.jsdelivr.net/npm/lucide@0.263.0/dist/umd/lucide.min.js"></script>
-<link rel="stylesheet" href="../../../styles/common/app-shell.css">
-        <link rel="stylesheet" href="../../../styles/common/dashboard.css">
-<link rel="stylesheet" href="../../../styles/common/erp-components.css">
-    <link rel="stylesheet" href="../../../styles/hr/accounting.css">
+    <title>DDUK ERP - 월별 정산</title>
+    <script src="https://cdn.jsdelivr.net/npm/lucide@0.263.0/dist/umd/lucide.min.js"></script>
+    <link rel="stylesheet" href="../../../styles/common/app-shell.css">
+    <link rel="stylesheet" href="../../../styles/common/dashboard.css">
+    <link rel="stylesheet" href="../../../styles/hr/hr-backend-pages.css">
 </head>
-<body>
+<body data-hr-page="accounting-settlement">
     <aside data-dduk-sidebar></aside>
     <div class="main_wrap">
-        <main class="app-main">
-            <header class="app-header">
-                <div>
-                    <h2 data-page-title>?붾퀎 ?뺤궛</h2>
-                    <p data-page-description>留ㅼ엯/留ㅼ텧 ?곗씠?곕? 湲곕컲?쇰줈 湲곌컙蹂??먯씡??吏묎퀎?섍퀬 遺꾩꽍?⑸땲??</p>
+        <main class="app-main hr_page">
+            <header class="hr_topbar">
+                <button class="sidebar_icon_btn dduk-inline-027" onclick="toggleSidebar()" id="mobile_menu_btn" aria-label="메뉴">
+                    <i class="dduk-inline-028" data-lucide="menu"></i>
+                </button>
+                <div class="hr_title">
+                    <h2>월별 정산</h2>
+                    <p>현재 구현된 회계 보고서 API를 기준으로 정산 전 상태를 확인합니다.</p>
                 </div>
-                <section class="app-user">
-                    <dl>
-                        <dt>?대쫫</dt>
-                        <dd data-user-name>-</dd>
-                        <dt>?꾩씠??/dt>
-                        <dd data-login-id>-</dd>
-                        <dt>沅뚰븳</dt>
-                        <dd data-role>-</dd>
-                    </dl>
-                    <button type="button" data-action="logout">濡쒓렇?꾩썐</button>
-                </section>
+                <div class="hr_actions">
+                    <button class="hr_button" id="btn_refresh_settlement" type="button"><i data-lucide="refresh-cw"></i>새로고침</button>
+                </div>
             </header>
 
-            <div class="accounting_page_container">
-                <!-- Settlement Controls -->
-                <section class="erp_filter_container" style="display: flex; gap: 16px; flex-wrap: wrap; margin-bottom: 24px; padding: 20px; background: #fff; border: 1px solid #e2e8f0; border-radius: 8px;">
-                    <div style="display: flex; align-items: center; gap: 8px;">
-                        <label style="font-size: 0.875rem; font-weight: 500;">吏묎퀎 湲곌컙</label>
-                        <input type="date" id="settle_startDate" class="erp_input" style="width: 140px;">
-                        <span>~</span>
-                        <input type="date" id="settle_endDate" class="erp_input" style="width: 140px;">
+            <section class="hr_grid">
+                <article class="hr_card span_4">
+                    <div class="hr_kpi_label">현재 순손익</div>
+                    <div class="hr_kpi_value" id="settlement_income">-</div>
+                    <div class="hr_kpi_hint">손익계산서 API 기준</div>
+                </article>
+                <article class="hr_card span_4">
+                    <div class="hr_kpi_label">자산 합계</div>
+                    <div class="hr_kpi_value" id="settlement_assets">-</div>
+                    <div class="hr_kpi_hint">재무상태표 API 기준</div>
+                </article>
+                <article class="hr_card span_4">
+                    <div class="hr_kpi_label">대차 상태</div>
+                    <div class="hr_kpi_value" id="settlement_balance">-</div>
+                    <div class="hr_kpi_hint">마감 실행 API는 아직 없음</div>
+                </article>
+                <article class="hr_card span_6">
+                    <div class="hr_notice">
+                        월마감 실행, 마감 취소, 마감 이력 조회 API는 현재 백엔드에 구현되어 있지 않습니다.
+                        이 화면은 구현된 보고서 API 범위 안에서 정산 전 확인 화면으로 구성했습니다.
                     </div>
-
-                    <div style="display: flex; align-items: center; gap: 8px;">
-                        <label style="font-size: 0.875rem; font-weight: 500;">吏묎퀎 湲곗?</label>
-                        <select id="settle_groupBy" class="erp_select" style="width: 120px;">
-                            <option value="MONTH">?붾퀎</option>
-                            <option value="QUARTER">遺꾧린蹂?/option>
-                            <option value="YEAR">?곕룄蹂?/option>
-                            <option value="VENDOR">嫄곕옒泥섎퀎</option>
-                        </select>
-                    </div>
-
-                    <div style="display: flex; align-items: center; gap: 8px;">
-                        <label style="font-size: 0.875rem; font-weight: 500;">?좎쭨 湲곗?</label>
-                        <select id="settle_referenceDate" class="erp_select" style="width: 120px;">
-                            <option value="transactionDate">嫄곕옒??/option>
-                            <option value="createdAt">?깅줉??/option>
-                        </select>
-                    </div>
-
-                    <div style="display: flex; align-items: center; gap: 12px;">
-                        <label style="display: flex; align-items: center; gap: 4px; font-size: 0.875rem; cursor: pointer;">
-                            <input type="checkbox" id="settle_excludeCanceled" checked> 痍⑥냼 嫄곕옒 ?쒖쇅
-                        </label>
-                    </div>
-
-                    <div style="display: flex; gap: 8px; margin-left: auto;">
-                        <button id="btn_settle_run" class="erp_button erp_button_primary">?뺤궛 ?ㅽ뻾</button>
-                        <button id="btn_export" class="erp_button erp_button_secondary">Excel ?대낫?닿린</button>
-                    </div>
-                </section>
-
-                <!-- Summary Cards -->
-                <section id="summary_root"></section>
-
-                <!-- Chart Section -->
-                <section id="chart_root" style="margin-bottom: 24px;"></section>
-
-                <!-- Table Section -->
-                <div class="erp_table_container" id="table_root"></div>
-            </div>
+                </article>
+                <article class="hr_card span_6">
+                    <div class="hr_card_header"><h3>API 적용 범위</h3></div>
+                    <pre class="hr_result" id="settlement_api_state">-</pre>
+                </article>
+                <article class="hr_card">
+                    <div class="hr_status" id="page_status"></div>
+                </article>
+            </section>
         </main>
     </div>
+
     <script src="../../../services/common/session.js"></script>
     <script src="../../../services/common/app-shell.js"></script>
-        <script src="../../../services/common/sidebar.js"></script>
-<script type="module">
-        import { settlementService } from '../../../services/hr/settlement-service.js';
-        import { normalizeChartData } from '../../../services/hr/settlement-utils.js';
-        import { SettlementSummary } from '../../../components/hr/accounting/SettlementSummary.js';
-        import { SettlementTable } from '../../../components/hr/accounting/SettlementTable.js';
-        import { SettlementChart } from '../../../components/hr/accounting/SettlementChart.js';
-
-        // UI Components
-        const summaryComp = new SettlementSummary({ container: document.getElementById('summary_root') });
-        const tableComp = new SettlementTable({ container: document.getElementById('table_root') });
-        const chartComp = new SettlementChart({ container: document.getElementById('chart_root') });
-
-        // Initialize Page
-        async function init() {
-            const session = window.ddukSession.requireRole(["ADMIN", "HR"]);
-            if (!session) return;
-            window.ddukSession.bindShell(session);
-
-            window.ddukAppShell.hydratePage({
-                navItems: [
-                    { href: "../../hr/dashboard.html", label: "?몄궗/?뚭퀎 硫붿씤" },
-                    { href: "./transactions.html", label: "留ㅼ엯/留ㅼ텧 愿由? },
-                    { href: "./settlement.html", label: "?붾퀎 ?뺤궛", current: true },
-                    { href: "../../admin/dashboard.html", label: "愿由ъ옄" },
-                    { href: "../../inventory/dashboard.html", label: "?ш퀬/諛쒖＜" }
-                ]
-            });
-
-            // Set default date range (this year)
-            const today = new Date();
-            const firstDay = new Date(today.getFullYear(), 0, 1).toISOString().split('T')[0];
-            const lastDay = today.toISOString().split('T')[0];
-            document.getElementById('settle_startDate').value = firstDay;
-            document.getElementById('settle_endDate').value = lastDay;
-
-            loadSettlement();
-        }
-
-        async function loadSettlement() {
-            const options = {
-                startDate: document.getElementById('settle_startDate').value,
-                endDate: document.getElementById('settle_endDate').value,
-                groupBy: document.getElementById('settle_groupBy').value,
-                referenceDate: document.getElementById('settle_referenceDate').value,
-                excludeCanceled: document.getElementById('settle_excludeCanceled').checked
-            };
-
-            const response = await settlementService.getSettlement(options);
-            if (response.success) {
-                summaryComp.render(response.summary);
-                tableComp.render(response.data);
-                chartComp.render(normalizeChartData(response.data));
-            } else {
-                alert(response.message);
-            }
-        }
-
-        // Event Listeners
-        document.getElementById('btn_settle_run').addEventListener('click', loadSettlement);
-        document.getElementById('btn_export').addEventListener('click', () => alert('以鍮?以묒씤 湲곕뒫?낅땲??'));
-
-        init();
-    </script>
+    <script src="../../../services/common/sidebar.js"></script>
+    <script type="module" src="../../../services/hr/hr-backend-pages.js"></script>
 </body>
 </html>

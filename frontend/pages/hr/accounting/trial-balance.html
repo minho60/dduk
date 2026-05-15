@@ -1,100 +1,52 @@
-﻿<!DOCTYPE html>
+<!DOCTYPE html>
 <html lang="ko">
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-        <script src="https://cdn.jsdelivr.net/npm/lucide@0.263.0/dist/umd/lucide.min.js"></script>
-<title>DDUK ERP - ?⑷퀎?붿븸?쒖궛??/title>
+    <title>DDUK ERP - 시산표</title>
+    <script src="https://cdn.jsdelivr.net/npm/lucide@0.263.0/dist/umd/lucide.min.js"></script>
     <link rel="stylesheet" href="../../../styles/common/app-shell.css">
-        <link rel="stylesheet" href="../../../styles/common/dashboard.css">
-<link rel="stylesheet" href="../../../styles/common/erp-components.css">
-    <style>
-        .tb_container { padding: 24px; }
-        .tb_card { background: #fff; border: 1px solid #e2e8f0; border-radius: 8px; padding: 24px; }
-        .acc_row:hover { background: #f8fafc; cursor: pointer; }
-        .acc_type_header { background: #f1f5f9; padding: 12px 16px; font-weight: 700; color: #475569; margin-top: 24px; border-radius: 4px; }
-    </style>
+    <link rel="stylesheet" href="../../../styles/common/dashboard.css">
+    <link rel="stylesheet" href="../../../styles/hr/hr-backend-pages.css">
 </head>
-<body>
+<body data-hr-page="accounting-trial-balance">
     <aside data-dduk-sidebar></aside>
     <div class="main_wrap">
-        <main class="app-main">
-            <header class="app-header">
-                <div>
-                    <h2 data-page-title>?⑷퀎?붿븸?쒖궛??(Trial Balance)</h2>
-                    <p data-page-description>怨꾩젙怨쇰ぉ蹂?李⑤?/?蹂 ?붿븸???ㅼ떆媛꾩쑝濡??議고븯怨?遺꾩꽍?⑸땲??</p>
+        <main class="app-main hr_page">
+            <header class="hr_topbar">
+                <button class="sidebar_icon_btn dduk-inline-027" onclick="toggleSidebar()" id="mobile_menu_btn" aria-label="메뉴">
+                    <i class="dduk-inline-028" data-lucide="menu"></i>
+                </button>
+                <div class="hr_title">
+                    <h2>시산표</h2>
+                    <p>현재 백엔드 보고서 API의 계정 잔액을 합쳐 시산표 형태로 표시합니다.</p>
                 </div>
-                <div style="display: flex; gap: 8px;">
-                    <button id="btn_refresh" class="erp_button erp_button_secondary">?덈줈怨좎묠</button>
-                    <button id="btn_export" class="erp_button erp_button_secondary">PDF ?대낫?닿린</button>
+                <div class="hr_actions">
+                    <button class="hr_button" id="btn_refresh_trial" type="button"><i data-lucide="refresh-cw"></i>새로고침</button>
                 </div>
             </header>
 
-            <div class="tb_container">
-                <div class="tb_card">
-                    <table class="erp_table" style="width: 100%;">
-                        <thead>
-                            <tr>
-                                <th style="text-align: left;">怨꾩젙怨쇰ぉ (COA)</th>
-                                <th style="text-align: right;">?붿븸 (Balance)</th>
-                                <th style="text-align: center;">怨꾩젙 ?좏삎</th>
-                                <th style="text-align: center;">?먯옣 異붿쟻</th>
-                            </tr>
-                        </thead>
-                        <tbody id="tb_body">
-                            <!-- Data rows will be injected here -->
-                        </tbody>
+            <section class="hr_grid">
+                <article class="hr_card">
+                    <div class="hr_card_header">
+                        <h3>계정별 잔액</h3>
+                        <span class="hr_badge">합계 <span id="trial_total" style="margin-left: 6px;">-</span></span>
+                    </div>
+                    <table class="hr_table">
+                        <thead><tr><th>코드</th><th>계정명</th><th>유형</th><th class="amount">잔액</th></tr></thead>
+                        <tbody id="trial_rows"></tbody>
                     </table>
-                </div>
-            </div>
+                </article>
+                <article class="hr_card">
+                    <div class="hr_status" id="page_status"></div>
+                </article>
+            </section>
         </main>
     </div>
+
     <script src="../../../services/common/session.js"></script>
     <script src="../../../services/common/app-shell.js"></script>
-        <script src="../../../services/common/sidebar.js"></script>
-<script type="module">
-        import { generalLedgerService } from '../../../services/hr/accounting/general-ledger-service.js';
-        import { formatCurrency } from '../../../services/common/formatters.js';
-
-        async function init() {
-            const session = window.ddukSession.requireRole(["ADMIN", "FINANCE"]);
-            if (!session) return;
-            window.ddukSession.bindShell(session);
-
-            window.ddukAppShell.hydratePage({
-                navItems: [
-                    { href: "../../hr/dashboard.html", label: "?몄궗/?뚭퀎 硫붿씤" },
-                    { href: "../accounting/dashboard.html", label: "?뚭퀎 ??쒕낫?? },
-                    { href: "./trial-balance.html", label: "?쒖궛???먯옣", current: true },
-                    { href: "../payroll/list.html", label: "湲됱뿬 愿由? }
-                ]
-            });
-
-            loadTB();
-        }
-
-        function loadTB() {
-            const data = generalLedgerService.getTrialBalance();
-            const tbody = document.getElementById('tb_body');
-            
-            // Simple grouping by type could be done here, but we'll show flat for now
-            tbody.innerHTML = data.map(acc => `
-                <tr class="acc_row">
-                    <td style="font-weight: 600;">[${acc.code}] ${acc.name}</td>
-                    <td style="text-align: right; font-family: monospace; font-size: 1rem; ${acc.balance < 0 ? 'color: #e53e3e;' : ''}">
-                        ${formatCurrency(acc.balance)}
-                    </td>
-                    <td style="text-align: center;"><span class="erp_badge badge_secondary">${acc.type}</span></td>
-                    <td style="text-align: center;">
-                        <button class="erp_button erp_button_secondary" style="padding: 4px 8px; font-size: 0.75rem;" onclick="alert('怨꾩젙蹂??곸꽭 ?먯옣 議고쉶 湲곕뒫? 以鍮?以묒엯?덈떎.')">?곸꽭蹂닿린</button>
-                    </td>
-                </tr>
-            `).join('');
-        }
-
-        document.getElementById('btn_refresh').addEventListener('click', loadTB);
-
-        init();
-    </script>
+    <script src="../../../services/common/sidebar.js"></script>
+    <script type="module" src="../../../services/hr/hr-backend-pages.js"></script>
 </body>
 </html>

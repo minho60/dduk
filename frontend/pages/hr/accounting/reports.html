@@ -1,146 +1,56 @@
-﻿<!DOCTYPE html>
+<!DOCTYPE html>
 <html lang="ko">
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-        <script src="https://cdn.jsdelivr.net/npm/lucide@0.263.0/dist/umd/lucide.min.js"></script>
-<title>DDUK ERP - ?뚭퀎 由ы룷??/title>
+    <title>DDUK ERP - 회계 리포트</title>
+    <script src="https://cdn.jsdelivr.net/npm/lucide@0.263.0/dist/umd/lucide.min.js"></script>
     <link rel="stylesheet" href="../../../styles/common/app-shell.css">
-        <link rel="stylesheet" href="../../../styles/common/dashboard.css">
-<link rel="stylesheet" href="../../../styles/common/erp-components.css">
+    <link rel="stylesheet" href="../../../styles/common/dashboard.css">
+    <link rel="stylesheet" href="../../../styles/hr/hr-backend-pages.css">
 </head>
-<body>
+<body data-hr-page="accounting-reports">
     <aside data-dduk-sidebar></aside>
     <div class="main_wrap">
-        <main class="app-main">
-            <header class="app-header">
-                <div>
-                    <h2 data-page-title>?뚭퀎 由ы룷??/h2>
-                    <p data-page-description>?좏깮???묒떇???곕씪 寃쎌쁺 蹂닿퀬?쒕? ?앹꽦?섍퀬 異붿텧?⑸땲??</p>
+        <main class="app-main hr_page">
+            <header class="hr_topbar">
+                <button class="sidebar_icon_btn dduk-inline-027" onclick="toggleSidebar()" id="mobile_menu_btn" aria-label="메뉴">
+                    <i class="dduk-inline-028" data-lucide="menu"></i>
+                </button>
+                <div class="hr_title">
+                    <h2>회계 리포트</h2>
+                    <p>백엔드에서 생성한 재무상태표와 손익계산서를 원장 잔액 기준으로 조회합니다.</p>
                 </div>
-                <section class="app-user">
-                    <dl>
-                        <dt>?대쫫</dt>
-                        <dd data-user-name>-</dd>
-                        <dt>?꾩씠??/dt>
-                        <dd data-login-id>-</dd>
-                        <dt>沅뚰븳</dt>
-                        <dd data-role>-</dd>
-                    </dl>
-                    <button type="button" data-action="logout">濡쒓렇?꾩썐</button>
-                </section>
+                <div class="hr_actions">
+                    <button class="hr_button" id="btn_balance_sheet" type="button">재무상태표</button>
+                    <button class="hr_button" id="btn_profit_loss" type="button">손익계산서</button>
+                </div>
             </header>
 
-            <div class="accounting_page_container">
-                <!-- Report Selection & Controls -->
-                <section class="report_controls" style="display: flex; gap: 16px; flex-wrap: wrap; margin-bottom: 24px; padding: 20px; background: #fff; border: 1px solid #e2e8f0; border-radius: 8px;">
-                    <div style="display: flex; align-items: center; gap: 8px;">
-                        <label style="font-size: 0.875rem; font-weight: 500;">由ы룷??醫낅쪟</label>
-                        <select id="report_type_select" class="erp_select" style="width: 200px;">
-                            <option value="MONTHLY_PL">?붾퀎 ?먯씡 由ы룷??/option>
-                            <option value="VENDOR_SUMMARY">嫄곕옒泥섎퀎 嫄곕옒 ?붿빟</option>
-                        </select>
+            <section class="hr_grid">
+                <article class="hr_card">
+                    <div class="hr_card_header">
+                        <div>
+                            <h3 id="report_title">-</h3>
+                            <p class="hr_kpi_hint" id="report_summary">-</p>
+                        </div>
+                        <span class="hr_badge ok">Backend Report</span>
                     </div>
-
-                    <div style="display: flex; align-items: center; gap: 8px;">
-                        <label style="font-size: 0.875rem; font-weight: 500;">議고쉶 湲곌컙</label>
-                        <input type="date" id="report_startDate" class="erp_input" style="width: 140px;">
-                        <span>~</span>
-                        <input type="date" id="report_endDate" class="erp_input" style="width: 140px;">
-                    </div>
-
-                    <div style="display: flex; gap: 8px; margin-left: auto;">
-                        <button id="btn_report_generate" class="erp_button erp_button_primary">由ы룷???앹꽦</button>
-                        <button id="btn_report_export" class="erp_button erp_button_secondary">CSV ?ㅼ슫濡쒕뱶</button>
-                        <button id="btn_report_print" class="erp_button erp_button_secondary">?몄뇙</button>
-                    </div>
-                </section>
-
-                <!-- Report Viewer Container -->
-                <div id="report_viewer_root"></div>
-            </div>
+                    <table class="hr_table">
+                        <thead><tr><th>코드</th><th>계정명</th><th class="amount">잔액</th></tr></thead>
+                        <tbody id="report_rows"></tbody>
+                    </table>
+                </article>
+                <article class="hr_card">
+                    <div class="hr_status" id="page_status"></div>
+                </article>
+            </section>
         </main>
     </div>
+
     <script src="../../../services/common/session.js"></script>
     <script src="../../../services/common/app-shell.js"></script>
-        <script src="../../../services/common/sidebar.js"></script>
-<script type="module">
-        import { ReportEngine } from '../../../services/common/report-engine.js';
-        import { ACCOUNTING_REPORTS } from '../../../services/hr/accounting-report-configs.js';
-        import { settlementService } from '../../../services/hr/settlement-service.js';
-        import { ReportViewer } from '../../../components/common/ReportViewer.js';
-        import { CSVAdapter } from '../../../services/common/report-exporter-adapters.js';
-
-        let currentEngine = null;
-        const viewer = new ReportViewer({ container: document.getElementById('report_viewer_root') });
-
-        async function init() {
-            const session = window.ddukSession.requireRole(["ADMIN", "HR"]);
-            if (!session) return;
-            window.ddukSession.bindShell(session);
-
-            window.ddukAppShell.hydratePage({
-                navItems: [
-                    { href: "../../hr/dashboard.html", label: "?몄궗/?뚭퀎 硫붿씤" },
-                    { href: "./dashboard.html", label: "?뚭퀎 ??쒕낫?? },
-                    { href: "./transactions.html", label: "留ㅼ엯/留ㅼ텧 愿由? },
-                    { href: "./settlement.html", label: "?붾퀎 ?뺤궛" },
-                    { href: "./reports.html", label: "?뚭퀎 由ы룷??, current: true },
-                    { href: "../../admin/dashboard.html", label: "愿由ъ옄" },
-                    { href: "../../inventory/dashboard.html", label: "?ш퀬/諛쒖＜" }
-                ]
-            });
-
-            // Set default date range (this year)
-            const today = new Date();
-            document.getElementById('report_startDate').value = new Date(today.getFullYear(), 0, 1).toISOString().split('T')[0];
-            document.getElementById('report_endDate').value = today.toISOString().split('T')[0];
-
-            handleGenerate();
-        }
-
-        async function handleGenerate() {
-            const typeId = document.getElementById('report_type_select').value;
-            const config = ACCOUNTING_REPORTS[typeId];
-            const filterOptions = {
-                startDate: document.getElementById('report_startDate').value,
-                endDate: document.getElementById('report_endDate').value,
-                groupBy: config.aggregation.groupBy,
-                referenceDate: config.aggregation.referenceDate
-            };
-
-            currentEngine = new ReportEngine(config);
-            
-            // Custom fetch source mapping for accounting
-            const fetchSource = async (opts) => {
-                const res = await settlementService.getSettlement(opts);
-                return res.data;
-            };
-
-            const result = await currentEngine.generate(fetchSource, filterOptions);
-            if (result.success) {
-                viewer.render(config, result.data, currentEngine.getSummary());
-            } else {
-                alert(result.message);
-            }
-        }
-
-        function handleExport() {
-            if (!currentEngine || !currentEngine.data) {
-                alert('癒쇱? 由ы룷?몃? ?앹꽦?댁＜?몄슂.');
-                return;
-            }
-            const content = CSVAdapter.generate(currentEngine.config, currentEngine.data);
-            const timestamp = new Date().toISOString().split('T')[0];
-            const filename = `DDUK_${currentEngine.config.id}_${timestamp}.csv`;
-            CSVAdapter.download(content, filename);
-        }
-
-        document.getElementById('btn_report_generate').addEventListener('click', handleGenerate);
-        document.getElementById('btn_report_export').addEventListener('click', handleExport);
-        document.getElementById('btn_report_print').addEventListener('click', () => window.print());
-
-        init();
-    </script>
+    <script src="../../../services/common/sidebar.js"></script>
+    <script type="module" src="../../../services/hr/hr-backend-pages.js"></script>
 </body>
 </html>
