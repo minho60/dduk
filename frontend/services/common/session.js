@@ -7,10 +7,10 @@
 
     function getSession() {
         return {
-            token: localStorage.getItem("token") || "preview-token",
-            loginId: localStorage.getItem("loginId") || "admin_preview",
-            role: localStorage.getItem("role") || "ADMIN",
-            userName: localStorage.getItem("userName") || "미리보기 계정"
+            token: localStorage.getItem("token"),
+            loginId: localStorage.getItem("loginId"),
+            role: localStorage.getItem("role"),
+            userName: localStorage.getItem("userName")
         };
     }
 
@@ -41,12 +41,6 @@
 
     function requireRole(allowedRoles) {
         const session = getSession();
-
-        /* =================================================================
-           [개발용 미리보기 모드] 
-           로그인 없이 UI를 확인하고 싶을 때 아래 한 줄의 주석을 해제하세요.
-           ================================================================= */
-        return { token: "preview", role: "ADMIN", userName: "미리보기 계정", loginId: "admin_preview" };
 
         if (!session.token || !session.role) {
             redirectToLogin();

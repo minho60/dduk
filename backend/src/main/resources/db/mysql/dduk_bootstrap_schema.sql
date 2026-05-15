@@ -334,8 +334,13 @@ CREATE TABLE IF NOT EXISTS journal_items (
 ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci;
 
 -- Default Chart of Accounts Seeds
-INSERT INTO accounts (code, name, type, level, is_active) VALUES 
+INSERT INTO accounts (code, name, type, level, is_active) VALUES
 ('1001', '현금', 'ASSET', 1, 1),
 ('2001', '예수금', 'LIABILITY', 1, 1),
 ('2002', '미지급금(급여)', 'LIABILITY', 1, 1),
-('5001', '급여비용', 'EXPENSE', 1, 1);
+('5001', '급여비용', 'EXPENSE', 1, 1)
+ON DUPLICATE KEY UPDATE
+    name = VALUES(name),
+    type = VALUES(type),
+    level = VALUES(level),
+    is_active = VALUES(is_active);
