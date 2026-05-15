@@ -3,9 +3,12 @@ package com.dduk.controller.inventory;
 import com.dduk.config.PrincipalDetails;
 import com.dduk.dto.inventory.PurchaseOrderCreateDto;
 import com.dduk.dto.inventory.PurchaseOrderResponseDto;
+import com.dduk.dto.inventory.PurchaseOrderStatusUpdateDto;
 import com.dduk.service.inventory.PurchaseOrderService;
 import lombok.RequiredArgsConstructor;
 import org.springframework.security.core.annotation.AuthenticationPrincipal;
+import org.springframework.web.bind.annotation.PatchMapping;
+import org.springframework.web.bind.annotation.PathVariable;
 import org.springframework.web.bind.annotation.PostMapping;
 import org.springframework.web.bind.annotation.RequestBody;
 import org.springframework.web.bind.annotation.RequestMapping;
@@ -34,5 +37,15 @@ public class PurchaseOrderController {
     ) {
         Long requestedByMemberId = principalDetails == null ? null : principalDetails.getMember().getId();
         return purchaseOrderService.createPurchaseOrder(requestDto, requestedByMemberId);
+    }
+
+    @PatchMapping("/{purchaseOrderId}/status")
+    public PurchaseOrderResponseDto updatePurchaseOrderStatus(
+            @PathVariable Long purchaseOrderId,
+            @RequestBody PurchaseOrderStatusUpdateDto requestDto,
+            @AuthenticationPrincipal PrincipalDetails principalDetails
+    ) {
+        Long approvedByMemberId = principalDetails == null ? null : principalDetails.getMember().getId();
+        return purchaseOrderService.updatePurchaseOrderStatus(purchaseOrderId, requestDto, approvedByMemberId);
     }
 }

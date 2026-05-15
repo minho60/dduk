@@ -117,4 +117,40 @@ public class Vendor {
         this.status = status;
         this.memo = memo;
     }
+
+    public void update(
+            String businessRegistrationNo,
+            String name,
+            String representativeName,
+            String businessType,
+            String businessItem,
+            String contactName,
+            String contactPhone,
+            String email,
+            String address,
+            String bankName,
+            String bankAccountNo,
+            String bankAccountHolder,
+            String bankbookCopyFilePath,
+            String memo
+    ) {
+        this.businessRegistrationNo = businessRegistrationNo;
+        this.name = name;
+        this.representativeName = representativeName;
+        this.businessType = businessType;
+        this.businessItem = businessItem;
+        this.contactName = contactName;
+        this.contactPhone = contactPhone;
+        this.email = email;
+        this.address = address;
+        this.bankName = bankName;
+        this.bankAccountNo = bankAccountNo;
+        this.bankAccountHolder = bankAccountHolder;
+        this.bankbookCopyFilePath = bankbookCopyFilePath;
+        this.memo = memo;
+    }
+
+    public void updateStatus(String status) {
+        this.status = status;
+    }
 }

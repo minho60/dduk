@@ -41,3 +41,46 @@ ON DUPLICATE KEY UPDATE
     role = VALUES(role),
     active = VALUES(active),
     updated_at = NOW();
+
+INSERT INTO items (
+    id,
+    item_code,
+    name,
+    category,
+    spec,
+    barcode,
+    unit,
+    default_vendor_id,
+    unit_price,
+    safety_stock,
+    is_active,
+    created_at,
+    updated_at
+)
+VALUES
+    (
+        1,
+        'ITEM-001',
+        '밀가루',
+        '원재료',
+        '20kg',
+        'ITEM-001-BARCODE',
+        '포',
+        NULL,
+        15000.00,
+        10,
+        1,
+        NOW(),
+        NOW()
+    )
+ON DUPLICATE KEY UPDATE
+    item_code = VALUES(item_code),
+    name = VALUES(name),
+    category = VALUES(category),
+    spec = VALUES(spec),
+    barcode = VALUES(barcode),
+    unit = VALUES(unit),
+    unit_price = VALUES(unit_price),
+    safety_stock = VALUES(safety_stock),
+    is_active = VALUES(is_active),
+    updated_at = NOW();

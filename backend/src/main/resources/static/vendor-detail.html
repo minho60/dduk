@@ -1,0 +1,269 @@
+<!doctype html>
+<html lang="ko">
+<head>
+    <meta charset="utf-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1">
+    <title>DDUK ERP - 거래처 조회</title>
+    <script src="https://cdn.tailwindcss.com"></script>
+    <script>
+        tailwind.config = {
+            theme: {
+                extend: {
+                    colors: {
+                        brand: {
+                            50: "#fdf7f7",
+                            100: "#f8eded",
+                            500: "#8b3a3a",
+                            600: "#722f2f"
+                        }
+                    },
+                    boxShadow: {
+                        premium: "0 20px 50px rgba(31, 41, 55, 0.08)"
+                    }
+                }
+            }
+        };
+    </script>
+</head>
+<body class="bg-[#f6f7f8] text-slate-900 antialiased">
+<div class="min-h-screen lg:grid lg:grid-cols-[280px_minmax(0,1fr)]">
+    <aside class="border-b border-slate-200 bg-white lg:min-h-screen lg:border-b-0 lg:border-r">
+        <div class="flex h-full flex-col px-5 py-6">
+            <div class="mb-8 flex items-center justify-between">
+                <div>
+                    <p class="text-xs font-semibold uppercase tracking-[0.18em] text-brand-500">DDUK ERP</p>
+                    <h1 class="mt-1 text-2xl font-black tracking-tight text-slate-950">Inventory</h1>
+                </div>
+                <a href="/vendor-detail.html" class="grid h-10 w-10 place-items-center rounded-xl bg-slate-100 text-sm font-bold text-slate-600" title="Home">홈</a>
+            </div>
+
+            <nav class="space-y-5" data-nav></nav>
+
+            <section class="mt-8 rounded-2xl border border-slate-200 bg-white p-4 shadow-sm lg:mt-auto">
+                <div class="flex items-center gap-3">
+                    <div class="grid h-10 w-10 place-items-center rounded-xl bg-brand-100 text-sm font-black text-brand-600">ERP</div>
+                    <div class="min-w-0">
+                        <p class="truncate text-sm font-bold text-slate-900" data-user-name>-</p>
+                        <p class="text-xs font-medium text-slate-500" data-role>-</p>
+                    </div>
+                </div>
+                <dl class="mt-4 grid grid-cols-[64px_1fr] gap-2 text-xs">
+                    <dt class="text-slate-400">아이디</dt>
+                    <dd class="truncate font-semibold text-slate-700" data-login-id>-</dd>
+                </dl>
+                <button type="button" data-action="logout" class="mt-4 h-10 w-full rounded-xl bg-brand-500 text-sm font-bold text-white transition hover:bg-brand-600">로그아웃</button>
+            </section>
+        </div>
+    </aside>
+
+    <main class="min-w-0 px-5 py-6 sm:px-8 lg:px-10">
+        <header class="mb-7">
+            <p class="mb-2 text-xs font-bold uppercase tracking-[0.18em] text-brand-500">Vendor Management</p>
+            <h2 class="text-3xl font-black tracking-tight text-slate-950" data-page-title>거래처 조회</h2>
+            <p class="mt-2 max-w-3xl text-sm leading-6 text-slate-500" data-page-description>등록된 거래처의 코드, 사업자번호, 연락처, 정산 정보를 조회합니다.</p>
+        </header>
+
+        <section class="mb-6 grid gap-4 md:grid-cols-3" data-summary-cards></section>
+
+        <section class="rounded-2xl border border-slate-200 bg-white p-5 shadow-premium">
+            <div class="flex flex-col gap-4 border-b border-slate-100 pb-5 sm:flex-row sm:items-center sm:justify-between">
+                <div>
+                    <h3 id="vendorName" class="text-xl font-black text-slate-950">거래처 정보를 불러오는 중입니다.</h3>
+                    <p id="vendorMeta" class="mt-1 text-sm text-slate-500">등록 완료 후 생성된 거래처 코드를 확인합니다.</p>
+                </div>
+                <div class="flex flex-col gap-2 sm:flex-row">
+                    <a id="editVendorLink" href="/vendor-edit.html" class="h-10 rounded-xl border border-brand-200 bg-brand-50 px-5 py-2.5 text-sm font-bold text-brand-600 transition hover:bg-brand-100">거래처 수정</a>
+                    <a href="/vendor-create.html" class="h-10 rounded-xl bg-brand-500 px-5 py-2.5 text-sm font-bold text-white transition hover:bg-brand-600">새 거래처 등록</a>
+                </div>
+            </div>
+
+            <dl class="mt-5 grid gap-4 md:grid-cols-2 xl:grid-cols-3">
+                <div class="rounded-xl border border-slate-100 bg-slate-50 p-4">
+                    <dt class="text-xs font-bold uppercase text-slate-400">거래처 코드</dt>
+                    <dd id="vendorCode" class="mt-2 text-base font-black text-slate-950">-</dd>
+                </div>
+                <div class="rounded-xl border border-slate-100 bg-slate-50 p-4">
+                    <dt class="text-xs font-bold uppercase text-slate-400">사업자등록번호</dt>
+                    <dd id="businessRegistrationNo" class="mt-2 text-base font-black text-slate-950">-</dd>
+                </div>
+                <div class="rounded-xl border border-slate-100 bg-slate-50 p-4">
+                    <dt class="text-xs font-bold uppercase text-slate-400">상태</dt>
+                    <dd id="status" class="mt-2 text-base font-black text-emerald-700">-</dd>
+                </div>
+                <div class="rounded-xl border border-slate-100 bg-slate-50 p-4">
+                    <dt class="text-xs font-bold uppercase text-slate-400">대표자명</dt>
+                    <dd id="representativeName" class="mt-2 text-base font-bold text-slate-800">-</dd>
+                </div>
+                <div class="rounded-xl border border-slate-100 bg-slate-50 p-4">
+                    <dt class="text-xs font-bold uppercase text-slate-400">담당자</dt>
+                    <dd id="contactName" class="mt-2 text-base font-bold text-slate-800">-</dd>
+                </div>
+                <div class="rounded-xl border border-slate-100 bg-slate-50 p-4">
+                    <dt class="text-xs font-bold uppercase text-slate-400">전화번호</dt>
+                    <dd id="contactPhone" class="mt-2 text-base font-bold text-slate-800">-</dd>
+                </div>
+                <div class="rounded-xl border border-slate-100 bg-slate-50 p-4">
+                    <dt class="text-xs font-bold uppercase text-slate-400">이메일</dt>
+                    <dd id="email" class="mt-2 text-base font-bold text-slate-800">-</dd>
+                </div>
+                <div class="rounded-xl border border-slate-100 bg-slate-50 p-4">
+                    <dt class="text-xs font-bold uppercase text-slate-400">은행명</dt>
+                    <dd id="bankName" class="mt-2 text-base font-bold text-slate-800">-</dd>
+                </div>
+                <div class="rounded-xl border border-slate-100 bg-slate-50 p-4">
+                    <dt class="text-xs font-bold uppercase text-slate-400">계좌번호</dt>
+                    <dd id="bankAccountNo" class="mt-2 text-base font-bold text-slate-800">-</dd>
+                </div>
+                <div class="rounded-xl border border-slate-100 bg-slate-50 p-4 md:col-span-2 xl:col-span-3">
+                    <dt class="text-xs font-bold uppercase text-slate-400">주소</dt>
+                    <dd id="address" class="mt-2 text-base font-bold text-slate-800">-</dd>
+                </div>
+                <div class="rounded-xl border border-slate-100 bg-slate-50 p-4 md:col-span-2 xl:col-span-3">
+                    <dt class="text-xs font-bold uppercase text-slate-400">메모</dt>
+                    <dd id="memo" class="mt-2 text-base font-bold text-slate-800">-</dd>
+                </div>
+            </dl>
+
+            <div id="message" class="mt-5 min-h-11 rounded-xl border border-slate-200 bg-slate-50 px-4 py-3 text-sm font-semibold text-slate-500" aria-live="polite">거래처 조회를 준비하고 있습니다.</div>
+        </section>
+    </main>
+</div>
+
+<script src="/services/common/app-shell.js"></script>
+<script>
+    window.ddukAppShell.hydratePage({
+        title: "거래처 조회",
+        description: "등록된 거래처의 코드, 사업자번호, 연락처, 정산 정보를 조회합니다.",
+        navItems: [
+            {
+                label: "발주 관리",
+                children: [
+                    { href: "/purchase-order-request.html", label: "발주 생성" },
+                    { href: "#", label: "발주 상태 변경" },
+                    { href: "#", label: "발주서 조회" }
+                ]
+            },
+            {
+                label: "거래처 관리",
+                children: [
+                    { href: "/vendor-create.html", label: "거래처 등록" },
+                    { href: "/vendor-list.html", label: "거래처 목록 조회" },
+                    { href: "#", label: "거래처 활성/비활성 변경" },
+                    { href: "#", label: "거래처별 발주 내역 조회" }
+                ]
+            },
+            { href: "#", label: "입고 등록" },
+            { href: "#", label: "재고 조회" }
+        ],
+        cards: [
+            { title: "거래처 코드", value: "-", description: "자동 생성" },
+            { title: "사업자번호", value: "-", description: "등록 값" },
+            { title: "상태", value: "-", description: "거래 가능 여부" }
+        ]
+    });
+
+    const previewSession = {
+        userName: localStorage.getItem("userName") || "미리보기 계정",
+        loginId: localStorage.getItem("loginId") || "inventory_preview",
+        role: localStorage.getItem("role") || "INVENTORY"
+    };
+    document.querySelector("[data-user-name]").textContent = previewSession.userName;
+    document.querySelector("[data-login-id]").textContent = previewSession.loginId;
+    document.querySelector("[data-role]").textContent = previewSession.role;
+    document.querySelector("[data-action='logout']").addEventListener("click", () => {
+        localStorage.removeItem("token");
+        localStorage.removeItem("loginId");
+        localStorage.removeItem("role");
+        localStorage.removeItem("userName");
+        location.reload();
+    });
+
+    const message = document.getElementById("message");
+    const params = new URLSearchParams(window.location.search);
+    const vendorId = params.get("vendorId");
+    const editVendorLink = document.getElementById("editVendorLink");
+    if (vendorId) {
+        editVendorLink.href = `/vendor-edit.html?vendorId=${vendorId}`;
+    }
+
+    function text(value) {
+        return value || "-";
+    }
+
+    function setMessage(textValue, type = "") {
+        const base = "mt-5 min-h-11 rounded-xl border px-4 py-3 text-sm font-semibold";
+        const state = type === "ok"
+            ? "border-emerald-200 bg-emerald-50 text-emerald-700"
+            : type === "error"
+                ? "border-rose-200 bg-rose-50 text-rose-700"
+                : "border-slate-200 bg-slate-50 text-slate-500";
+        message.className = `${base} ${state}`;
+        message.textContent = textValue;
+    }
+
+    function setSummaryCards(vendor) {
+        document.querySelector("[data-summary-cards]").innerHTML = [
+            { title: "거래처 코드", value: vendor.vendorCode, description: "자동 생성" },
+            { title: "사업자번호", value: vendor.businessRegistrationNo, description: "등록 값" },
+            { title: "상태", value: vendor.status, description: "거래 가능 여부" }
+        ].map((item) => `
+            <article class="rounded-2xl border border-slate-200 bg-white p-5 shadow-sm">
+                <p class="text-sm font-bold text-slate-500">${item.title}</p>
+                <strong class="mt-2 block text-2xl font-black tracking-tight text-slate-950">${text(item.value)}</strong>
+                <span class="mt-2 block text-xs font-semibold text-slate-400">${item.description}</span>
+            </article>
+        `).join("");
+    }
+
+    function renderVendor(vendor) {
+        document.getElementById("vendorName").textContent = text(vendor.name);
+        document.getElementById("vendorMeta").textContent = `거래처 ID ${vendor.id}`;
+        [
+            "vendorCode",
+            "businessRegistrationNo",
+            "status",
+            "representativeName",
+            "contactName",
+            "contactPhone",
+            "email",
+            "bankName",
+            "bankAccountNo",
+            "address",
+            "memo"
+        ].forEach((field) => {
+            document.getElementById(field).textContent = text(vendor[field]);
+        });
+        setSummaryCards(vendor);
+    }
+
+    async function loadVendor() {
+        if (!vendorId) {
+            setMessage("조회할 거래처 ID가 없습니다.", "error");
+            return;
+        }
+
+        const token = localStorage.getItem("token");
+        const headers = {};
+        if (token) {
+            headers.Authorization = `Bearer ${token}`;
+        }
+
+        try {
+            setMessage("거래처 정보를 불러오는 중입니다.");
+            const response = await fetch(`${window.location.origin}/api/v1/inventory/vendors/${vendorId}`, { headers });
+            const responseText = await response.text();
+            if (!response.ok) {
+                throw new Error(responseText || `HTTP ${response.status}`);
+            }
+            const vendor = JSON.parse(responseText);
+            renderVendor(vendor);
+            setMessage("거래처 정보를 불러왔습니다.", "ok");
+        } catch (error) {
+            setMessage(`조회 실패: ${error.message}`, "error");
+        }
+    }
+
+    loadVendor();
+</script>
+</body>
+</html>

@@ -3,6 +3,7 @@ package com.dduk.service.inventory;
 import com.dduk.dto.inventory.PurchaseOrderCreateDto;
 import com.dduk.dto.inventory.PurchaseOrderItemCreateDto;
 import com.dduk.dto.inventory.PurchaseOrderResponseDto;
+import com.dduk.dto.inventory.PurchaseOrderStatusUpdateDto;
 import com.dduk.entity.admin.Member;
 import com.dduk.entity.inventory.Item;
 import com.dduk.entity.inventory.PurchaseOrder;
@@ -60,6 +61,10 @@ import java.util.List;
 public class PurchaseOrderService {
 
     private static final String STATUS_ORDERED = "ORDERED";
+    private static final String STATUS_REQUESTED = "REQUESTED";
+    private static final String STATUS_APPROVED = "APPROVED";
+    private static final String STATUS_RECEIVED = "RECEIVED";
+    private static final String STATUS_CANCELED = "CANCELED";
     private static final BigDecimal TAX_RATE = BigDecimal.valueOf(0.1);
 
     private final VendorRepository vendorRepository;
@@ -70,12 +75,11 @@ public class PurchaseOrderService {
 
     @Transactional
     public PurchaseOrderResponseDto createPurchaseOrder(PurchaseOrderCreateDto requestDto, Long requestedByMemberId) {
-        validateCreateRequest(requestDto, requestedByMemberId);
+        validateCreateRequest(requestDto);
 
         Vendor vendor = vendorRepository.findById(requestDto.getVendorId())
                 .orElseThrow(() -> new ResponseStatusException(HttpStatus.NOT_FOUND, "거래처를 찾을 수 없습니다."));
-        Member requestedBy = memberRepository.findById(requestedByMemberId)
-                .orElseThrow(() -> new ResponseStatusException(HttpStatus.NOT_FOUND, "요청자를 찾을 수 없습니다."));
+        Member requestedBy = findRequestedBy(requestedByMemberId);
 
         List<PurchaseOrderLine> lines = new ArrayList<>();
         BigDecimal totalAmount = BigDecimal.ZERO;
@@ -144,19 +148,61 @@ public class PurchaseOrderService {
         return PurchaseOrderResponseDto.from(savedPurchaseOrder, purchaseOrderItems);
     }
 
-    private void validateCreateRequest(PurchaseOrderCreateDto requestDto, Long requestedByMemberId) {
+    @Transactional
+    public PurchaseOrderResponseDto updatePurchaseOrderStatus(
+            Long purchaseOrderId,
+            PurchaseOrderStatusUpdateDto requestDto,
+            Long approvedByMemberId
+    ) {
+        PurchaseOrder purchaseOrder = findPurchaseOrder(purchaseOrderId);
+        String status = validateStatusRequest(requestDto);
+        Member approvedBy = purchaseOrder.getApprovedBy();
+
+        if (STATUS_APPROVED.equals(status)) {
+            if (approvedByMemberId == null) {
+                throw new ResponseStatusException(HttpStatus.BAD_REQUEST, "승인자 정보가 필요합니다.");
+            }
+            approvedBy = memberRepository.findById(approvedByMemberId)
+                    .orElseThrow(() -> new ResponseStatusException(HttpStatus.NOT_FOUND, "승인자를 찾을 수 없습니다."));
+        }
+
+        purchaseOrder.updateStatus(status, approvedBy);
+
+        return PurchaseOrderResponseDto.from(
+                purchaseOrder,
+                purchaseOrderItemRepository.findByPurchaseOrder(purchaseOrder)
+        );
+    }
+
+    private PurchaseOrder findPurchaseOrder(Long purchaseOrderId) {
+        if (purchaseOrderId == null) {
+            throw new ResponseStatusException(HttpStatus.BAD_REQUEST, "발주서 ID가 필요합니다.");
+        }
+        return purchaseOrderRepository.findById(purchaseOrderId)
+                .orElseThrow(() -> new ResponseStatusException(HttpStatus.NOT_FOUND, "발주서를 찾을 수 없습니다."));
+    }
+
+    private void validateCreateRequest(PurchaseOrderCreateDto requestDto) {
         if (requestDto == null) {
             throw new ResponseStatusException(HttpStatus.BAD_REQUEST, "발주 정보가 필요합니다.");
         }
         if (requestDto.getVendorId() == null) {
             throw new ResponseStatusException(HttpStatus.BAD_REQUEST, "거래처를 선택해야 합니다.");
         }
-        if (requestedByMemberId == null) {
-            throw new ResponseStatusException(HttpStatus.BAD_REQUEST, "요청자 정보가 필요합니다.");
-        }
         if (requestDto.getItems() == null || requestDto.getItems().isEmpty()) {
             throw new ResponseStatusException(HttpStatus.BAD_REQUEST, "발주 품목이 필요합니다.");
         }
+    }
+
+    private Member findRequestedBy(Long requestedByMemberId) {
+        if (requestedByMemberId != null) {
+            return memberRepository.findById(requestedByMemberId)
+                    .orElseThrow(() -> new ResponseStatusException(HttpStatus.NOT_FOUND, "요청자를 찾을 수 없습니다."));
+        }
+
+        return memberRepository.findByLoginId("inventory")
+                .or(() -> memberRepository.findByLoginId("admin"))
+                .orElseThrow(() -> new ResponseStatusException(HttpStatus.NOT_FOUND, "기본 요청자를 찾을 수 없습니다."));
     }
 
     private void validateItemRequest(PurchaseOrderItemCreateDto itemDto) {
@@ -172,6 +218,23 @@ public class PurchaseOrderService {
         if (itemDto.getUnitPrice() == null || itemDto.getUnitPrice().compareTo(BigDecimal.ZERO) < 0) {
             throw new ResponseStatusException(HttpStatus.BAD_REQUEST, "단가는 0 이상이어야 합니다.");
         }
+    }
+
+    private String validateStatusRequest(PurchaseOrderStatusUpdateDto requestDto) {
+        if (requestDto == null || requestDto.getStatus() == null || requestDto.getStatus().trim().isEmpty()) {
+            throw new ResponseStatusException(HttpStatus.BAD_REQUEST, "상태값이 필요합니다.");
+        }
+
+        String status = requestDto.getStatus().trim().toUpperCase();
+        if (!STATUS_REQUESTED.equals(status)
+                && !STATUS_APPROVED.equals(status)
+                && !STATUS_ORDERED.equals(status)
+                && !STATUS_RECEIVED.equals(status)
+                && !STATUS_CANCELED.equals(status)) {
+            throw new ResponseStatusException(HttpStatus.BAD_REQUEST, "발주서 상태가 올바르지 않습니다.");
+        }
+
+        return status;
     }
 
     private String generatePurchaseOrderNo() {

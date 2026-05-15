@@ -92,4 +92,9 @@ public class PurchaseOrder {
         this.totalAmount = totalAmount;
         this.note = note;
     }
+
+    public void updateStatus(String status, Member approvedBy) {
+        this.status = status;
+        this.approvedBy = approvedBy;
+    }
 }

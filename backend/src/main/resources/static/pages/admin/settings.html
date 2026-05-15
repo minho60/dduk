@@ -1,0 +1,119 @@
+<!DOCTYPE html>
+<html lang="ko">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>DDUK ERP - 시스템 설정</title>
+    <link rel="stylesheet" href="../../styles/common/app-shell.css">
+    <link rel="stylesheet" href="../../styles/admin/admin-pages.css">
+</head>
+<body>
+    <div class="app-shell">
+        <aside class="app-sidebar">
+            <div class="sidebar-header">
+                <div class="sidebar-logo">
+                    <img src="../../assets/ERP-ROGO.svg" alt="DDUK ERP Logo">
+                    <h1>DDUK ERP</h1>
+                    <button class="home-btn" title="Home" onclick="location.href='../../dashboard.html'">🏠</button>
+                </div>
+            </div>
+
+            <nav data-nav></nav>
+            
+            <div class="sidebar-footer">
+                <div class="app-user">
+                    <div class="user-info">
+                        <span class="user-name" data-user-name>-</span>
+                        <span class="user-role" data-role>-</span>
+                    </div>
+                    <button type="button" data-action="logout" title="Logout">로그아웃</button>
+                </div>
+            </div>
+        </aside>
+
+        <main class="app-main">
+            <header class="app-header">
+                <div>
+                    <h2 data-page-title>시스템 설정</h2>
+                    <p data-page-description>ERP 시스템의 전역 환경 및 정책을 구성합니다.</p>
+                </div>
+            </header>
+
+            <div class="content-grid">
+                <!-- 일반 설정 -->
+                <section class="panel">
+                    <h3>일반 정보</h3>
+                    <form class="stack">
+                        <div class="form-field">
+                            <label>회사명</label>
+                            <input type="text" value="DDUK ERP Portfolio Project">
+                        </div>
+                        <div class="form-field">
+                            <label>관리자 이메일</label>
+                            <input type="email" value="admin@dduk-erp.com">
+                        </div>
+                        <div class="form-field">
+                            <label>시스템 시간대</label>
+                            <select>
+                                <option>Asia/Seoul (UTC+09:00)</option>
+                                <option>UTC</option>
+                            </select>
+                        </div>
+                    </form>
+                </section>
+
+                <!-- 보안 설정 -->
+                <section class="panel">
+                    <h3>보안 정책</h3>
+                    <form class="stack">
+                        <div class="form-field flex-row-between">
+                            <label>비밀번호 복잡성 강화</label>
+                            <input type="checkbox" checked class="w-auto">
+                        </div>
+                        <div class="form-field flex-row-between">
+                            <label>2단계 인증 필수 (ADMIN)</label>
+                            <input type="checkbox" class="w-auto">
+                        </div>
+                        <div class="form-field">
+                            <label>세션 만료 시간 (분)</label>
+                            <input type="number" value="60">
+                        </div>
+                    </form>
+                </section>
+
+                <!-- API 설정 -->
+                <section class="panel">
+                    <h3>외부 연동 (API)</h3>
+                    <form class="stack">
+                        <div class="form-field">
+                            <label>OpenAI API Key</label>
+                            <input type="password" value="************************">
+                        </div>
+                        <div class="form-field">
+                            <label>Tesseract Path (OCR)</label>
+                            <input type="text" value="/usr/bin/tesseract">
+                        </div>
+                    </form>
+                </section>
+            </div>
+
+            <div class="actions mt-8 justify-end">
+                <button type="button" class="secondary">취소</button>
+                <button type="button">설정 저장</button>
+            </div>
+        </main>
+    </div>
+
+    <!-- Scripts -->
+    <script src="../../services/common/session.js"></script>
+    <script src="../../services/common/app-shell.js"></script>
+    <script>
+        document.addEventListener('DOMContentLoaded', function() {
+            window.ddukAppShell.hydratePage({
+                title: "시스템 설정",
+                description: "ERP 시스템의 전역 환경 및 정책을 구성합니다."
+            });
+        });
+    </script>
+</body>
+</html>
