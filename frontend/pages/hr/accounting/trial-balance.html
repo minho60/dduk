@@ -1,0 +1,52 @@
+<!DOCTYPE html>
+<html lang="ko">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>DDUK ERP - 시산표</title>
+    <script src="https://cdn.jsdelivr.net/npm/lucide@0.263.0/dist/umd/lucide.min.js"></script>
+    <link rel="stylesheet" href="../../../styles/common/app-shell.css">
+    <link rel="stylesheet" href="../../../styles/common/dashboard.css">
+    <link rel="stylesheet" href="../../../styles/hr/hr-backend-pages.css">
+</head>
+<body data-hr-page="accounting-trial-balance">
+    <aside data-dduk-sidebar></aside>
+    <div class="main_wrap">
+        <main class="app-main hr_page">
+            <header class="hr_topbar">
+                <button class="sidebar_icon_btn dduk-inline-027" onclick="toggleSidebar()" id="mobile_menu_btn" aria-label="메뉴">
+                    <i class="dduk-inline-028" data-lucide="menu"></i>
+                </button>
+                <div class="hr_title">
+                    <h2>시산표</h2>
+                    <p>현재 백엔드 보고서 API의 계정 잔액을 합쳐 시산표 형태로 표시합니다.</p>
+                </div>
+                <div class="hr_actions">
+                    <button class="hr_button" id="btn_refresh_trial" type="button"><i data-lucide="refresh-cw"></i>새로고침</button>
+                </div>
+            </header>
+
+            <section class="hr_grid">
+                <article class="hr_card">
+                    <div class="hr_card_header">
+                        <h3>계정별 잔액</h3>
+                        <span class="hr_badge">합계 <span id="trial_total" style="margin-left: 6px;">-</span></span>
+                    </div>
+                    <table class="hr_table">
+                        <thead><tr><th>코드</th><th>계정명</th><th>유형</th><th class="amount">잔액</th></tr></thead>
+                        <tbody id="trial_rows"></tbody>
+                    </table>
+                </article>
+                <article class="hr_card">
+                    <div class="hr_status" id="page_status"></div>
+                </article>
+            </section>
+        </main>
+    </div>
+
+    <script src="../../../services/common/session.js"></script>
+    <script src="../../../services/common/app-shell.js"></script>
+    <script src="../../../services/common/sidebar.js"></script>
+    <script type="module" src="../../../services/hr/hr-backend-pages.js"></script>
+</body>
+</html>

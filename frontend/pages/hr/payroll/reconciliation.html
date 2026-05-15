@@ -1,0 +1,72 @@
+<!DOCTYPE html>
+<html lang="ko">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>DDUK ERP - 급여 회계 대조</title>
+    <script src="https://cdn.jsdelivr.net/npm/lucide@0.263.0/dist/umd/lucide.min.js"></script>
+    <link rel="stylesheet" href="../../../styles/common/app-shell.css">
+    <link rel="stylesheet" href="../../../styles/common/dashboard.css">
+    <link rel="stylesheet" href="../../../styles/hr/hr-backend-pages.css">
+</head>
+<body data-hr-page="payroll-reconciliation">
+    <aside data-dduk-sidebar></aside>
+    <div class="main_wrap">
+        <main class="app-main hr_page">
+            <header class="hr_topbar">
+                <button class="sidebar_icon_btn dduk-inline-027" onclick="toggleSidebar()" id="mobile_menu_btn" aria-label="메뉴">
+                    <i class="dduk-inline-028" data-lucide="menu"></i>
+                </button>
+                <div class="hr_title">
+                    <h2>급여 회계 대조</h2>
+                    <p>최근 급여 계산 결과와 백엔드 손익계산서 API의 비용 잔액을 비교합니다.</p>
+                </div>
+                <div class="hr_actions">
+                    <button class="hr_button" id="btn_refresh_recon" type="button"><i data-lucide="refresh-cw"></i>새로고침</button>
+                </div>
+            </header>
+
+            <section class="hr_grid">
+                <article class="hr_card span_6">
+                    <div class="hr_card_header">
+                        <h3>최근 급여 계산</h3>
+                        <span class="hr_badge" id="recon_payroll_status">-</span>
+                    </div>
+                    <table class="hr_table">
+                        <tbody>
+                            <tr><th>지급 총액</th><td class="amount" id="recon_payroll_gross">-</td></tr>
+                            <tr><th>공제 합계</th><td class="amount" id="recon_payroll_deduction">-</td></tr>
+                            <tr><th>실지급액</th><td class="amount" id="recon_payroll_net">-</td></tr>
+                        </tbody>
+                    </table>
+                </article>
+                <article class="hr_card span_6">
+                    <div class="hr_card_header">
+                        <h3>회계 손익 현황</h3>
+                        <span class="hr_badge ok">Profit & Loss</span>
+                    </div>
+                    <table class="hr_table">
+                        <tbody>
+                            <tr><th>수익 합계</th><td class="amount" id="recon_revenue">-</td></tr>
+                            <tr><th>비용 합계</th><td class="amount" id="recon_expenses">-</td></tr>
+                            <tr><th>순손익</th><td class="amount" id="recon_net_income">-</td></tr>
+                        </tbody>
+                    </table>
+                </article>
+                <article class="hr_card">
+                    <div class="hr_notice">
+                        전체 급여 목록 조회 API와 전표 상세 조회 API가 아직 없어 완전한 자동 대조는 하지 않습니다.
+                        이 화면은 현재 구현된 급여 계산 결과와 손익 보고서 API를 나란히 보여주는 확인 화면입니다.
+                    </div>
+                    <div class="hr_status" id="page_status" style="margin-top: 12px;"></div>
+                </article>
+            </section>
+        </main>
+    </div>
+
+    <script src="../../../services/common/session.js"></script>
+    <script src="../../../services/common/app-shell.js"></script>
+    <script src="../../../services/common/sidebar.js"></script>
+    <script type="module" src="../../../services/hr/hr-backend-pages.js"></script>
+</body>
+</html>

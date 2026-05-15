@@ -1,0 +1,67 @@
+<!DOCTYPE html>
+<html lang="ko">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>DDUK ERP - 전표 등록</title>
+    <script src="https://cdn.jsdelivr.net/npm/lucide@0.263.0/dist/umd/lucide.min.js"></script>
+    <link rel="stylesheet" href="../../../styles/common/app-shell.css">
+    <link rel="stylesheet" href="../../../styles/common/dashboard.css">
+    <link rel="stylesheet" href="../../../styles/hr/hr-backend-pages.css">
+</head>
+<body data-hr-page="accounting-transactions">
+    <aside data-dduk-sidebar></aside>
+    <div class="main_wrap">
+        <main class="app-main hr_page">
+            <header class="hr_topbar">
+                <button class="sidebar_icon_btn dduk-inline-027" onclick="toggleSidebar()" id="mobile_menu_btn" aria-label="메뉴">
+                    <i class="dduk-inline-028" data-lucide="menu"></i>
+                </button>
+                <div class="hr_title">
+                    <h2>전표 등록</h2>
+                    <p>POST /api/v1/accounting/journal API로 차변과 대변이 일치하는 전표를 생성합니다.</p>
+                </div>
+                <div class="hr_actions">
+                    <button class="hr_button" id="btn_add_journal_row" type="button"><i data-lucide="plus"></i>항목 추가</button>
+                </div>
+            </header>
+
+            <section class="hr_grid">
+                <form class="hr_card span_8" id="journal_form">
+                    <div class="hr_card_header">
+                        <h3>전표 정보</h3>
+                        <span class="hr_badge warn">계정 코드는 백엔드 계정과목 기준</span>
+                    </div>
+                    <div class="hr_form_grid">
+                        <div class="hr_field">
+                            <label for="journal_date">거래일</label>
+                            <input class="hr_input" id="journal_date" type="date" required>
+                        </div>
+                        <div class="hr_field">
+                            <label for="journal_description">설명</label>
+                            <input class="hr_input" id="journal_description" placeholder="예: 급여 지급 전표" required>
+                        </div>
+                    </div>
+                    <div class="journal_items" id="journal_items" style="margin-top: 16px;"></div>
+                    <div class="hr_actions" style="margin-top: 16px;">
+                        <button class="hr_button primary" type="submit"><i data-lucide="send"></i>전표 생성</button>
+                    </div>
+                </form>
+
+                <article class="hr_card span_4">
+                    <div class="hr_card_header">
+                        <h3>처리 결과</h3>
+                    </div>
+                    <div class="hr_status" id="page_status"></div>
+                    <pre class="hr_result" id="journal_result">전표 생성 결과가 여기에 표시됩니다.</pre>
+                </article>
+            </section>
+        </main>
+    </div>
+
+    <script src="../../../services/common/session.js"></script>
+    <script src="../../../services/common/app-shell.js"></script>
+    <script src="../../../services/common/sidebar.js"></script>
+    <script type="module" src="../../../services/hr/hr-backend-pages.js"></script>
+</body>
+</html>

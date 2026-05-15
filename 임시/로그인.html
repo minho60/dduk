@@ -1,0 +1,936 @@
+<!DOCTYPE html>
+<html lang="ko">
+
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>DDUK ERP | Enterprise SaaS Login</title>
+  <link rel="stylesheet" as="style" crossorigin
+    href="https://cdn.jsdelivr.net/gh/orioncactus/pretendard@v1.3.9/dist/web/static/pretendard.min.css" />
+  <link rel="stylesheet" href="style.css">
+  <style>
+    :root {
+      /* Colors */
+      --primary_color: #6366f1;
+      --primary_hover: #4f46e5;
+      --primary_soft: #eef2ff;
+      --border_color: #e5e7eb;
+      --border_focus: #6366f1;
+      --background_color: #f5f7fb;
+      --card_bg: rgba(255, 255, 255, 0.95);
+      --text_primary: #111827;
+      --text_secondary: #6b7280;
+      --text_muted: #9ca3af;
+      --success_color: #10b981;
+      --danger_color: #ef4444;
+      --white: #ffffff;
+
+      /* Spacing */
+      --radius_lg: 1.25rem;
+      --radius_md: 0.75rem;
+      --radius_sm: 0.375rem;
+
+      /* Shadows */
+      --shadow_sm: 0 1px 2px 0 rgba(0, 0, 0, 0.05);
+      --shadow_md: 0 4px 6px -1px rgba(0, 0, 0, 0.1), 0 2px 4px -1px rgba(0, 0, 0, 0.06);
+      --shadow_lg: 0 10px 15px -3px rgba(0, 0, 0, 0.1), 0 4px 6px -2px rgba(0, 0, 0, 0.05);
+      --shadow_premium: 0 20px 25px -5px rgba(0, 0, 0, 0.1), 0 10px 10px -5px rgba(0, 0, 0, 0.04);
+    }
+
+    * {
+      margin: 0;
+      padding: 0;
+      box-sizing: border-box;
+      font-family: 'Pretendard', -apple-system, BlinkMacSystemFont, system-ui, Roboto, sans-serif;
+    }
+
+    body {
+      background: linear-gradient(180deg, #f8faff 0%, #eef3fb 100%);
+      min-height: 100vh;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      color: var(--text_primary);
+      overflow-x: hidden;
+    }
+
+    .app_container {
+      display: flex;
+      width: 100%;
+      max-width: 1200px;
+      height: 800px;
+      background: var(--white);
+      border-radius: var(--radius_lg);
+      overflow: hidden;
+      box-shadow: var(--shadow_premium);
+      margin: 20px;
+    }
+
+    /* --- Branding Section --- */
+    .branding_section {
+      flex: 1.2;
+      background-color: #0f172a;
+      background-image:
+        radial-gradient(at 0% 0%, rgba(99, 102, 241, 0.15) 0px, transparent 50%),
+        radial-gradient(at 100% 100%, rgba(99, 102, 241, 0.1) 0px, transparent 50%);
+      padding: 60px;
+      display: flex;
+      flex-direction: column;
+      justify-content: space-between;
+      color: var(--white);
+      position: relative;
+      overflow: hidden;
+    }
+
+    .logo_area {
+      display: flex;
+      align-items: center;
+      gap: 12px;
+      z-index: 10;
+    }
+
+    .logo_text {
+      font-size: 1.5rem;
+      font-weight: 700;
+      letter-spacing: -0.025em;
+    }
+
+    .intro_text {
+      z-index: 10;
+    }
+
+    .main_title {
+      font-size: 2.5rem;
+      font-weight: 800;
+      line-height: 1.2;
+      margin-bottom: 20px;
+    }
+
+    .sub_title {
+      font-size: 1.125rem;
+      color: rgba(255, 255, 255, 0.7);
+      line-height: 1.6;
+    }
+
+    /* Visual Graphic - Abstract Dashboard Preview */
+    .visual_graphic {
+      position: absolute;
+      bottom: 60px;
+      right: -20px;
+      width: 450px;
+      height: 320px;
+      opacity: 0.6;
+      perspective: 1000px;
+    }
+
+    .data_flow_container {
+      position: relative;
+      width: 100%;
+      height: 100%;
+      transform: rotateX(10deg) rotateY(-20deg);
+      display: flex;
+      flex-direction: column;
+      gap: 15px;
+    }
+
+    .mock_card {
+      background: rgba(255, 255, 255, 0.05);
+      border: 1px solid rgba(255, 255, 255, 0.1);
+      border-radius: 12px;
+      padding: 15px;
+      backdrop-filter: blur(5px);
+    }
+
+    .mock_chart {
+      height: 80px;
+      display: flex;
+      align-items: flex-end;
+      gap: 8px;
+      padding-bottom: 5px;
+      border-bottom: 1px solid rgba(255, 255, 255, 0.1);
+    }
+
+    .chart_bar {
+      flex: 1;
+      background: var(--primary_color);
+      border-radius: 4px 4px 0 0;
+      opacity: 0.6;
+      animation: barGrow 2s ease-out forwards;
+    }
+
+    @keyframes barGrow {
+      from {
+        height: 0;
+      }
+
+      to {
+        height: var(--h);
+      }
+    }
+
+    .mock_list {
+      display: flex;
+      flex-direction: column;
+      gap: 8px;
+      margin-top: 10px;
+    }
+
+    .mock_item {
+      height: 8px;
+      background: rgba(255, 255, 255, 0.1);
+      border-radius: 4px;
+      width: var(--w);
+    }
+
+    /* Background Pattern */
+    .branding_section::before {
+      content: '';
+      position: absolute;
+      top: 0;
+      left: 0;
+      right: 0;
+      bottom: 0;
+      background-image: radial-gradient(circle at 2px 2px, rgba(255, 255, 255, 0.05) 1px, transparent 0);
+      background-size: 24px 24px;
+      pointer-events: none;
+    }
+
+    .branding_footer {
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+      font-size: 0.875rem;
+      color: rgba(255, 255, 255, 0.5);
+      z-index: 10;
+    }
+
+    .status_indicator {
+      display: inline-block;
+      width: 8px;
+      height: 8px;
+      border-radius: 50%;
+      margin-right: 6px;
+    }
+
+    .status_indicator.online {
+      background-color: var(--success_color);
+      box-shadow: 0 0 8px var(--success_color);
+    }
+
+    /* --- Login Section --- */
+    .login_section {
+      flex: 1;
+      background-color: var(--background_color);
+      padding: 60px;
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+      justify-content: center;
+      position: relative;
+    }
+
+    .login_card {
+      width: 100%;
+      max-width: 420px;
+      background: var(--card_bg);
+      backdrop-filter: blur(10px);
+      -webkit-backdrop-filter: blur(10px);
+      border: 1px solid rgba(255, 255, 255, 0.5);
+      padding: 40px;
+      border-radius: var(--radius_lg);
+      box-shadow: var(--shadow_lg);
+    }
+
+    .login_header {
+      margin-bottom: 32px;
+    }
+
+    .login_header h2 {
+      font-size: 1.75rem;
+      font-weight: 700;
+      margin-bottom: 8px;
+    }
+
+    .login_header p {
+      color: var(--text_secondary);
+      font-size: 0.95rem;
+    }
+
+    /* Alert UI */
+    .alert_ui {
+      background-color: #fef2f2;
+      border: 1px solid #fee2e2;
+      color: var(--danger_color);
+      padding: 12px 16px;
+      border-radius: var(--radius_md);
+      margin-bottom: 24px;
+      display: flex;
+      align-items: center;
+      gap: 10px;
+      font-size: 0.875rem;
+    }
+
+    .hidden {
+      display: none !important;
+    }
+
+    /* Form */
+    .login_form {
+      display: flex;
+      flex-direction: column;
+      gap: 20px;
+    }
+
+    .form_group {
+      display: flex;
+      flex-direction: column;
+      gap: 8px;
+    }
+
+    .form_group label {
+      font-size: 0.875rem;
+      font-weight: 600;
+      color: var(--text_primary);
+    }
+
+    .label_row {
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+    }
+
+    .caps_lock {
+      font-size: 0.75rem;
+      color: var(--danger_color);
+      font-weight: 500;
+    }
+
+    .input_wrapper {
+      position: relative;
+    }
+
+    input[type="text"],
+    input[type="password"] {
+      width: 100%;
+      padding: 12px 16px;
+      border: 1px solid var(--border_color);
+      border-radius: var(--radius_md);
+      font-size: 1rem;
+      transition: all 0.2s;
+      background-color: var(--white);
+    }
+
+    input:focus {
+      outline: none;
+      border-color: var(--border_focus);
+      box-shadow: 0 0 0 4px var(--primary_soft);
+    }
+
+    .icon_btn {
+      position: absolute;
+      right: 12px;
+      top: 50%;
+      transform: translateY(-50%);
+      background: none;
+      border: none;
+      color: var(--text_muted);
+      cursor: pointer;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+    }
+
+    .icon_btn:hover {
+      color: var(--text_secondary);
+    }
+
+    /* Recent Companies List */
+    .recent_list {
+      position: absolute;
+      top: 100%;
+      left: 0;
+      right: 0;
+      background: var(--white);
+      border: 1px solid var(--border_color);
+      border-radius: var(--radius_md);
+      margin-top: 4px;
+      box-shadow: var(--shadow_md);
+      z-index: 20;
+      max-height: 150px;
+      overflow-y: auto;
+    }
+
+    .recent_item {
+      padding: 10px 16px;
+      font-size: 0.875rem;
+      cursor: pointer;
+      transition: background 0.2s;
+    }
+
+    .recent_item:hover {
+      background-color: var(--primary_soft);
+    }
+
+    /* Options */
+    .form_options {
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+      margin-top: 4px;
+    }
+
+    .checkbox_group {
+      display: flex;
+      gap: 16px;
+    }
+
+    .custom_checkbox {
+      display: flex;
+      align-items: center;
+      gap: 8px;
+      font-size: 0.875rem;
+      color: var(--text_secondary);
+      cursor: pointer;
+      user-select: none;
+    }
+
+    .custom_checkbox input {
+      display: none;
+    }
+
+    .checkmark {
+      width: 18px;
+      height: 18px;
+      border: 1px solid var(--border_color);
+      border-radius: 4px;
+      position: relative;
+      transition: all 0.2s;
+    }
+
+    .custom_checkbox input:checked+.checkmark {
+      background-color: var(--primary_color);
+      border-color: var(--primary_color);
+    }
+
+    .checkmark::after {
+      content: "";
+      position: absolute;
+      display: none;
+      left: 6px;
+      top: 2px;
+      width: 4px;
+      height: 8px;
+      border: solid white;
+      border-width: 0 2px 2px 0;
+      transform: rotate(45deg);
+    }
+
+    .custom_checkbox input:checked+.checkmark::after {
+      display: block;
+    }
+
+    .find_link {
+      font-size: 0.875rem;
+      color: var(--primary_color);
+      text-decoration: none;
+      font-weight: 500;
+    }
+
+    /* Submit Button */
+    .primary_btn {
+      margin-top: 10px;
+      width: 100%;
+      padding: 14px;
+      background-color: var(--primary_color);
+      color: var(--white);
+      border: none;
+      border-radius: var(--radius_md);
+      font-size: 1rem;
+      font-weight: 600;
+      cursor: pointer;
+      transition: all 0.2s;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      gap: 10px;
+      box-shadow: 0 4px 6px -1px rgba(99, 102, 241, 0.2);
+    }
+
+    .primary_btn:hover {
+      background-color: var(--primary_hover);
+      transform: translateY(-1px);
+      box-shadow: 0 6px 12px -2px rgba(99, 102, 241, 0.3);
+    }
+
+    .primary_btn:active {
+      transform: translateY(0);
+    }
+
+    .primary_btn:disabled {
+      background-color: var(--text_muted);
+      cursor: not-allowed;
+      transform: none;
+    }
+
+    .spinner {
+      width: 20px;
+      height: 20px;
+      border: 2px solid rgba(255, 255, 255, 0.3);
+      border-top-color: var(--white);
+      border-radius: 50%;
+      animation: spin 0.8s infinite linear;
+    }
+
+    @keyframes spin {
+      to {
+        transform: rotate(360deg);
+      }
+    }
+
+    /* Footer */
+    .login_footer {
+      margin-top: 32px;
+      text-align: center;
+    }
+
+    .login_footer p {
+      font-size: 0.75rem;
+      color: var(--text_muted);
+      margin-bottom: 20px;
+    }
+
+    .footer_links {
+      display: flex;
+      justify-content: center;
+      align-items: center;
+      gap: 12px;
+    }
+
+    .lang_select {
+      padding: 6px 10px;
+      border: 1px solid var(--border_color);
+      border-radius: var(--radius_sm);
+      font-size: 0.75rem;
+      background-color: transparent;
+      color: var(--text_secondary);
+      outline: none;
+    }
+
+    .theme_btn {
+      background: none;
+      border: 1px solid var(--border_color);
+      border-radius: var(--radius_sm);
+      padding: 5px;
+      color: var(--text_secondary);
+      cursor: pointer;
+      display: flex;
+      align-items: center;
+    }
+
+    .security_notice {
+      position: absolute;
+      bottom: 30px;
+      display: flex;
+      align-items: center;
+      gap: 6px;
+      font-size: 0.75rem;
+      color: var(--text_muted);
+    }
+
+    /* --- Dark Mode --- */
+    body.dark_mode {
+      --background_color: #0f172a;
+      --card_bg: rgba(30, 41, 59, 0.95);
+      --text_primary: #f8fafc;
+      --text_secondary: #94a3b8;
+      --border_color: #334155;
+      --white: #1e293b;
+    }
+
+    body.dark_mode .app_container {
+      background: #1e293b;
+    }
+
+    body.dark_mode input {
+      background-color: #0f172a;
+      color: #f8fafc;
+    }
+
+    body.dark_mode .checkmark {
+      border-color: #475569;
+    }
+
+    /* Shake Animation */
+    @keyframes shake {
+
+      0%,
+      100% {
+        transform: translateX(0);
+      }
+
+      25% {
+        transform: translateX(-5px);
+      }
+
+      75% {
+        transform: translateX(5px);
+      }
+    }
+
+    .shake {
+      animation: shake 0.2s ease-in-out 0s 2;
+    }
+
+    /* --- Responsive --- */
+    @media (max-width: 1024px) {
+      .app_container {
+        height: auto;
+        min-height: 600px;
+      }
+
+      .branding_section {
+        padding: 40px;
+      }
+
+      .login_section {
+        padding: 40px;
+      }
+    }
+
+    @media (max-width: 768px) {
+      .app_container {
+        flex-direction: column;
+        max-width: 500px;
+      }
+
+      .branding_section {
+        display: none;
+        /* Hide branding on tablet/mobile as per requirement for single layout */
+      }
+
+      .login_section {
+        padding: 40px 20px;
+      }
+    }
+
+    @media (max-width: 576px) {
+      .app_container {
+        margin: 0;
+        border-radius: 0;
+        box-shadow: none;
+      }
+
+      .login_card {
+        padding: 30px 20px;
+        box-shadow: none;
+        border: none;
+        background: transparent;
+      }
+    }
+  </style>
+</head>
+
+<body>
+  <div class="app_container">
+    <!-- Left Section: Branding & Visuals -->
+    <section class="branding_section">
+      <div class="branding_content">
+        <div class="logo_area">
+          <svg class="logo_svg" width="40" height="40" viewBox="0 0 40 40" fill="none"
+            xmlns="http://www.w3.org/2000/svg">
+            <rect width="40" height="40" rx="8" fill="var(--primary_color)" />
+            <path d="M12 12H28V16H12V12Z" fill="white" />
+            <path d="M12 20H28V24H12V20Z" fill="white" />
+            <path d="M12 28H20V32H12V28Z" fill="white" />
+          </svg>
+          <span class="logo_text">DDUK ERP</span>
+        </div>
+        <div class="intro_text">
+          <h1 class="main_title">스마트한 기업 경영의 시작</h1>
+          <p class="sub_title">복잡한 회계와 재무 관리를 하나로 통합하여<br>비즈니스의 성장을 가속화하세요.</p>
+        </div>
+
+        <div class="visual_graphic">
+          <div class="data_flow_container">
+            <div class="mock_card">
+              <div class="mock_chart">
+                <div class="chart_bar" style="--h: 40%"></div>
+                <div class="chart_bar" style="--h: 70%"></div>
+                <div class="chart_bar" style="--h: 55%"></div>
+                <div class="chart_bar" style="--h: 90%"></div>
+                <div class="chart_bar" style="--h: 65%"></div>
+              </div>
+              <div class="mock_list">
+                <div class="mock_item" style="--w: 80%"></div>
+                <div class="mock_item" style="--w: 60%"></div>
+                <div class="mock_item" style="--w: 70%"></div>
+              </div>
+            </div>
+            <div class="mock_card" style="margin-left: 40px; opacity: 0.8;">
+              <div class="mock_list">
+                <div class="mock_item" style="--w: 90%"></div>
+                <div class="mock_item" style="--w: 40%"></div>
+              </div>
+            </div>
+          </div>
+        </div>
+
+        <div class="branding_footer">
+          <div class="system_status">
+            <span class="status_indicator online"></span>
+            <span class="status_text">시스템 정상 운영 중</span>
+          </div>
+          <div class="version_info">v2.4.0 (Enterprise Edition)</div>
+        </div>
+      </div>
+    </section>
+
+    <!-- Right Section: Login Form -->
+    <section class="login_section">
+      <div class="login_card">
+        <div class="login_header">
+          <h2>로그인</h2>
+          <p>시스템 접속을 위해 정보를 입력해주세요.</p>
+        </div>
+
+        <div id="login_alert" class="alert_ui hidden">
+          <svg width="20" height="20" viewBox="0 0 20 20" fill="none" xmlns="http://www.w3.org/2000/svg">
+            <path
+              d="M10 18C14.4183 18 18 14.4183 18 10C18 5.58172 14.4183 2 10 2C5.58172 2 2 5.58172 2 10C2 14.4183 5.58172 18 10 18Z"
+              stroke="currentColor" stroke-width="2" />
+            <path d="M10 6V11" stroke="currentColor" stroke-width="2" stroke-linecap="round" />
+            <circle cx="10" cy="14" r="1" fill="currentColor" />
+          </svg>
+          <span class="alert_message">회사 코드 또는 계정 정보가 일치하지 않습니다.</span>
+        </div>
+
+        <form id="login_form" class="login_form">
+          <!-- Company Code -->
+          <div class="form_group">
+            <label for="company_code">회사 코드</label>
+            <div class="input_wrapper">
+              <input type="text" id="company_code" name="company_code" placeholder="예: DDUK-SEOUL" autocomplete="off"
+                required>
+              <div id="recent_companies" class="recent_list hidden">
+                <!-- Dynamic Recent Companies -->
+              </div>
+            </div>
+          </div>
+
+          <!-- Username -->
+          <div class="form_group">
+            <label for="username">아이디</label>
+            <input type="text" id="username" name="username" placeholder="아이디를 입력하세요" required>
+          </div>
+
+          <!-- Password -->
+          <div class="form_group">
+            <div class="label_row">
+              <label for="password">비밀번호</label>
+              <span id="caps_lock_indicator" class="caps_lock hidden">Caps Lock On</span>
+            </div>
+            <div class="input_wrapper">
+              <input type="password" id="password" name="password" placeholder="비밀번호를 입력하세요" required>
+              <button type="button" id="toggle_password" class="icon_btn">
+                <svg id="eye_icon" width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor"
+                  stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+                  <path d="M1 12s4-8 11-8 11 8 11 8-4 8-11 8-11-8-11-8z"></path>
+                  <circle cx="12" cy="12" r="3"></circle>
+                </svg>
+              </button>
+            </div>
+          </div>
+
+          <!-- Options -->
+          <div class="form_options">
+            <div class="checkbox_group">
+              <label class="custom_checkbox">
+                <input type="checkbox" id="save_id">
+                <span class="checkmark"></span>
+                아이디 저장
+              </label>
+              <label class="custom_checkbox">
+                <input type="checkbox" id="auto_login">
+                <span class="checkmark"></span>
+                자동 로그인
+              </label>
+            </div>
+            <a href="#" class="find_link">계정 찾기</a>
+          </div>
+
+          <!-- Submit Button -->
+          <button type="submit" id="submit_btn" class="primary_btn">
+            <span class="btn_text">로그인</span>
+            <div class="spinner hidden"></div>
+          </button>
+        </form>
+
+        <div class="login_footer">
+          <p>보안을 위해 공용 PC에서는 '자동 로그인'을 지양해주세요.</p>
+          <div class="footer_links">
+            <select id="lang_selector" class="lang_select">
+              <option value="ko">한국어 (KO)</option>
+              <option value="en">English (EN)</option>
+            </select>
+            <button id="theme_toggle" class="theme_btn">
+              <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                <path d="M21 12.79A9 9 0 1 1 11.21 3 7 7 0 0 0 21 12.79z"></path>
+              </svg>
+            </button>
+          </div>
+        </div>
+      </div>
+
+      <div class="security_notice">
+        <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+          <rect x="3" y="11" width="18" height="11" rx="2" ry="2"></rect>
+          <path d="M7 11V7a5 5 0 0 1 10 0v4"></path>
+        </svg>
+        <span>SSL 256-bit 보안 암호화 적용됨</span>
+      </div>
+    </section>
+  </div>
+  <script src="script.js"></script>
+  <script>
+    document.addEventListener('DOMContentLoaded', () => {
+      const loginForm = document.getElementById('login_form');
+      const companyInput = document.getElementById('company_code');
+      const usernameInput = document.getElementById('username');
+      const passwordInput = document.getElementById('password');
+      const capsLockIndicator = document.getElementById('caps_lock_indicator');
+      const togglePasswordBtn = document.getElementById('toggle_password');
+      const eyeIcon = document.getElementById('eye_icon');
+      const submitBtn = document.getElementById('submit_btn');
+      const btnText = submitBtn.querySelector('.btn_text');
+      const spinner = submitBtn.querySelector('.spinner');
+      const loginAlert = document.getElementById('login_alert');
+      const recentList = document.getElementById('recent_companies');
+      const themeToggle = document.getElementById('theme_toggle');
+      const saveIdCheckbox = document.getElementById('save_id');
+
+      // --- Theme Toggle ---
+      const savedTheme = localStorage.getItem('dduk_theme');
+      if (savedTheme === 'dark') {
+        document.body.classList.add('dark_mode');
+      }
+
+      themeToggle.addEventListener('click', () => {
+        document.body.classList.toggle('dark_mode');
+        const theme = document.body.classList.contains('dark_mode') ? 'dark' : 'light';
+        localStorage.setItem('dduk_theme', theme);
+      });
+
+      // Mock Recent Companies
+      const mockRecentCompanies = ['DDUK-SEOUL', 'ECO_TEA', 'TGE_GLOBAL'];
+
+      // Load saved data from localStorage
+      const savedCompany = localStorage.getItem('dduk_company');
+      const savedUsername = localStorage.getItem('dduk_username');
+
+      if (savedCompany) companyInput.value = savedCompany;
+      if (savedUsername) {
+        usernameInput.value = savedUsername;
+        saveIdCheckbox.checked = true;
+      }
+
+      // --- Company Code UX ---
+      companyInput.addEventListener('focus', () => {
+        if (mockRecentCompanies.length > 0) {
+          renderRecentCompanies();
+          recentList.classList.remove('hidden');
+        }
+      });
+
+      document.addEventListener('click', (e) => {
+        if (!companyInput.contains(e.target) && !recentList.contains(e.target)) {
+          recentList.classList.add('hidden');
+        }
+      });
+
+      function renderRecentCompanies() {
+        recentList.innerHTML = '';
+        mockRecentCompanies.forEach(company => {
+          const item = document.createElement('div');
+          item.className = 'recent_item';
+          item.textContent = company;
+          item.addEventListener('click', () => {
+            companyInput.value = company;
+            recentList.classList.add('hidden');
+          });
+          recentList.appendChild(item);
+        });
+      }
+
+      // --- Caps Lock Detection ---
+      passwordInput.addEventListener('keyup', (e) => {
+        if (e.getModifierState('CapsLock')) {
+          capsLockIndicator.classList.remove('hidden');
+        } else {
+          capsLockIndicator.classList.add('hidden');
+        }
+      });
+
+      // --- Toggle Password Visibility ---
+      togglePasswordBtn.addEventListener('click', () => {
+        const type = passwordInput.getAttribute('type') === 'password' ? 'text' : 'password';
+        passwordInput.setAttribute('type', type);
+
+        // Update Icon
+        if (type === 'text') {
+          eyeIcon.innerHTML = '<path d="M17.94 17.94A10.07 10.07 0 0 1 12 20c-7 0-11-8-11-8a18.45 18.45 0 0 1 5.06-5.94M9.9 4.24A9.12 9.12 0 0 1 12 4c7 0 11 8 11 8a18.5 18.5 0 0 1-2.16 3.19m-6.72-1.07a3 3 0 1 1-4.24-4.24"></path><line x1="1" y1="1" x2="23" y2="23"></line>';
+        } else {
+          eyeIcon.innerHTML = '<path d="M1 12s4-8 11-8 11 8 11 8-4 8-11 8-11-8-11-8z"></path><circle cx="12" cy="12" r="3"></circle>';
+        }
+      });
+
+      // --- Form Submission ---
+      loginForm.addEventListener('submit', (e) => {
+        e.preventDefault();
+
+        // Reset state
+        loginAlert.classList.add('hidden');
+        submitBtn.disabled = true;
+        btnText.textContent = '로그인 중...';
+        spinner.classList.remove('hidden');
+
+        // Simulate API Call
+        setTimeout(() => {
+          const company = companyInput.value;
+          const username = usernameInput.value;
+          const password = passwordInput.value;
+
+          // Simple Mock Validation
+          if (company === 'DDUK-SEOUL' && username === 'admin' && password === 'password123') {
+            // Success
+            if (saveIdCheckbox.checked) {
+              localStorage.setItem('dduk_username', username);
+            } else {
+              localStorage.removeItem('dduk_username');
+            }
+            localStorage.setItem('dduk_company', company);
+
+            alert('로그인 성공! 대시보드로 이동합니다.');
+            // window.location.href = '/dashboard';
+
+            // Reset UI
+            submitBtn.disabled = false;
+            btnText.textContent = '로그인';
+            spinner.classList.add('hidden');
+          } else {
+            // Failure
+            loginAlert.classList.remove('hidden');
+            submitBtn.disabled = false;
+            btnText.textContent = '로그인';
+            spinner.classList.add('hidden');
+
+            // Shake effect (optional)
+            loginForm.classList.add('shake');
+            setTimeout(() => loginForm.classList.remove('shake'), 500);
+          }
+        }, 1500);
+      });
+    });
+  </script>
+</body>
+
+</html>

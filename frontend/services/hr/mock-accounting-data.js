@@ -1,0 +1,103 @@
+/**
+ * Mock Accounting Data
+ */
+
+import { TRANSACTION_TYPE, TRANSACTION_STATUS, APPROVAL_STATUS, PAYMENT_METHOD } from './accounting-constants.js';
+
+export const mockTransactions = [
+    {
+        id: 1,
+        voucherNo: "VOU-2026-05001",
+        transactionDate: "2026-05-01",
+        type: TRANSACTION_TYPE.SALES,
+        vendorId: 101,
+        vendorName: "(주)상상컴퍼니",
+        supplyPrice: 5000000,
+        vat: 500000,
+        totalAmount: 5500000,
+        status: TRANSACTION_STATUS.COMPLETED,
+        approvalStatus: APPROVAL_STATUS.APPROVED,
+        paymentMethod: PAYMENT_METHOD.TRANSFER,
+        taxInvoiceIssued: true,
+        managerId: 1,
+        note: "5월 정기 유지보수비",
+        isDeleted: false,
+        createdAt: "2026-05-01T10:00:00Z"
+    },
+    {
+        id: 2,
+        voucherNo: "VOU-2026-05002",
+        transactionDate: "2026-05-03",
+        type: TRANSACTION_TYPE.PURCHASE,
+        vendorId: 201,
+        vendorName: "뚝뚝사무용품",
+        supplyPrice: 120000,
+        vat: 12000,
+        totalAmount: 132000,
+        status: TRANSACTION_STATUS.COMPLETED,
+        approvalStatus: APPROVAL_STATUS.APPROVED,
+        paymentMethod: PAYMENT_METHOD.CARD,
+        taxInvoiceIssued: true,
+        managerId: 2,
+        note: "탕비실 비품 구매",
+        isDeleted: false,
+        createdAt: "2026-05-03T14:20:00Z"
+    },
+    {
+        id: 3,
+        voucherNo: "VOU-2026-05003",
+        transactionDate: "2026-05-05",
+        type: TRANSACTION_TYPE.SALES,
+        vendorId: 102,
+        vendorName: "미래소프트",
+        supplyPrice: 2000000,
+        vat: 200000,
+        totalAmount: 2200000,
+        status: TRANSACTION_STATUS.PENDING,
+        approvalStatus: APPROVAL_STATUS.REQUESTED,
+        paymentMethod: PAYMENT_METHOD.TRANSFER,
+        taxInvoiceIssued: false,
+        managerId: 1,
+        note: "신규 라이선스 공급",
+        isDeleted: false,
+        createdAt: "2026-05-05T09:15:00Z"
+    },
+    {
+        id: 4,
+        voucherNo: "VOU-2026-05004",
+        transactionDate: "2026-05-07",
+        type: TRANSACTION_TYPE.PURCHASE,
+        vendorId: 202,
+        vendorName: "서브웨이 강남점",
+        supplyPrice: 45000,
+        vat: 4500,
+        totalAmount: 49500,
+        status: TRANSACTION_STATUS.COMPLETED,
+        approvalStatus: APPROVAL_STATUS.APPROVED,
+        paymentMethod: PAYMENT_METHOD.CARD,
+        taxInvoiceIssued: false,
+        managerId: 3,
+        note: "팀 야식비",
+        isDeleted: false,
+        createdAt: "2026-05-07T19:30:00Z"
+    },
+    {
+        id: 5,
+        voucherNo: "VOU-2026-05005",
+        transactionDate: "2026-05-10",
+        type: TRANSACTION_TYPE.PURCHASE,
+        vendorId: 203,
+        vendorName: "한국전력공사",
+        supplyPrice: 850000,
+        vat: 85000,
+        totalAmount: 935000,
+        status: TRANSACTION_STATUS.PENDING,
+        approvalStatus: APPROVAL_STATUS.DRAFT,
+        paymentMethod: PAYMENT_METHOD.TRANSFER,
+        taxInvoiceIssued: true,
+        managerId: 2,
+        note: "4월 전기요금",
+        isDeleted: false,
+        createdAt: "2026-05-10T11:00:00Z"
+    }
+];
