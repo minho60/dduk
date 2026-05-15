@@ -296,12 +296,6 @@ input {
     box-shadow: 0 0 0 3px rgba(239, 68, 68, 0.1);
 }
 
-.field-example {
-    color: var(--text-muted);
-    font-size: 0.6875rem;
-    line-height: 1.2;
-}
-
 .password-field input {
     padding-right: 42px;
 }
