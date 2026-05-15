@@ -111,6 +111,7 @@ CREATE TABLE IF NOT EXISTS inventories (
     location VARCHAR(100) NOT NULL,
     quantity INT NOT NULL DEFAULT 0,
     allocated_quantity INT NOT NULL DEFAULT 0,
+    safety_stock INT NOT NULL DEFAULT 0,
     lot_no VARCHAR(100) NOT NULL DEFAULT '',
     expiration_date DATE NOT NULL DEFAULT '9999-12-31',
     status VARCHAR(30) NOT NULL DEFAULT 'AVAILABLE',
@@ -334,8 +335,9 @@ CREATE TABLE IF NOT EXISTS journal_items (
 ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci;
 
 -- Default Chart of Accounts Seeds
-INSERT INTO accounts (code, name, type, level, is_active) VALUES 
-('1001', 'Çö±Ý', 'ASSET', 1, 1),
-('2001', '¿¹¼ö±Ý', 'LIABILITY', 1, 1),
-('2002', '¹ÌÁö±Þ±Ý(±Þ¿©)', 'LIABILITY', 1, 1),
-('5001', '±Þ¿©ºñ¿ë', 'EXPENSE', 1, 1);
+INSERT INTO accounts (code, name, type, level, is_active, created_at, updated_at) VALUES 
+('1001', 'í˜„ê¸ˆ', 'ASSET', 1, 1, NOW(), NOW()),
+('2001', 'ë¯¸ì§€ê¸‰ê¸ˆ', 'LIABILITY', 1, 1, NOW(), NOW()),
+('2002', 'ë¯¸ì§€ê¸‰ë¹„ìš©(ê¸‰ì—¬)', 'LIABILITY', 1, 1, NOW(), NOW()),
+('5001', 'ê¸‰ì—¬', 'EXPENSE', 1, 1, NOW(), NOW())
+ON DUPLICATE KEY UPDATE updated_at = NOW();

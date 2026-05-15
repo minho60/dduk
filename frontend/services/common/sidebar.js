@@ -168,6 +168,12 @@
                         <span class="status_dot dduk-inline-026"></span>
                         <span class="dduk-inline-024 sidebar_status_text">서버 정상 · 99.9% uptime</span>
                     </div>
+                    <div style="margin-top: 1rem; border-top: 1px solid rgba(0,0,0,0.05); padding-top: 0.75rem;">
+                        <button onclick="handleLogout()" style="display: flex; align-items: center; gap: 0.5rem; font-size: 0.875rem; color: #6b7280; width: 100%; padding: 0.25rem 0; background: none; border: none; cursor: pointer;">
+                            <i data-lucide="log-out" style="width: 1rem; height: 1rem;"></i>
+                            <span>로그아웃</span>
+                        </button>
+                    </div>
                 </div>
             </aside>
         `;
@@ -207,6 +213,13 @@
         icon.setAttribute('data-lucide', isCollapsed ? 'chevron-down' : 'chevron-up');
         if (header) header.setAttribute('aria-expanded', String(!isCollapsed));
         if (window.lucide) lucide.createIcons();
+    };
+
+    window.handleLogout = function() {
+        localStorage.clear();
+        sessionStorage.clear();
+        const root = getRootPath();
+        window.location.href = root + 'index.html'; 
     };
 
     window.toggleSidebar = function () {
