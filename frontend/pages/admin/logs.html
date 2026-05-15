@@ -1,50 +1,31 @@
-<!DOCTYPE html>
+﻿<!DOCTYPE html>
 <html lang="ko">
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>DDUK ERP - 시스템 로그</title>
+        <script src="https://cdn.jsdelivr.net/npm/lucide@0.263.0/dist/umd/lucide.min.js"></script>
+<title>DDUK ERP - ?쒖뒪??濡쒓렇</title>
     <link rel="stylesheet" href="../../styles/common/app-shell.css">
-    <link rel="stylesheet" href="../../styles/admin/admin-pages.css">
+        <link rel="stylesheet" href="../../styles/common/dashboard.css">
+<link rel="stylesheet" href="../../styles/admin/admin-pages.css">
 </head>
 <body>
-    <div class="app-shell">
-        <aside class="app-sidebar">
-            <div class="sidebar-header">
-                <div class="sidebar-logo">
-                    <img src="../../assets/ERP-ROGO.svg" alt="DDUK ERP Logo">
-                    <h1>DDUK ERP</h1>
-                    <button class="home-btn" title="Home" onclick="location.href='../../dashboard.html'">🏠</button>
-                </div>
-            </div>
-
-            <nav data-nav></nav>
-            
-            <div class="sidebar-footer">
-                <div class="app-user">
-                    <div class="user-info">
-                        <span class="user-name" data-user-name>-</span>
-                        <span class="user-role" data-role>-</span>
-                    </div>
-                    <button type="button" data-action="logout" title="Logout">로그아웃</button>
-                </div>
-            </div>
-        </aside>
-
+    <aside data-dduk-sidebar></aside>
+    <div class="main_wrap">
         <main class="app-main">
             <header class="app-header">
                 <div>
-                    <h2 data-page-title>시스템 로그</h2>
-                    <p data-page-description>시스템에서 발생하는 주요 이벤트 및 변경 이력을 확인합니다.</p>
+                    <h2 data-page-title>?쒖뒪??濡쒓렇</h2>
+                    <p data-page-description>?쒖뒪?쒖뿉??諛쒖깮?섎뒗 二쇱슂 ?대깽??諛?蹂寃??대젰???뺤씤?⑸땲??</p>
                 </div>
                 <div class="inline-actions">
                     <select style="padding: 0.5rem;">
-                        <option>전체 로그</option>
-                        <option>인증 로그</option>
-                        <option>데이터 변경</option>
-                        <option>시스템 오류</option>
+                        <option>?꾩껜 濡쒓렇</option>
+                        <option>?몄쬆 濡쒓렇</option>
+                        <option>?곗씠??蹂寃?/option>
+                        <option>?쒖뒪???ㅻ쪟</option>
                     </select>
-                    <button type="button" class="secondary">내보내기 (CSV)</button>
+                    <button type="button" class="secondary">?대낫?닿린 (CSV)</button>
                 </div>
             </header>
 
@@ -53,11 +34,11 @@
                     <table class="data-table">
                         <thead>
                             <tr>
-                                <th>시간</th>
-                                <th>유형</th>
-                                <th>대상</th>
-                                <th>작업자</th>
-                                <th>내용</th>
+                                <th>?쒓컙</th>
+                                <th>?좏삎</th>
+                                <th>???/th>
+                                <th>?묒뾽??/th>
+                                <th>?댁슜</th>
                                 <th>IP</th>
                             </tr>
                         </thead>
@@ -66,16 +47,16 @@
                                 <td class="log-timestamp">2026-05-13 15:30:45</td>
                                 <td><span class="log-type type-auth">AUTH</span></td>
                                 <td>Login</td>
-                                <td>김민호 (admin)</td>
-                                <td>성공적인 로그인</td>
+                                <td>源誘쇳샇 (admin)</td>
+                                <td>?깃났?곸씤 濡쒓렇??/td>
                                 <td>192.168.0.10</td>
                             </tr>
                             <tr>
                                 <td class="log-timestamp">2026-05-13 15:25:12</td>
                                 <td><span class="log-type type-info">INFO</span></td>
                                 <td>Member</td>
-                                <td>김민호 (admin)</td>
-                                <td>신규 사용자 '서우리' 생성</td>
+                                <td>源誘쇳샇 (admin)</td>
+                                <td>?좉퇋 ?ъ슜??'?쒖슦由? ?앹꽦</td>
                                 <td>192.168.0.10</td>
                             </tr>
                             <tr>
@@ -83,14 +64,14 @@
                                 <td><span class="log-type type-warn">WARN</span></td>
                                 <td>Inventory</td>
                                 <td>SYSTEM</td>
-                                <td>안전 재고 부족 알림: A-001</td>
+                                <td>?덉쟾 ?ш퀬 遺議??뚮┝: A-001</td>
                                 <td>-</td>
                             </tr>
                             <tr>
                                 <td class="log-timestamp">2026-05-13 15:15:33</td>
                                 <td><span class="log-type type-error">ERROR</span></td>
                                 <td>API</td>
-                                <td>서우리 (hr)</td>
+                                <td>?쒖슦由?(hr)</td>
                                 <td>403 Forbidden: /api/v1/admin/members</td>
                                 <td>192.168.0.15</td>
                             </tr>
@@ -100,15 +81,15 @@
             </section>
         </main>
     </div>
-
     <!-- Scripts -->
     <script src="../../services/common/session.js"></script>
     <script src="../../services/common/app-shell.js"></script>
-    <script>
+        <script src="../../services/common/sidebar.js"></script>
+<script>
         document.addEventListener('DOMContentLoaded', function() {
             window.ddukAppShell.hydratePage({
-                title: "시스템 로그",
-                description: "시스템에서 발생하는 주요 이벤트 및 변경 이력을 확인합니다."
+                title: "?쒖뒪??濡쒓렇",
+                description: "?쒖뒪?쒖뿉??諛쒖깮?섎뒗 二쇱슂 ?대깽??諛?蹂寃??대젰???뺤씤?⑸땲??"
             });
         });
     </script>

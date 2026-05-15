@@ -1,11 +1,13 @@
-<!DOCTYPE html>
+﻿<!DOCTYPE html>
 <html lang="ko">
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>DDUK ERP - 급여 상세 분석</title>
-    <link rel="stylesheet" href="../../../styles/common/app-shell.css">
-    <link rel="stylesheet" href="../../../styles/common/erp-components.css">
+    <title>DDUK ERP - 湲됱뿬 ?곸꽭 遺꾩꽍</title>
+        <script src="https://cdn.jsdelivr.net/npm/lucide@0.263.0/dist/umd/lucide.min.js"></script>
+<link rel="stylesheet" href="../../../styles/common/app-shell.css">
+        <link rel="stylesheet" href="../../../styles/common/dashboard.css">
+<link rel="stylesheet" href="../../../styles/common/erp-components.css">
     <style>
         .detail_grid { display: grid; grid-template-columns: 1fr 350px; gap: 24px; padding: 24px; }
         .detail_section { background: #fff; border: 1px solid #e2e8f0; border-radius: 8px; margin-bottom: 24px; overflow: hidden; }
@@ -30,21 +32,18 @@
     </style>
 </head>
 <body>
-    <div class="app-shell">
-        <aside class="app-sidebar">
-            <h1>DDUK ERP</h1>
-            <nav data-nav></nav>
-        </aside>
+    <aside data-dduk-sidebar></aside>
+    <div class="main_wrap">
         <main class="app-main">
             <header class="app-header">
                 <div>
-                    <h2 data-page-title>급여 상세 분석 및 감사</h2>
-                    <p data-page-description>개별 급여 산출 근거를 상세히 추적하고 검증합니다.</p>
+                    <h2 data-page-title>湲됱뿬 ?곸꽭 遺꾩꽍 諛?媛먯궗</h2>
+                    <p data-page-description>媛쒕퀎 湲됱뿬 ?곗텧 洹쇨굅瑜??곸꽭??異붿쟻?섍퀬 寃利앺빀?덈떎.</p>
                 </div>
                 <div style="display: flex; gap: 8px;">
-                    <button id="btn_approve" class="erp_button erp_button_primary">최종 승인</button>
-                    <button id="btn_recalculate" class="erp_button erp_button_secondary">재계산</button>
-                    <button id="btn_history" class="erp_button erp_button_secondary">감사 이력</button>
+                    <button id="btn_approve" class="erp_button erp_button_primary">理쒖쥌 ?뱀씤</button>
+                    <button id="btn_recalculate" class="erp_button erp_button_secondary">?ш퀎??/button>
+                    <button id="btn_history" class="erp_button erp_button_secondary">媛먯궗 ?대젰</button>
                 </div>
             </header>
 
@@ -53,19 +52,19 @@
                 <div class="detail_left">
                     <!-- Summary -->
                     <section class="detail_section">
-                        <div class="section_header"><h3>1. 직원 및 급여 요약</h3></div>
+                        <div class="section_header"><h3>1. 吏곸썝 諛?湲됱뿬 ?붿빟</h3></div>
                         <div class="section_body">
                             <div style="display: grid; grid-template-columns: repeat(3, 1fr); gap: 24px;">
                                 <div>
-                                    <div style="font-size: 0.75rem; color: #94a3b8;">대상 직원</div>
+                                    <div style="font-size: 0.75rem; color: #94a3b8;">???吏곸썝</div>
                                     <div id="val_emp_name" style="font-size: 1.125rem; font-weight: 700;">-</div>
                                 </div>
                                 <div>
-                                    <div style="font-size: 0.75rem; color: #94a3b8;">정산 기간</div>
+                                    <div style="font-size: 0.75rem; color: #94a3b8;">?뺤궛 湲곌컙</div>
                                     <div id="val_year_month" style="font-size: 1.125rem; font-weight: 700;">-</div>
                                 </div>
                                 <div>
-                                    <div style="font-size: 0.75rem; color: #94a3b8;">최종 실지급액</div>
+                                    <div style="font-size: 0.75rem; color: #94a3b8;">理쒖쥌 ?ㅼ?湲됱븸</div>
                                     <div id="val_net_pay" style="font-size: 1.25rem; font-weight: 700; color: #3182ce;">-</div>
                                 </div>
                             </div>
@@ -75,18 +74,18 @@
                     <!-- Breakdown -->
                     <div style="display: grid; grid-template-columns: 1fr 1fr; gap: 24px;">
                         <section class="detail_section">
-                            <div class="section_header"><h3>2. 지급 항목 (Gross)</h3></div>
+                            <div class="section_header"><h3>2. 吏湲???ぉ (Gross)</h3></div>
                             <div class="section_body" id="list_gross"></div>
                         </section>
                         <section class="detail_section">
-                            <div class="section_header"><h3>3. 공제 및 세금 (Deductions)</h3></div>
+                            <div class="section_header"><h3>3. 怨듭젣 諛??멸툑 (Deductions)</h3></div>
                             <div class="section_body" id="list_deductions"></div>
                         </section>
                     </div>
 
                     <!-- Explainability Trace -->
                     <section class="detail_section">
-                        <div class="section_header"><h3>4. 계산 트레이스 (Calculation Explainability)</h3></div>
+                        <div class="section_header"><h3>4. 怨꾩궛 ?몃젅?댁뒪 (Calculation Explainability)</h3></div>
                         <div class="section_body" id="trace_root">
                             <!-- Trace steps will be injected here -->
                         </div>
@@ -96,25 +95,25 @@
                 <!-- Sidebar Content -->
                 <div class="detail_right">
                     <section class="detail_section">
-                        <div class="section_header"><h3>상태 및 연동 정보</h3></div>
+                        <div class="section_header"><h3>?곹깭 諛??곕룞 ?뺣낫</h3></div>
                         <div class="section_body">
                             <div class="data_row">
-                                <span class="data_label">현재 상태</span>
+                                <span class="data_label">?꾩옱 ?곹깭</span>
                                 <span id="val_status" class="erp_badge">-</span>
                             </div>
                             <div class="data_row">
-                                <span class="data_label">리비전</span>
+                                <span class="data_label">由щ퉬??/span>
                                 <span id="val_revision" class="data_value">-</span>
                             </div>
                             <div class="data_row">
-                                <span class="data_label">회계 전표 ID</span>
+                                <span class="data_label">?뚭퀎 ?꾪몴 ID</span>
                                 <span id="val_accounting_id" class="data_value" style="color: #3182ce;">-</span>
                             </div>
                         </div>
                     </section>
 
                     <section class="detail_section">
-                        <div class="section_header"><h3>스냅샷 정보 (Freeze)</h3></div>
+                        <div class="section_header"><h3>?ㅻ깄???뺣낫 (Freeze)</h3></div>
                         <div class="section_body" id="list_snapshot">
                             <!-- Snapshot key values -->
                         </div>
@@ -123,10 +122,10 @@
             </div>
         </main>
     </div>
-
     <script src="../../../services/common/session.js"></script>
     <script src="../../../services/common/app-shell.js"></script>
-    <script type="module">
+        <script src="../../../services/common/sidebar.js"></script>
+<script type="module">
         import { payrollService } from '../../../services/hr/payroll/payroll-service.js';
         import { formatCurrency, getStatusBadgeClass } from '../../../services/common/formatters.js';
 
@@ -140,10 +139,10 @@
 
             window.ddukAppShell.hydratePage({
                 navItems: [
-                    { href: "../../hr/dashboard.html", label: "인사/회계 메인" },
-                    { href: "../accounting/dashboard.html", label: "회계 관리" },
-                    { href: "./list.html", label: "급여 대장" },
-                    { href: "../accounting/reports.html", label: "회계 리포트" }
+                    { href: "../../hr/dashboard.html", label: "?몄궗/?뚭퀎 硫붿씤" },
+                    { href: "../accounting/dashboard.html", label: "?뚭퀎 愿由? },
+                    { href: "./list.html", label: "湲됱뿬 ??? },
+                    { href: "../accounting/reports.html", label: "?뚭퀎 由ы룷?? }
                 ]
             });
 
@@ -154,7 +153,7 @@
             const res = await payrollService.getPayrolls();
             const record = res.data.find(r => r.id === recordId);
             if (!record) {
-                alert('급여 정보를 찾을 수 없습니다.');
+                alert('湲됱뿬 ?뺣낫瑜?李얠쓣 ???놁뒿?덈떎.');
                 return;
             }
 
@@ -177,20 +176,20 @@
         function renderBreakdown(record) {
             const am = record.amounts;
             const grossHtml = `
-                <div class="data_row"><span class="data_label">기본급</span><span class="data_value">${formatCurrency(am.baseSalary)}</span></div>
-                <div class="data_row"><span class="data_label">연장수당</span><span class="data_value">${formatCurrency(am.overtimePay)}</span></div>
-                <div class="data_row"><span class="data_label">상여금</span><span class="data_value">${formatCurrency(am.bonus)}</span></div>
-                <div class="data_row"><span class="data_label">식대/수당</span><span class="data_value">${formatCurrency(am.allowance)}</span></div>
-                <div class="data_row" style="margin-top: 12px; padding-top: 12px; border-top: 2px solid #f1f5f9;"><span class="data_label" style="font-weight: 700;">지급액 합계</span><span class="data_value" style="font-size: 1.125rem;">${formatCurrency(am.grossPay)}</span></div>
+                <div class="data_row"><span class="data_label">湲곕낯湲?/span><span class="data_value">${formatCurrency(am.baseSalary)}</span></div>
+                <div class="data_row"><span class="data_label">?곗옣?섎떦</span><span class="data_value">${formatCurrency(am.overtimePay)}</span></div>
+                <div class="data_row"><span class="data_label">?곸뿬湲?/span><span class="data_value">${formatCurrency(am.bonus)}</span></div>
+                <div class="data_row"><span class="data_label">?앸?/?섎떦</span><span class="data_value">${formatCurrency(am.allowance)}</span></div>
+                <div class="data_row" style="margin-top: 12px; padding-top: 12px; border-top: 2px solid #f1f5f9;"><span class="data_label" style="font-weight: 700;">吏湲됱븸 ?⑷퀎</span><span class="data_value" style="font-size: 1.125rem;">${formatCurrency(am.grossPay)}</span></div>
             `;
             document.getElementById('list_gross').innerHTML = grossHtml;
 
             const dedHtml = `
-                <div class="data_row"><span class="data_label">국민연금</span><span class="data_value negative">-${formatCurrency(am.pension)}</span></div>
-                <div class="data_row"><span class="data_label">건강보험</span><span class="data_value negative">-${formatCurrency(am.health)}</span></div>
-                <div class="data_row"><span class="data_label">고용보험</span><span class="data_value negative">-${formatCurrency(am.employment)}</span></div>
-                <div class="data_row"><span class="data_label">소득세</span><span class="data_value negative">-${formatCurrency(am.incomeTax)}</span></div>
-                <div class="data_row" style="margin-top: 12px; padding-top: 12px; border-top: 2px solid #f1f5f9;"><span class="data_label" style="font-weight: 700;">공제 합계</span><span class="data_value" style="font-size: 1.125rem;">${formatCurrency(am.totalDeductions)}</span></div>
+                <div class="data_row"><span class="data_label">援???곌툑</span><span class="data_value negative">-${formatCurrency(am.pension)}</span></div>
+                <div class="data_row"><span class="data_label">嫄닿컯蹂댄뿕</span><span class="data_value negative">-${formatCurrency(am.health)}</span></div>
+                <div class="data_row"><span class="data_label">怨좎슜蹂댄뿕</span><span class="data_value negative">-${formatCurrency(am.employment)}</span></div>
+                <div class="data_row"><span class="data_label">?뚮뱷??/span><span class="data_value negative">-${formatCurrency(am.incomeTax)}</span></div>
+                <div class="data_row" style="margin-top: 12px; padding-top: 12px; border-top: 2px solid #f1f5f9;"><span class="data_label" style="font-weight: 700;">怨듭젣 ?⑷퀎</span><span class="data_value" style="font-size: 1.125rem;">${formatCurrency(am.totalDeductions)}</span></div>
             `;
             document.getElementById('list_deductions').innerHTML = dedHtml;
         }
@@ -217,10 +216,10 @@
             const snap = record.snapshot;
             const container = document.getElementById('list_snapshot');
             container.innerHTML = `
-                <div class="data_row"><span class="data_label">규칙 버전</span><span class="data_value">${snap.rulesVersion}</span></div>
-                <div class="data_row"><span class="data_label">국민연금 요율</span><span class="data_value">${(snap.pensionRate * 100).toFixed(1)}%</span></div>
-                <div class="data_row"><span class="data_label">건강보험 요율</span><span class="data_value">${(snap.healthRate * 100).toFixed(2)}%</span></div>
-                <div class="data_row"><span class="data_label">라운딩 정책</span><span class="data_value">${snap.roundingPolicy}</span></div>
+                <div class="data_row"><span class="data_label">洹쒖튃 踰꾩쟾</span><span class="data_value">${snap.rulesVersion}</span></div>
+                <div class="data_row"><span class="data_label">援???곌툑 ?붿쑉</span><span class="data_value">${(snap.pensionRate * 100).toFixed(1)}%</span></div>
+                <div class="data_row"><span class="data_label">嫄닿컯蹂댄뿕 ?붿쑉</span><span class="data_value">${(snap.healthRate * 100).toFixed(2)}%</span></div>
+                <div class="data_row"><span class="data_label">?쇱슫???뺤콉</span><span class="data_value">${snap.roundingPolicy}</span></div>
             `;
         }
 

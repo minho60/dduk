@@ -3,6 +3,7 @@
     --bg-secondary: #ffffff;
     --sidebar-bg: rgba(255, 255, 255, 0.72);
     --sidebar-width: 280px;
+    --sidebar-collapsed-width: 76px;
     --text-primary: #1a1d23;
     --text-secondary: #64748b;
     --text-muted: #94a3b8;
@@ -39,16 +40,23 @@ body {
     border-right: 1px solid var(--border);
     z-index: 50;
     overflow-y: auto;
-    transition: transform 0.3s ease;
+    transition: width 0.3s ease, transform 0.3s ease;
 }
 
 .main_wrap {
     margin-left: var(--sidebar-width);
     min-height: calc(100 * min(var(--vh, 1vh), 1vh));
+    transition: margin-left 0.3s ease;
 }
 
 .canva-text img {
     width: 160px;
+}
+
+.sidebar_logo_link {
+    display: inline-flex;
+    align-items: center;
+    text-decoration: none;
 }
 
 .topbar {
@@ -83,6 +91,7 @@ body {
 }
 
 .menu_item {
+    position: relative;
     padding: 8px 16px;
     border-radius: 8px;
     cursor: pointer;
@@ -92,6 +101,7 @@ body {
     font-size: 0.875rem;
     color: var(--text-secondary);
     transition: all 0.15s;
+    text-decoration: none;
 }
 
 .menu_item:hover {
@@ -116,6 +126,7 @@ body {
 
 .submenu {
     overflow: hidden;
+    max-height: 560px;
     transition: max-height 0.3s ease;
 }
 
@@ -532,15 +543,15 @@ body {
 }
 
 .dduk-inline-016 {
-    max-height: 200px;
+    max-height: 560px;
 }
 
 .dduk-inline-017 {
-    max-height: 280px;
+    max-height: 560px;
 }
 
 .dduk-inline-018 {
-    max-height: 150px;
+    max-height: 560px;
 }
 
 .dduk-inline-019 {
@@ -579,6 +590,85 @@ body {
 .dduk-inline-024 {
     font-size: 0.6875rem;
     color: var(--text-muted);
+}
+
+body.sidebar-collapsed .sidebar {
+    width: var(--sidebar-collapsed-width);
+    overflow-x: visible;
+}
+
+body.sidebar-collapsed .main_wrap {
+    margin-left: var(--sidebar-collapsed-width);
+}
+
+body.sidebar-collapsed .dduk-inline-001 {
+    padding: 16px 10px 8px;
+}
+
+body.sidebar-collapsed .dduk-inline-002 {
+    justify-content: center;
+}
+
+body.sidebar-collapsed .sidebar_logo_link,
+body.sidebar-collapsed .dduk-inline-005,
+body.sidebar-collapsed .dduk-inline-008,
+body.sidebar-collapsed .recent_group,
+body.sidebar-collapsed .menu_group_title,
+body.sidebar-collapsed .sidebar_user_text,
+body.sidebar-collapsed .sidebar_status_text {
+    display: none;
+}
+
+body.sidebar-collapsed .dduk-inline-013 {
+    padding: 4px 10px 16px;
+}
+
+body.sidebar-collapsed .submenu,
+body.sidebar-collapsed .submenu.collapsed {
+    max-height: none !important;
+}
+
+body.sidebar-collapsed .menu_item {
+    width: 44px;
+    height: 44px;
+    justify-content: center;
+    gap: 0;
+    padding: 0;
+}
+
+body.sidebar-collapsed .menu_label {
+    position: absolute;
+    left: calc(100% + 10px);
+    top: 50%;
+    z-index: 80;
+    display: none;
+    min-width: max-content;
+    max-width: 180px;
+    transform: translateY(-50%);
+    padding: 8px 10px;
+    border: 1px solid var(--border);
+    border-radius: 8px;
+    background: var(--card-bg);
+    color: var(--text-primary);
+    box-shadow: 0 8px 22px rgba(15, 23, 42, 0.12);
+    font-size: 0.8125rem;
+    font-weight: 600;
+    white-space: nowrap;
+    pointer-events: none;
+}
+
+body.sidebar-collapsed .menu_item:hover .menu_label,
+body.sidebar-collapsed .menu_item:focus .menu_label {
+    display: block;
+}
+
+body.sidebar-collapsed .dduk-inline-019 {
+    padding: 12px 10px;
+}
+
+body.sidebar-collapsed .dduk-inline-020,
+body.sidebar-collapsed .dduk-inline-025 {
+    justify-content: center;
 }
 
 .dduk-inline-025 {

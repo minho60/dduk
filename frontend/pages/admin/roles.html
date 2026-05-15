@@ -1,44 +1,25 @@
-<!DOCTYPE html>
+﻿<!DOCTYPE html>
 <html lang="ko">
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>DDUK ERP - 권한 관리</title>
+        <script src="https://cdn.jsdelivr.net/npm/lucide@0.263.0/dist/umd/lucide.min.js"></script>
+<title>DDUK ERP - 沅뚰븳 愿由?/title>
     <link rel="stylesheet" href="../../styles/common/app-shell.css">
-    <link rel="stylesheet" href="../../styles/admin/admin-pages.css">
+        <link rel="stylesheet" href="../../styles/common/dashboard.css">
+<link rel="stylesheet" href="../../styles/admin/admin-pages.css">
 </head>
 <body>
-    <div class="app-shell">
-        <aside class="app-sidebar">
-            <div class="sidebar-header">
-                <div class="sidebar-logo">
-                    <img src="../../assets/ERP-ROGO.svg" alt="DDUK ERP Logo">
-                    <h1>DDUK ERP</h1>
-                    <button class="home-btn" title="Home" onclick="location.href='../../dashboard.html'">🏠</button>
-                </div>
-            </div>
-
-            <nav data-nav></nav>
-            
-            <div class="sidebar-footer">
-                <div class="app-user">
-                    <div class="user-info">
-                        <span class="user-name" data-user-name>-</span>
-                        <span class="user-role" data-role>-</span>
-                    </div>
-                    <button type="button" data-action="logout" title="Logout">로그아웃</button>
-                </div>
-            </div>
-        </aside>
-
+    <aside data-dduk-sidebar></aside>
+    <div class="main_wrap">
         <main class="app-main">
             <header class="app-header">
                 <div>
-                    <h2 data-page-title>권한 관리</h2>
-                    <p data-page-description>시스템 역할별 메뉴 접근 및 기능 권한을 설정합니다.</p>
+                    <h2 data-page-title>沅뚰븳 愿由?/h2>
+                    <p data-page-description>?쒖뒪????븷蹂?硫붾돱 ?묎렐 諛?湲곕뒫 沅뚰븳???ㅼ젙?⑸땲??</p>
                 </div>
                 <div class="actions">
-                    <button type="button">역할 추가</button>
+                    <button type="button">??븷 異붽?</button>
                 </div>
             </header>
 
@@ -47,14 +28,14 @@
                 <article class="role-card">
                     <div class="role-header">
                         <span class="role-title">ADMIN</span>
-                        <span class="trend up">전체 권한</span>
+                        <span class="trend up">?꾩껜 沅뚰븳</span>
                     </div>
-                    <p class="mb-6 font-sm">시스템의 모든 설정 및 데이터에 접근할 수 있는 마스터 권한입니다.</p>
+                    <p class="mb-6 font-sm">?쒖뒪?쒖쓽 紐⑤뱺 ?ㅼ젙 諛??곗씠?곗뿉 ?묎렐?????덈뒗 留덉뒪??沅뚰븳?낅땲??</p>
                     <ul class="permission-list">
-                        <li class="permission-item"><span class="check-icon">✓</span> 사용자 관리 및 권한 설정</li>
-                        <li class="permission-item"><span class="check-icon">✓</span> 시스템 로그 및 모니터링</li>
-                        <li class="permission-item"><span class="check-icon">✓</span> 모든 도메인(HR, Inventory) 데이터 관리</li>
-                        <li class="permission-item"><span class="check-icon">✓</span> 회계 및 정산 기능</li>
+                        <li class="permission-item"><span class="check-icon">??/span> ?ъ슜??愿由?諛?沅뚰븳 ?ㅼ젙</li>
+                        <li class="permission-item"><span class="check-icon">??/span> ?쒖뒪??濡쒓렇 諛?紐⑤땲?곕쭅</li>
+                        <li class="permission-item"><span class="check-icon">??/span> 紐⑤뱺 ?꾨찓??HR, Inventory) ?곗씠??愿由?/li>
+                        <li class="permission-item"><span class="check-icon">??/span> ?뚭퀎 諛??뺤궛 湲곕뒫</li>
                     </ul>
                 </article>
 
@@ -62,14 +43,14 @@
                 <article class="role-card">
                     <div class="role-header">
                         <span class="role-title">HR</span>
-                        <span class="trend">제한적 권한</span>
+                        <span class="trend">?쒗븳??沅뚰븳</span>
                     </div>
-                    <p class="mb-6 font-sm">인사 관리, 근태, 급여 업무에 특화된 권한입니다.</p>
+                    <p class="mb-6 font-sm">?몄궗 愿由? 洹쇳깭, 湲됱뿬 ?낅Т???뱁솕??沅뚰븳?낅땲??</p>
                     <ul class="permission-list">
-                        <li class="permission-item"><span class="check-icon">✓</span> 직원 정보 조회 및 수정</li>
-                        <li class="permission-item"><span class="check-icon">✓</span> 근태 기록 관리</li>
-                        <li class="permission-item"><span class="check-icon">✓</span> 급여 계산 및 명세서 발행</li>
-                        <li class="permission-item denied"><span class="cross-icon">✗</span> 시스템 설정 변경</li>
+                        <li class="permission-item"><span class="check-icon">??/span> 吏곸썝 ?뺣낫 議고쉶 諛??섏젙</li>
+                        <li class="permission-item"><span class="check-icon">??/span> 洹쇳깭 湲곕줉 愿由?/li>
+                        <li class="permission-item"><span class="check-icon">??/span> 湲됱뿬 怨꾩궛 諛?紐낆꽭??諛쒗뻾</li>
+                        <li class="permission-item denied"><span class="cross-icon">??/span> ?쒖뒪???ㅼ젙 蹂寃?/li>
                     </ul>
                 </article>
 
@@ -77,25 +58,25 @@
                 <article class="role-card">
                     <div class="role-header">
                         <span class="role-title">INVENTORY</span>
-                        <span class="trend">제한적 권한</span>
+                        <span class="trend">?쒗븳??沅뚰븳</span>
                     </div>
-                    <p class="mb-6 font-sm">재고 관리, 발주, 입출고 업무에 특화된 권한입니다.</p>
+                    <p class="mb-6 font-sm">?ш퀬 愿由? 諛쒖＜, ?낆텧怨??낅Т???뱁솕??沅뚰븳?낅땲??</p>
                     <ul class="permission-list">
-                        <li class="permission-item"><span class="check-icon">✓</span> 거래처 및 품목 관리</li>
-                        <li class="permission-item"><span class="check-icon">✓</span> 발주 요청 및 상태 관리</li>
-                        <li class="permission-item"><span class="check-icon">✓</span> 재고 실사 및 조정</li>
-                        <li class="permission-item denied"><span class="cross-icon">✗</span> 인사/급여 정보 접근</li>
+                        <li class="permission-item"><span class="check-icon">??/span> 嫄곕옒泥?諛??덈ぉ 愿由?/li>
+                        <li class="permission-item"><span class="check-icon">??/span> 諛쒖＜ ?붿껌 諛??곹깭 愿由?/li>
+                        <li class="permission-item"><span class="check-icon">??/span> ?ш퀬 ?ㅼ궗 諛?議곗젙</li>
+                        <li class="permission-item denied"><span class="cross-icon">??/span> ?몄궗/湲됱뿬 ?뺣낫 ?묎렐</li>
                     </ul>
                 </article>
             </div>
 
             <section class="panel mt-8">
-                <h3>세부 권한 매트릭스</h3>
+                <h3>?몃? 沅뚰븳 留ㅽ듃由?뒪</h3>
                 <div class="table-shell">
                     <table class="data-table">
                         <thead>
                             <tr>
-                                <th>메뉴/기능</th>
+                                <th>硫붾돱/湲곕뒫</th>
                                 <th>ADMIN</th>
                                 <th>HR</th>
                                 <th>INVENTORY</th>
@@ -103,27 +84,27 @@
                         </thead>
                         <tbody>
                             <tr>
-                                <td>대시보드</td>
-                                <td>읽기/쓰기</td>
-                                <td>읽기</td>
-                                <td>읽기</td>
+                                <td>??쒕낫??/td>
+                                <td>?쎄린/?곌린</td>
+                                <td>?쎄린</td>
+                                <td>?쎄린</td>
                             </tr>
                             <tr>
-                                <td>사용자 관리</td>
-                                <td>읽기/쓰기</td>
+                                <td>?ъ슜??愿由?/td>
+                                <td>?쎄린/?곌린</td>
                                 <td>-</td>
                                 <td>-</td>
                             </tr>
                             <tr>
-                                <td>재고 조회</td>
-                                <td>읽기/쓰기</td>
+                                <td>?ш퀬 議고쉶</td>
+                                <td>?쎄린/?곌린</td>
                                 <td>-</td>
-                                <td>읽기/쓰기</td>
+                                <td>?쎄린/?곌린</td>
                             </tr>
                             <tr>
-                                <td>급여 정산</td>
-                                <td>읽기/쓰기</td>
-                                <td>읽기/쓰기</td>
+                                <td>湲됱뿬 ?뺤궛</td>
+                                <td>?쎄린/?곌린</td>
+                                <td>?쎄린/?곌린</td>
                                 <td>-</td>
                             </tr>
                         </tbody>
@@ -132,15 +113,15 @@
             </section>
         </main>
     </div>
-
     <!-- Scripts -->
     <script src="../../services/common/session.js"></script>
     <script src="../../services/common/app-shell.js"></script>
-    <script>
+        <script src="../../services/common/sidebar.js"></script>
+<script>
         document.addEventListener('DOMContentLoaded', function() {
             window.ddukAppShell.hydratePage({
-                title: "권한 관리",
-                description: "시스템 역할별 메뉴 접근 및 기능 권한을 설정합니다."
+                title: "沅뚰븳 愿由?,
+                description: "?쒖뒪????븷蹂?硫붾돱 ?묎렐 諛?湲곕뒫 沅뚰븳???ㅼ젙?⑸땲??"
             });
         });
     </script>

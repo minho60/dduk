@@ -1,31 +1,30 @@
-<!DOCTYPE html>
+﻿<!DOCTYPE html>
 <html lang="ko">
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>DDUK ERP - 급여 대장</title>
+        <script src="https://cdn.jsdelivr.net/npm/lucide@0.263.0/dist/umd/lucide.min.js"></script>
+<title>DDUK ERP - 湲됱뿬 ???/title>
     <link rel="stylesheet" href="../../../styles/common/app-shell.css">
-    <link rel="stylesheet" href="../../../styles/common/erp-components.css">
+        <link rel="stylesheet" href="../../../styles/common/dashboard.css">
+<link rel="stylesheet" href="../../../styles/common/erp-components.css">
 </head>
 <body>
-    <div class="app-shell">
-        <aside class="app-sidebar">
-            <h1>DDUK ERP</h1>
-            <nav data-nav></nav>
-        </aside>
+    <aside data-dduk-sidebar></aside>
+    <div class="main_wrap">
         <main class="app-main">
             <header class="app-header">
                 <div>
-                    <h2 data-page-title>급여 대장 관리</h2>
-                    <p data-page-description>직원별 급여 산출 현황 및 회계 전표 연동 상태를 관리합니다.</p>
+                    <h2 data-page-title>湲됱뿬 ???愿由?/h2>
+                    <p data-page-description>吏곸썝蹂?湲됱뿬 ?곗텧 ?꾪솴 諛??뚭퀎 ?꾪몴 ?곕룞 ?곹깭瑜?愿由ы빀?덈떎.</p>
                 </div>
                 <section class="app-user">
                     <dl>
-                        <dt>이름</dt><dd data-user-name>-</dd>
-                        <dt>아이디</dt><dd data-login-id>-</dd>
-                        <dt>권한</dt><dd data-role>-</dd>
+                        <dt>?대쫫</dt><dd data-user-name>-</dd>
+                        <dt>?꾩씠??/dt><dd data-login-id>-</dd>
+                        <dt>沅뚰븳</dt><dd data-role>-</dd>
                     </dl>
-                    <button type="button" data-action="logout">로그아웃</button>
+                    <button type="button" data-action="logout">濡쒓렇?꾩썐</button>
                 </section>
             </header>
 
@@ -33,20 +32,20 @@
                 <!-- Summary Cards -->
                 <div class="payroll_summary" style="display: grid; grid-template-columns: repeat(4, 1fr); gap: 16px; margin-bottom: 24px;">
                     <div class="erp_widget" style="padding: 20px; background: #fff; border-radius: 8px; border: 1px solid #e2e8f0;">
-                        <div style="font-size: 0.75rem; color: #64748b;">이번 달 총 지급액</div>
-                        <div id="summary_gross" style="font-size: 1.5rem; font-weight: 700; color: #1e293b;">₩ 0</div>
+                        <div style="font-size: 0.75rem; color: #64748b;">?대쾲 ??珥?吏湲됱븸</div>
+                        <div id="summary_gross" style="font-size: 1.5rem; font-weight: 700; color: #1e293b;">??0</div>
                     </div>
                     <div class="erp_widget" style="padding: 20px; background: #fff; border-radius: 8px; border: 1px solid #e2e8f0;">
-                        <div style="font-size: 0.75rem; color: #64748b;">공제/세금 합계</div>
-                        <div id="summary_deduction" style="font-size: 1.5rem; font-weight: 700; color: #e53e3e;">₩ 0</div>
+                        <div style="font-size: 0.75rem; color: #64748b;">怨듭젣/?멸툑 ?⑷퀎</div>
+                        <div id="summary_deduction" style="font-size: 1.5rem; font-weight: 700; color: #e53e3e;">??0</div>
                     </div>
                     <div id="summary_pending" class="erp_widget" style="padding: 20px; background: #fff; border-radius: 8px; border: 1px solid #e2e8f0;">
-                        <div style="font-size: 0.75rem; color: #64748b;">승인 대기</div>
-                        <div style="font-size: 1.5rem; font-weight: 700; color: #d97706;">0 건</div>
+                        <div style="font-size: 0.75rem; color: #64748b;">?뱀씤 ?湲?/div>
+                        <div style="font-size: 1.5rem; font-weight: 700; color: #d97706;">0 嫄?/div>
                     </div>
                     <div id="summary_unposted" class="erp_widget" style="padding: 20px; background: #fff; border-radius: 8px; border: 1px solid #e2e8f0;">
-                        <div style="font-size: 0.75rem; color: #64748b;">미전송 전표</div>
-                        <div style="font-size: 1.5rem; font-weight: 700; color: #3182ce;">0 건</div>
+                        <div style="font-size: 0.75rem; color: #64748b;">誘몄쟾???꾪몴</div>
+                        <div style="font-size: 1.5rem; font-weight: 700; color: #3182ce;">0 嫄?/div>
                     </div>
                 </div>
 
@@ -55,8 +54,8 @@
 
                 <!-- Action Bar -->
                 <div style="display: flex; gap: 8px; margin-bottom: 16px;">
-                    <button id="btn_batch_calculate" class="erp_button erp_button_primary">일괄 급여 계산</button>
-                    <button id="btn_export_csv" class="erp_button erp_button_secondary">급여 대장 내보내기</button>
+                    <button id="btn_batch_calculate" class="erp_button erp_button_primary">?쇨큵 湲됱뿬 怨꾩궛</button>
+                    <button id="btn_export_csv" class="erp_button erp_button_secondary">湲됱뿬 ????대낫?닿린</button>
                 </div>
 
                 <!-- Table -->
@@ -64,10 +63,10 @@
             </div>
         </main>
     </div>
-
     <script src="../../../services/common/session.js"></script>
     <script src="../../../services/common/app-shell.js"></script>
-    <script type="module">
+        <script src="../../../services/common/sidebar.js"></script>
+<script type="module">
         import { BaseFilter } from '../../../components/common/BaseFilter.js';
         import { BaseTable } from '../../../components/common/BaseTable.js';
         import { payrollService } from '../../../services/hr/payroll/payroll-service.js';
@@ -82,10 +81,10 @@
 
             window.ddukAppShell.hydratePage({
                 navItems: [
-                    { href: "../../hr/dashboard.html", label: "인사/회계 메인" },
-                    { href: "../accounting/dashboard.html", label: "회계 관리" },
-                    { href: "./list.html", label: "급여 대장", current: true },
-                    { href: "../accounting/reports.html", label: "회계 리포트" }
+                    { href: "../../hr/dashboard.html", label: "?몄궗/?뚭퀎 硫붿씤" },
+                    { href: "../accounting/dashboard.html", label: "?뚭퀎 愿由? },
+                    { href: "./list.html", label: "湲됱뿬 ???, current: true },
+                    { href: "../accounting/reports.html", label: "?뚭퀎 由ы룷?? }
                 ]
             });
 
@@ -98,17 +97,17 @@
             const filter = new BaseFilter({
                 container: document.getElementById('payroll_filter_container'),
                 fields: [
-                    { id: 'yearMonth', label: '지급월', type: 'select', options: [
-                        { value: '2026-05', label: '2026년 05월' },
-                        { value: '2026-04', label: '2026년 04월' }
+                    { id: 'yearMonth', label: '吏湲됱썡', type: 'select', options: [
+                        { value: '2026-05', label: '2026??05?? },
+                        { value: '2026-04', label: '2026??04?? }
                     ]},
-                    { id: 'status', label: '상태', type: 'select', options: [
-                        { value: '', label: '전체' },
-                        { value: 'DRAFT', label: '작성중' },
-                        { value: 'APPROVED', label: '승인완료' },
-                        { value: 'POSTED', label: '전표전송완료' }
+                    { id: 'status', label: '?곹깭', type: 'select', options: [
+                        { value: '', label: '?꾩껜' },
+                        { value: 'DRAFT', label: '?묒꽦以? },
+                        { value: 'APPROVED', label: '?뱀씤?꾨즺' },
+                        { value: 'POSTED', label: '?꾪몴?꾩넚?꾨즺' }
                     ]},
-                    { id: 'keyword', label: '직원명', type: 'text' }
+                    { id: 'keyword', label: '吏곸썝紐?, type: 'text' }
                 ],
                 onFilter: (values) => loadData(values)
             });
@@ -120,12 +119,12 @@
                 container: document.getElementById('payroll_table_container'),
                 columns: [
                     { key: 'id', label: 'ID', width: '120px' },
-                    { key: 'employeeName', label: '직원명', width: '120px' },
-                    { key: 'yearMonth', label: '지급월', align: 'center' },
-                    { key: 'grossPay', label: '지급총액', align: 'right', render: (v, row) => formatCurrency(row.amounts.grossPay) },
-                    { key: 'netPay', label: '실지급액', align: 'right', render: (v, row) => formatCurrency(row.amounts.netPay) },
-                    { key: 'status', label: '상태', align: 'center', render: (v) => `<span class="erp_badge ${getStatusBadgeClass(v)}">${v}</span>` },
-                    { key: 'revision', label: '리비전', align: 'center', render: (v) => `v${v}` }
+                    { key: 'employeeName', label: '吏곸썝紐?, width: '120px' },
+                    { key: 'yearMonth', label: '吏湲됱썡', align: 'center' },
+                    { key: 'grossPay', label: '吏湲됱킑??, align: 'right', render: (v, row) => formatCurrency(row.amounts.grossPay) },
+                    { key: 'netPay', label: '?ㅼ?湲됱븸', align: 'right', render: (v, row) => formatCurrency(row.amounts.netPay) },
+                    { key: 'status', label: '?곹깭', align: 'center', render: (v) => `<span class="erp_badge ${getStatusBadgeClass(v)}">${v}</span>` },
+                    { key: 'revision', label: '由щ퉬??, align: 'center', render: (v) => `v${v}` }
                 ],
                 onRowClick: (row) => {
                     location.href = `./detail.html?id=${row.id}`;

@@ -1,59 +1,40 @@
-<!DOCTYPE html>
+﻿<!DOCTYPE html>
 <html lang="ko">
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>DDUK ERP - 시스템 설정</title>
+        <script src="https://cdn.jsdelivr.net/npm/lucide@0.263.0/dist/umd/lucide.min.js"></script>
+<title>DDUK ERP - ?쒖뒪???ㅼ젙</title>
     <link rel="stylesheet" href="../../styles/common/app-shell.css">
-    <link rel="stylesheet" href="../../styles/admin/admin-pages.css">
+        <link rel="stylesheet" href="../../styles/common/dashboard.css">
+<link rel="stylesheet" href="../../styles/admin/admin-pages.css">
 </head>
 <body>
-    <div class="app-shell">
-        <aside class="app-sidebar">
-            <div class="sidebar-header">
-                <div class="sidebar-logo">
-                    <img src="../../assets/ERP-ROGO.svg" alt="DDUK ERP Logo">
-                    <h1>DDUK ERP</h1>
-                    <button class="home-btn" title="Home" onclick="location.href='../../dashboard.html'">🏠</button>
-                </div>
-            </div>
-
-            <nav data-nav></nav>
-            
-            <div class="sidebar-footer">
-                <div class="app-user">
-                    <div class="user-info">
-                        <span class="user-name" data-user-name>-</span>
-                        <span class="user-role" data-role>-</span>
-                    </div>
-                    <button type="button" data-action="logout" title="Logout">로그아웃</button>
-                </div>
-            </div>
-        </aside>
-
+    <aside data-dduk-sidebar></aside>
+    <div class="main_wrap">
         <main class="app-main">
             <header class="app-header">
                 <div>
-                    <h2 data-page-title>시스템 설정</h2>
-                    <p data-page-description>ERP 시스템의 전역 환경 및 정책을 구성합니다.</p>
+                    <h2 data-page-title>?쒖뒪???ㅼ젙</h2>
+                    <p data-page-description>ERP ?쒖뒪?쒖쓽 ?꾩뿭 ?섍꼍 諛??뺤콉??援ъ꽦?⑸땲??</p>
                 </div>
             </header>
 
             <div class="content-grid">
-                <!-- 일반 설정 -->
+                <!-- ?쇰컲 ?ㅼ젙 -->
                 <section class="panel">
-                    <h3>일반 정보</h3>
+                    <h3>?쇰컲 ?뺣낫</h3>
                     <form class="stack">
                         <div class="form-field">
-                            <label>회사명</label>
+                            <label>?뚯궗紐?/label>
                             <input type="text" value="DDUK ERP Portfolio Project">
                         </div>
                         <div class="form-field">
-                            <label>관리자 이메일</label>
+                            <label>愿由ъ옄 ?대찓??/label>
                             <input type="email" value="admin@dduk-erp.com">
                         </div>
                         <div class="form-field">
-                            <label>시스템 시간대</label>
+                            <label>?쒖뒪???쒓컙?</label>
                             <select>
                                 <option>Asia/Seoul (UTC+09:00)</option>
                                 <option>UTC</option>
@@ -62,28 +43,28 @@
                     </form>
                 </section>
 
-                <!-- 보안 설정 -->
+                <!-- 蹂댁븞 ?ㅼ젙 -->
                 <section class="panel">
-                    <h3>보안 정책</h3>
+                    <h3>蹂댁븞 ?뺤콉</h3>
                     <form class="stack">
                         <div class="form-field flex-row-between">
-                            <label>비밀번호 복잡성 강화</label>
+                            <label>鍮꾨?踰덊샇 蹂듭옟??媛뺥솕</label>
                             <input type="checkbox" checked class="w-auto">
                         </div>
                         <div class="form-field flex-row-between">
-                            <label>2단계 인증 필수 (ADMIN)</label>
+                            <label>2?④퀎 ?몄쬆 ?꾩닔 (ADMIN)</label>
                             <input type="checkbox" class="w-auto">
                         </div>
                         <div class="form-field">
-                            <label>세션 만료 시간 (분)</label>
+                            <label>?몄뀡 留뚮즺 ?쒓컙 (遺?</label>
                             <input type="number" value="60">
                         </div>
                     </form>
                 </section>
 
-                <!-- API 설정 -->
+                <!-- API ?ㅼ젙 -->
                 <section class="panel">
-                    <h3>외부 연동 (API)</h3>
+                    <h3>?몃? ?곕룞 (API)</h3>
                     <form class="stack">
                         <div class="form-field">
                             <label>OpenAI API Key</label>
@@ -98,20 +79,20 @@
             </div>
 
             <div class="actions mt-8 justify-end">
-                <button type="button" class="secondary">취소</button>
-                <button type="button">설정 저장</button>
+                <button type="button" class="secondary">痍⑥냼</button>
+                <button type="button">?ㅼ젙 ???/button>
             </div>
         </main>
     </div>
-
     <!-- Scripts -->
     <script src="../../services/common/session.js"></script>
     <script src="../../services/common/app-shell.js"></script>
-    <script>
+        <script src="../../services/common/sidebar.js"></script>
+<script>
         document.addEventListener('DOMContentLoaded', function() {
             window.ddukAppShell.hydratePage({
-                title: "시스템 설정",
-                description: "ERP 시스템의 전역 환경 및 정책을 구성합니다."
+                title: "?쒖뒪???ㅼ젙",
+                description: "ERP ?쒖뒪?쒖쓽 ?꾩뿭 ?섍꼍 諛??뺤콉??援ъ꽦?⑸땲??"
             });
         });
     </script>

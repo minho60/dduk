@@ -1,34 +1,33 @@
-<!DOCTYPE html>
+﻿<!DOCTYPE html>
 <html lang="ko">
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>DDUK ERP - 회계 리포트</title>
+        <script src="https://cdn.jsdelivr.net/npm/lucide@0.263.0/dist/umd/lucide.min.js"></script>
+<title>DDUK ERP - ?뚭퀎 由ы룷??/title>
     <link rel="stylesheet" href="../../../styles/common/app-shell.css">
-    <link rel="stylesheet" href="../../../styles/common/erp-components.css">
+        <link rel="stylesheet" href="../../../styles/common/dashboard.css">
+<link rel="stylesheet" href="../../../styles/common/erp-components.css">
 </head>
 <body>
-    <div class="app-shell">
-        <aside class="app-sidebar">
-            <h1>DDUK ERP</h1>
-            <nav data-nav></nav>
-        </aside>
+    <aside data-dduk-sidebar></aside>
+    <div class="main_wrap">
         <main class="app-main">
             <header class="app-header">
                 <div>
-                    <h2 data-page-title>회계 리포트</h2>
-                    <p data-page-description>선택한 양식에 따라 경영 보고서를 생성하고 추출합니다.</p>
+                    <h2 data-page-title>?뚭퀎 由ы룷??/h2>
+                    <p data-page-description>?좏깮???묒떇???곕씪 寃쎌쁺 蹂닿퀬?쒕? ?앹꽦?섍퀬 異붿텧?⑸땲??</p>
                 </div>
                 <section class="app-user">
                     <dl>
-                        <dt>이름</dt>
+                        <dt>?대쫫</dt>
                         <dd data-user-name>-</dd>
-                        <dt>아이디</dt>
+                        <dt>?꾩씠??/dt>
                         <dd data-login-id>-</dd>
-                        <dt>권한</dt>
+                        <dt>沅뚰븳</dt>
                         <dd data-role>-</dd>
                     </dl>
-                    <button type="button" data-action="logout">로그아웃</button>
+                    <button type="button" data-action="logout">濡쒓렇?꾩썐</button>
                 </section>
             </header>
 
@@ -36,24 +35,24 @@
                 <!-- Report Selection & Controls -->
                 <section class="report_controls" style="display: flex; gap: 16px; flex-wrap: wrap; margin-bottom: 24px; padding: 20px; background: #fff; border: 1px solid #e2e8f0; border-radius: 8px;">
                     <div style="display: flex; align-items: center; gap: 8px;">
-                        <label style="font-size: 0.875rem; font-weight: 500;">리포트 종류</label>
+                        <label style="font-size: 0.875rem; font-weight: 500;">由ы룷??醫낅쪟</label>
                         <select id="report_type_select" class="erp_select" style="width: 200px;">
-                            <option value="MONTHLY_PL">월별 손익 리포트</option>
-                            <option value="VENDOR_SUMMARY">거래처별 거래 요약</option>
+                            <option value="MONTHLY_PL">?붾퀎 ?먯씡 由ы룷??/option>
+                            <option value="VENDOR_SUMMARY">嫄곕옒泥섎퀎 嫄곕옒 ?붿빟</option>
                         </select>
                     </div>
 
                     <div style="display: flex; align-items: center; gap: 8px;">
-                        <label style="font-size: 0.875rem; font-weight: 500;">조회 기간</label>
+                        <label style="font-size: 0.875rem; font-weight: 500;">議고쉶 湲곌컙</label>
                         <input type="date" id="report_startDate" class="erp_input" style="width: 140px;">
                         <span>~</span>
                         <input type="date" id="report_endDate" class="erp_input" style="width: 140px;">
                     </div>
 
                     <div style="display: flex; gap: 8px; margin-left: auto;">
-                        <button id="btn_report_generate" class="erp_button erp_button_primary">리포트 생성</button>
-                        <button id="btn_report_export" class="erp_button erp_button_secondary">CSV 다운로드</button>
-                        <button id="btn_report_print" class="erp_button erp_button_secondary">인쇄</button>
+                        <button id="btn_report_generate" class="erp_button erp_button_primary">由ы룷???앹꽦</button>
+                        <button id="btn_report_export" class="erp_button erp_button_secondary">CSV ?ㅼ슫濡쒕뱶</button>
+                        <button id="btn_report_print" class="erp_button erp_button_secondary">?몄뇙</button>
                     </div>
                 </section>
 
@@ -62,10 +61,10 @@
             </div>
         </main>
     </div>
-
     <script src="../../../services/common/session.js"></script>
     <script src="../../../services/common/app-shell.js"></script>
-    <script type="module">
+        <script src="../../../services/common/sidebar.js"></script>
+<script type="module">
         import { ReportEngine } from '../../../services/common/report-engine.js';
         import { ACCOUNTING_REPORTS } from '../../../services/hr/accounting-report-configs.js';
         import { settlementService } from '../../../services/hr/settlement-service.js';
@@ -82,13 +81,13 @@
 
             window.ddukAppShell.hydratePage({
                 navItems: [
-                    { href: "../../hr/dashboard.html", label: "인사/회계 메인" },
-                    { href: "./dashboard.html", label: "회계 대시보드" },
-                    { href: "./transactions.html", label: "매입/매출 관리" },
-                    { href: "./settlement.html", label: "월별 정산" },
-                    { href: "./reports.html", label: "회계 리포트", current: true },
-                    { href: "../../admin/dashboard.html", label: "관리자" },
-                    { href: "../../inventory/dashboard.html", label: "재고/발주" }
+                    { href: "../../hr/dashboard.html", label: "?몄궗/?뚭퀎 硫붿씤" },
+                    { href: "./dashboard.html", label: "?뚭퀎 ??쒕낫?? },
+                    { href: "./transactions.html", label: "留ㅼ엯/留ㅼ텧 愿由? },
+                    { href: "./settlement.html", label: "?붾퀎 ?뺤궛" },
+                    { href: "./reports.html", label: "?뚭퀎 由ы룷??, current: true },
+                    { href: "../../admin/dashboard.html", label: "愿由ъ옄" },
+                    { href: "../../inventory/dashboard.html", label: "?ш퀬/諛쒖＜" }
                 ]
             });
 
@@ -128,7 +127,7 @@
 
         function handleExport() {
             if (!currentEngine || !currentEngine.data) {
-                alert('먼저 리포트를 생성해주세요.');
+                alert('癒쇱? 由ы룷?몃? ?앹꽦?댁＜?몄슂.');
                 return;
             }
             const content = CSVAdapter.generate(currentEngine.config, currentEngine.data);

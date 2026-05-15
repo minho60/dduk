@@ -1,11 +1,13 @@
-<!DOCTYPE html>
+﻿<!DOCTYPE html>
 <html lang="ko">
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>DDUK ERP - 회계 운영 상황실</title>
+        <script src="https://cdn.jsdelivr.net/npm/lucide@0.263.0/dist/umd/lucide.min.js"></script>
+<title>DDUK ERP - ?뚭퀎 ?댁쁺 ?곹솴??/title>
     <link rel="stylesheet" href="../../../styles/common/app-shell.css">
-    <link rel="stylesheet" href="../../../styles/common/erp-components.css">
+        <link rel="stylesheet" href="../../../styles/common/dashboard.css">
+<link rel="stylesheet" href="../../../styles/common/erp-components.css">
     <style>
         .dash_grid { display: grid; grid-template-columns: repeat(4, 1fr); gap: 24px; padding: 24px; }
         .kpi_card { background: #fff; border: 1px solid #e2e8f0; border-radius: 8px; padding: 24px; }
@@ -16,33 +18,30 @@
     </style>
 </head>
 <body>
-    <div class="app-shell">
-        <aside class="app-sidebar">
-            <h1>DDUK ERP</h1>
-            <nav data-nav></nav>
-        </aside>
+    <aside data-dduk-sidebar></aside>
+    <div class="main_wrap">
         <main class="app-main">
             <header class="app-header">
                 <div>
-                    <h2 data-page-title>재무 운영 상황실 (Financial Ops)</h2>
-                    <p data-page-description>전사의 재무 상태를 실시간으로 모니터링하고 마감 현황을 관리합니다.</p>
+                    <h2 data-page-title>?щТ ?댁쁺 ?곹솴??(Financial Ops)</h2>
+                    <p data-page-description>?꾩궗???щТ ?곹깭瑜??ㅼ떆媛꾩쑝濡?紐⑤땲?곕쭅?섍퀬 留덇컧 ?꾪솴??愿由ы빀?덈떎.</p>
                 </div>
                 <div style="display: flex; gap: 8px;">
-                    <button class="erp_button erp_button_primary">전표 등록</button>
-                    <button class="erp_button erp_button_secondary" onclick="location.href='./fiscal-closing.html'">월 마감 실행</button>
+                    <button class="erp_button erp_button_primary">?꾪몴 ?깅줉</button>
+                    <button class="erp_button erp_button_secondary" onclick="location.href='./fiscal-closing.html'">??留덇컧 ?ㅽ뻾</button>
                 </div>
             </header>
 
             <div class="dash_grid">
                 <!-- KPIs -->
-                <div class="kpi_card"><div class="kpi_label">당기순이익</div><div id="kpi_net_income" class="kpi_value">₩ 0</div></div>
-                <div class="kpi_card"><div class="kpi_label">유동자산 합계</div><div id="kpi_assets" class="kpi_value">₩ 0</div></div>
-                <div class="kpi_card"><div class="kpi_label">미결제 전표</div><div class="kpi_value" style="color: #d97706;">3 건</div></div>
-                <div class="kpi_card"><div class="kpi_label">마감 진행률</div><div class="kpi_value" style="color: #3182ce;">85%</div></div>
+                <div class="kpi_card"><div class="kpi_label">?밴린?쒖씠??/div><div id="kpi_net_income" class="kpi_value">??0</div></div>
+                <div class="kpi_card"><div class="kpi_label">?좊룞?먯궛 ?⑷퀎</div><div id="kpi_assets" class="kpi_value">??0</div></div>
+                <div class="kpi_card"><div class="kpi_label">誘멸껐???꾪몴</div><div class="kpi_value" style="color: #d97706;">3 嫄?/div></div>
+                <div class="kpi_card"><div class="kpi_label">留덇컧 吏꾪뻾瑜?/div><div class="kpi_value" style="color: #3182ce;">85%</div></div>
 
                 <!-- Main Chart -->
                 <div class="chart_section">
-                    <h3 style="font-size: 0.875rem; margin-bottom: 20px;">수익/비용 추이 (Revenue vs Expense)</h3>
+                    <h3 style="font-size: 0.875rem; margin-bottom: 20px;">?섏씡/鍮꾩슜 異붿씠 (Revenue vs Expense)</h3>
                     <div style="height: 300px; background: #f8fafc; border-radius: 4px; display: flex; align-items: center; justify-content: center; color: #94a3b8;">
                         [Chart Visualization Area]
                     </div>
@@ -50,26 +49,26 @@
 
                 <!-- Closing Status -->
                 <div class="status_section">
-                    <h3 style="font-size: 0.875rem; margin-bottom: 20px;">마감 체크리스트</h3>
+                    <h3 style="font-size: 0.875rem; margin-bottom: 20px;">留덇컧 泥댄겕由ъ뒪??/h3>
                     <ul style="list-style: none; padding: 0; font-size: 0.875rem;">
                         <li style="margin-bottom: 12px; display: flex; justify-content: space-between;">
-                            <span>전표 포스팅 완료</span><span class="erp_badge badge_success">완료</span>
+                            <span>?꾪몴 ?ъ뒪???꾨즺</span><span class="erp_badge badge_success">?꾨즺</span>
                         </li>
                         <li style="margin-bottom: 12px; display: flex; justify-content: space-between;">
-                            <span>급여 정산 대조</span><span class="erp_badge badge_success">완료</span>
+                            <span>湲됱뿬 ?뺤궛 ?議?/span><span class="erp_badge badge_success">?꾨즺</span>
                         </li>
                         <li style="margin-bottom: 12px; display: flex; justify-content: space-between;">
-                            <span>기말 재고 반영</span><span class="erp_badge badge_warning">진행중</span>
+                            <span>湲곕쭚 ?ш퀬 諛섏쁺</span><span class="erp_badge badge_warning">吏꾪뻾以?/span>
                         </li>
                     </ul>
                 </div>
             </div>
         </main>
     </div>
-
     <script src="../../../services/common/session.js"></script>
     <script src="../../../services/common/app-shell.js"></script>
-    <script type="module">
+        <script src="../../../services/common/sidebar.js"></script>
+<script type="module">
         import { financialStatementEngine } from '../../../services/hr/accounting/financial-statement-engine.js';
         import { formatCurrency } from '../../../services/common/formatters.js';
 
@@ -80,10 +79,10 @@
 
             window.ddukAppShell.hydratePage({
                 navItems: [
-                    { href: "../../hr/dashboard.html", label: "인사/회계 메인" },
-                    { href: "./dashboard.html", label: "회계 대시보드", current: true },
-                    { href: "./trial-balance.html", label: "시산표/원장" },
-                    { href: "../payroll/list.html", label: "급여 관리" }
+                    { href: "../../hr/dashboard.html", label: "?몄궗/?뚭퀎 硫붿씤" },
+                    { href: "./dashboard.html", label: "?뚭퀎 ??쒕낫??, current: true },
+                    { href: "./trial-balance.html", label: "?쒖궛???먯옣" },
+                    { href: "../payroll/list.html", label: "湲됱뿬 愿由? }
                 ]
             });
 

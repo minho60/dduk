@@ -1,35 +1,34 @@
-<!DOCTYPE html>
+﻿<!DOCTYPE html>
 <html lang="ko">
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>DDUK ERP - 월별 정산</title>
-    <link rel="stylesheet" href="../../../styles/common/app-shell.css">
-    <link rel="stylesheet" href="../../../styles/common/erp-components.css">
+    <title>DDUK ERP - ?붾퀎 ?뺤궛</title>
+        <script src="https://cdn.jsdelivr.net/npm/lucide@0.263.0/dist/umd/lucide.min.js"></script>
+<link rel="stylesheet" href="../../../styles/common/app-shell.css">
+        <link rel="stylesheet" href="../../../styles/common/dashboard.css">
+<link rel="stylesheet" href="../../../styles/common/erp-components.css">
     <link rel="stylesheet" href="../../../styles/hr/accounting.css">
 </head>
 <body>
-    <div class="app-shell">
-        <aside class="app-sidebar">
-            <h1>DDUK ERP</h1>
-            <nav data-nav></nav>
-        </aside>
+    <aside data-dduk-sidebar></aside>
+    <div class="main_wrap">
         <main class="app-main">
             <header class="app-header">
                 <div>
-                    <h2 data-page-title>월별 정산</h2>
-                    <p data-page-description>매입/매출 데이터를 기반으로 기간별 손익을 집계하고 분석합니다.</p>
+                    <h2 data-page-title>?붾퀎 ?뺤궛</h2>
+                    <p data-page-description>留ㅼ엯/留ㅼ텧 ?곗씠?곕? 湲곕컲?쇰줈 湲곌컙蹂??먯씡??吏묎퀎?섍퀬 遺꾩꽍?⑸땲??</p>
                 </div>
                 <section class="app-user">
                     <dl>
-                        <dt>이름</dt>
+                        <dt>?대쫫</dt>
                         <dd data-user-name>-</dd>
-                        <dt>아이디</dt>
+                        <dt>?꾩씠??/dt>
                         <dd data-login-id>-</dd>
-                        <dt>권한</dt>
+                        <dt>沅뚰븳</dt>
                         <dd data-role>-</dd>
                     </dl>
-                    <button type="button" data-action="logout">로그아웃</button>
+                    <button type="button" data-action="logout">濡쒓렇?꾩썐</button>
                 </section>
             </header>
 
@@ -37,39 +36,39 @@
                 <!-- Settlement Controls -->
                 <section class="erp_filter_container" style="display: flex; gap: 16px; flex-wrap: wrap; margin-bottom: 24px; padding: 20px; background: #fff; border: 1px solid #e2e8f0; border-radius: 8px;">
                     <div style="display: flex; align-items: center; gap: 8px;">
-                        <label style="font-size: 0.875rem; font-weight: 500;">집계 기간</label>
+                        <label style="font-size: 0.875rem; font-weight: 500;">吏묎퀎 湲곌컙</label>
                         <input type="date" id="settle_startDate" class="erp_input" style="width: 140px;">
                         <span>~</span>
                         <input type="date" id="settle_endDate" class="erp_input" style="width: 140px;">
                     </div>
 
                     <div style="display: flex; align-items: center; gap: 8px;">
-                        <label style="font-size: 0.875rem; font-weight: 500;">집계 기준</label>
+                        <label style="font-size: 0.875rem; font-weight: 500;">吏묎퀎 湲곗?</label>
                         <select id="settle_groupBy" class="erp_select" style="width: 120px;">
-                            <option value="MONTH">월별</option>
-                            <option value="QUARTER">분기별</option>
-                            <option value="YEAR">연도별</option>
-                            <option value="VENDOR">거래처별</option>
+                            <option value="MONTH">?붾퀎</option>
+                            <option value="QUARTER">遺꾧린蹂?/option>
+                            <option value="YEAR">?곕룄蹂?/option>
+                            <option value="VENDOR">嫄곕옒泥섎퀎</option>
                         </select>
                     </div>
 
                     <div style="display: flex; align-items: center; gap: 8px;">
-                        <label style="font-size: 0.875rem; font-weight: 500;">날짜 기준</label>
+                        <label style="font-size: 0.875rem; font-weight: 500;">?좎쭨 湲곗?</label>
                         <select id="settle_referenceDate" class="erp_select" style="width: 120px;">
-                            <option value="transactionDate">거래일</option>
-                            <option value="createdAt">등록일</option>
+                            <option value="transactionDate">嫄곕옒??/option>
+                            <option value="createdAt">?깅줉??/option>
                         </select>
                     </div>
 
                     <div style="display: flex; align-items: center; gap: 12px;">
                         <label style="display: flex; align-items: center; gap: 4px; font-size: 0.875rem; cursor: pointer;">
-                            <input type="checkbox" id="settle_excludeCanceled" checked> 취소 거래 제외
+                            <input type="checkbox" id="settle_excludeCanceled" checked> 痍⑥냼 嫄곕옒 ?쒖쇅
                         </label>
                     </div>
 
                     <div style="display: flex; gap: 8px; margin-left: auto;">
-                        <button id="btn_settle_run" class="erp_button erp_button_primary">정산 실행</button>
-                        <button id="btn_export" class="erp_button erp_button_secondary">Excel 내보내기</button>
+                        <button id="btn_settle_run" class="erp_button erp_button_primary">?뺤궛 ?ㅽ뻾</button>
+                        <button id="btn_export" class="erp_button erp_button_secondary">Excel ?대낫?닿린</button>
                     </div>
                 </section>
 
@@ -84,10 +83,10 @@
             </div>
         </main>
     </div>
-
     <script src="../../../services/common/session.js"></script>
     <script src="../../../services/common/app-shell.js"></script>
-    <script type="module">
+        <script src="../../../services/common/sidebar.js"></script>
+<script type="module">
         import { settlementService } from '../../../services/hr/settlement-service.js';
         import { normalizeChartData } from '../../../services/hr/settlement-utils.js';
         import { SettlementSummary } from '../../../components/hr/accounting/SettlementSummary.js';
@@ -107,11 +106,11 @@
 
             window.ddukAppShell.hydratePage({
                 navItems: [
-                    { href: "../../hr/dashboard.html", label: "인사/회계 메인" },
-                    { href: "./transactions.html", label: "매입/매출 관리" },
-                    { href: "./settlement.html", label: "월별 정산", current: true },
-                    { href: "../../admin/dashboard.html", label: "관리자" },
-                    { href: "../../inventory/dashboard.html", label: "재고/발주" }
+                    { href: "../../hr/dashboard.html", label: "?몄궗/?뚭퀎 硫붿씤" },
+                    { href: "./transactions.html", label: "留ㅼ엯/留ㅼ텧 愿由? },
+                    { href: "./settlement.html", label: "?붾퀎 ?뺤궛", current: true },
+                    { href: "../../admin/dashboard.html", label: "愿由ъ옄" },
+                    { href: "../../inventory/dashboard.html", label: "?ш퀬/諛쒖＜" }
                 ]
             });
 
@@ -146,7 +145,7 @@
 
         // Event Listeners
         document.getElementById('btn_settle_run').addEventListener('click', loadSettlement);
-        document.getElementById('btn_export').addEventListener('click', () => alert('준비 중인 기능입니다.'));
+        document.getElementById('btn_export').addEventListener('click', () => alert('以鍮?以묒씤 湲곕뒫?낅땲??'));
 
         init();
     </script>

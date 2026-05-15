@@ -1,96 +1,77 @@
-<!DOCTYPE html>
+﻿<!DOCTYPE html>
 <html lang="ko">
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>DDUK ERP - 사용자 관리</title>
+        <script src="https://cdn.jsdelivr.net/npm/lucide@0.263.0/dist/umd/lucide.min.js"></script>
+<title>DDUK ERP - ?ъ슜??愿由?/title>
     <link rel="stylesheet" href="../../styles/common/app-shell.css">
-    <link rel="stylesheet" href="../../styles/admin/admin-pages.css">
+        <link rel="stylesheet" href="../../styles/common/dashboard.css">
+<link rel="stylesheet" href="../../styles/admin/admin-pages.css">
 </head>
 <body>
-    <div class="app-shell">
-        <aside class="app-sidebar">
-            <div class="sidebar-header">
-                <div class="sidebar-logo">
-                    <img src="../../assets/ERP-ROGO.svg" alt="DDUK ERP Logo">
-                    <h1>DDUK ERP</h1>
-                    <button class="home-btn" title="Home" onclick="location.href='../../dashboard.html'">🏠</button>
-                </div>
-            </div>
-
-            <nav data-nav></nav>
-            
-            <div class="sidebar-footer">
-                <div class="app-user">
-                    <div class="user-info">
-                        <span class="user-name" data-user-name>-</span>
-                        <span class="user-role" data-role>-</span>
-                    </div>
-                    <button type="button" data-action="logout" title="Logout">로그아웃</button>
-                </div>
-            </div>
-        </aside>
-
+    <aside data-dduk-sidebar></aside>
+    <div class="main_wrap">
         <main class="app-main">
             <header class="app-header">
                 <div>
-                    <h2 data-page-title>사용자 관리</h2>
-                    <p data-page-description>시스템 접속 계정을 생성하고 권한을 관리합니다.</p>
+                    <h2 data-page-title>?ъ슜??愿由?/h2>
+                    <p data-page-description>?쒖뒪???묒냽 怨꾩젙???앹꽦?섍퀬 沅뚰븳??愿由ы빀?덈떎.</p>
                 </div>
             </header>
 
             <div class="content-grid">
-                <!-- 계정 생성 섹션 -->
+                <!-- 怨꾩젙 ?앹꽦 ?뱀뀡 -->
                 <section class="panel">
-                    <h3>신규 계정 생성</h3>
+                    <h3>?좉퇋 怨꾩젙 ?앹꽦</h3>
                     <form id="memberCreateForm" class="stack">
                         <div class="form-field">
-                            <label for="loginId">아이디</label>
-                            <input type="text" id="loginId" name="loginId" required placeholder="아이디">
+                            <label for="loginId">?꾩씠??/label>
+                            <input type="text" id="loginId" name="loginId" required placeholder="?꾩씠??>
                         </div>
                         <div class="form-field">
-                            <label for="password">비밀번호</label>
-                            <input type="password" id="password" name="password" required placeholder="비밀번호">
+                            <label for="password">鍮꾨?踰덊샇</label>
+                            <input type="password" id="password" name="password" required placeholder="鍮꾨?踰덊샇">
                         </div>
                         <div class="form-field">
-                            <label for="name">이름</label>
-                            <input type="text" id="name" name="name" required placeholder="사용자 이름">
+                            <label for="name">?대쫫</label>
+                            <input type="text" id="name" name="name" required placeholder="?ъ슜???대쫫">
                         </div>
                         <div class="form-field">
-                            <label for="role">역할</label>
+                            <label for="role">??븷</label>
                             <select id="role" name="role" required>
-                                <option value="ADMIN">ADMIN (관리자)</option>
-                                <option value="HR">HR (인사/급여)</option>
-                                <option value="INVENTORY">INVENTORY (재고/발주)</option>
+                                <option value="ADMIN">ADMIN (愿由ъ옄)</option>
+                                <option value="HR">HR (?몄궗/湲됱뿬)</option>
+                                <option value="INVENTORY">INVENTORY (?ш퀬/諛쒖＜)</option>
                             </select>
                         </div>
                         <div class="actions mt-4">
-                            <button type="submit" class="w-full">계정 생성</button>
+                            <button type="submit" class="w-full">怨꾩젙 ?앹꽦</button>
                         </div>
                     </form>
                     <p id="memberMessage" class="message mt-4"></p>
                 </section>
 
-                <!-- 계정 목록 섹션 -->
+                <!-- 怨꾩젙 紐⑸줉 ?뱀뀡 -->
                 <section class="panel">
-                    <h3>계정 목록</h3>
+                    <h3>怨꾩젙 紐⑸줉</h3>
                     <div class="table-shell">
                         <table class="data-table">
                             <thead>
                                 <tr>
                                     <th>ID</th>
-                                    <th>아이디</th>
-                                    <th>이름</th>
-                                    <th>역할</th>
-                                    <th>상태</th>
-                                    <th>생성일</th>
-                                    <th>관리</th>
+                                    <th>?꾩씠??/th>
+                                    <th>?대쫫</th>
+                                    <th>??븷</th>
+                                    <th>?곹깭</th>
+                                    <th>?앹꽦??/th>
+                                    <th>愿由?/th>
                                 </tr>
                             </thead>
                             <tbody id="memberTableBody">
-                                <!-- JS에서 렌더링 -->
+                                <!-- JS?먯꽌 ?뚮뜑留?-->
                                 <tr>
-                                    <td colspan="7" class="text-center p-8 text-muted">데이터를 불러오는 중...</td>
+                                    <td colspan="7" class="text-center p-8 text-muted">?곗씠?곕? 遺덈윭?ㅻ뒗 以?..</td>
                                 </tr>
                             </tbody>
                         </table>
@@ -99,17 +80,17 @@
             </div>
         </main>
     </div>
-
     <!-- Scripts -->
     <script src="../../services/common/session.js"></script>
     <script src="../../services/common/app-shell.js"></script>
-    <script src="../../services/admin/member-management.js"></script>
+        <script src="../../services/common/sidebar.js"></script>
+<script src="../../services/admin/member-management.js"></script>
     <script>
-        // 페이지 특화 초기화
+        // ?섏씠吏 ?뱁솕 珥덇린??
         document.addEventListener('DOMContentLoaded', function() {
             window.ddukAppShell.hydratePage({
-                title: "사용자 관리",
-                description: "시스템 접속 계정을 생성하고 권한을 관리합니다."
+                title: "?ъ슜??愿由?,
+                description: "?쒖뒪???묒냽 怨꾩젙???앹꽦?섍퀬 沅뚰븳??愿由ы빀?덈떎."
             });
         });
     </script>

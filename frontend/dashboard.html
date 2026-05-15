@@ -13,161 +13,8 @@
   <script src="/_sdk/resizing_sdk.js" type="text/javascript"></script>
 </head>
 
-<body data-template-id="__page-root" class="w-full"><!-- Sidebar -->
-  <aside class="sidebar" id="sidebar">
-    <div class="dduk-inline-001">
-      <div class="dduk-inline-002">
-        <h1 data-template-id="logo-text" class="canva-text dduk-inline-003"><img src="./assets/logo.png" alt="LOGO"></h1><button class="sidebar_icon_btn"
-          onclick="toggleSidebar()" aria-label="사이드바 닫기"><i class="dduk-inline-004"
-            data-lucide="panel-left-close"></i></button>
-      </div><!-- Workspace -->
-      <div class="dduk-inline-005"><span data-template-id="workspace-name" class="canva-text dduk-inline-006">(주) 업체명</span> <i
-          class="dduk-inline-007" data-lucide="chevron-down"></i>
-      </div><!-- Quick Actions -->
-      <div class="dduk-inline-008"><button class="sidebar_icon_btn" aria-label="AI"><i class="dduk-inline-009"
-            data-lucide="bot"></i></button> <button class="sidebar_icon_btn" aria-label="OCR"><i class="dduk-inline-009"
-            data-lucide="scan"></i></button> <button class="sidebar_icon_btn" aria-label="승인"><i class="dduk-inline-009"
-            data-lucide="check-circle"></i></button> <button class="sidebar_icon_btn" aria-label="설정"><i
-            class="dduk-inline-009" data-lucide="settings"></i></button>
-      </div><!-- Recent -->
-      <div class="recent_group dduk-inline-010">
-        <button class="recent_header dduk-inline-011" type="button" onclick="toggleRecentMenu()" aria-expanded="true">
-          <span>최근 사용</span><i class="dduk-inline-015" data-lucide="chevron-up" id="icon_recent"></i>
-        </button>
-        <div class="recent_items" id="recent_menu_items"></div>
-      </div>
-    </div><!-- Nav Menu -->
-    <nav class="dduk-inline-013">
-      <div class="menu_item active">
-        <i class="dduk-inline-012" data-lucide="layout-dashboard"></i>대시보드
-      </div>
-      <div class="menu_group_title dduk-inline-014" onclick="toggleMenu('menu_purchase')">
-        구매/발주 <i class="dduk-inline-015" data-lucide="chevron-down" id="icon_purchase"></i>
-      </div>
-      <div class="submenu collapsed dduk-inline-016" id="menu_purchase">
-        <div class="menu_item">
-          <i class="dduk-inline-012" data-lucide="bar-chart-3"></i>구매/발주 대시보드
-        </div>
-        <div class="menu_item">
-          <i class="dduk-inline-012" data-lucide="file-plus"></i>발주 요청
-        </div>
-        <div class="menu_item">
-          <i class="dduk-inline-012" data-lucide="clipboard-list"></i>발주 관리
-        </div>
-        <div class="menu_item">
-          <i class="dduk-inline-012" data-lucide="package-check"></i>입고 등록
-        </div>
-        <div class="menu_item">
-          <i class="dduk-inline-012" data-lucide="building"></i>거래처 관리
-        </div>
-      </div>
-      <div class="menu_group_title dduk-inline-014" onclick="toggleMenu('menu_inventory')">
-        재고관리 <i class="dduk-inline-015" data-lucide="chevron-down" id="icon_inventory"></i>
-      </div>
-      <div class="submenu collapsed dduk-inline-016" id="menu_inventory">
-        <div class="menu_item">
-          <i class="dduk-inline-012" data-lucide="bar-chart-3"></i>재고관리 대시보드
-        </div>
-        <div class="menu_item">
-          <i class="dduk-inline-012" data-lucide="search"></i>재고 조회
-        </div>
-        <div class="menu_item">
-          <i class="dduk-inline-012" data-lucide="history"></i>입출고 이력
-        </div>
-        <div class="menu_item">
-          <i class="dduk-inline-012" data-lucide="truck"></i>창고 이동
-        </div>
-        <div class="menu_item">
-          <i class="dduk-inline-012" data-lucide="zap"></i>자동 발주 추천
-        </div>
-      </div>
-      <div class="menu_group_title dduk-inline-014" onclick="toggleMenu('menu_accounting')">
-        회계관리 <i class="dduk-inline-015" data-lucide="chevron-down" id="icon_accounting"></i>
-      </div>
-      <div class="submenu collapsed dduk-inline-017" id="menu_accounting">
-        <div class="menu_item">
-          <i class="dduk-inline-012" data-lucide="bar-chart-3"></i>회계 대시보드
-        </div>
-        <div class="menu_item">
-          <i class="dduk-inline-012" data-lucide="receipt"></i>세금계산서
-        </div>
-        <div class="menu_item">
-          <i class="dduk-inline-012" data-lucide="credit-card"></i>비용 처리
-        </div>
-        <div class="menu_item">
-          <i class="dduk-inline-012" data-lucide="trending-up"></i>매입/매출
-        </div>
-        <div class="menu_item">
-          <i class="dduk-inline-012" data-lucide="calendar"></i>월별 정산
-        </div>
-        <div class="menu_item">
-          <i class="dduk-inline-012" data-lucide="wallet"></i>급여 계산
-        </div>
-        <div class="menu_item">
-          <i class="dduk-inline-012" data-lucide="file-bar-chart"></i>회계 리포트
-        </div>
-      </div>
-      <div class="menu_group_title dduk-inline-014" onclick="toggleMenu('menu_docs')">
-        문서/증빙 <i class="dduk-inline-015" data-lucide="chevron-down" id="icon_docs"></i>
-      </div>
-      <div class="submenu collapsed dduk-inline-018" id="menu_docs">
-        <div class="menu_item">
-          <i class="dduk-inline-012" data-lucide="upload"></i>증빙 업로드
-        </div>
-        <div class="menu_item">
-          <i class="dduk-inline-012" data-lucide="scan"></i>OCR 문서함
-        </div>
-        <div class="menu_item">
-          <i class="dduk-inline-012" data-lucide="file-signature"></i>계약 문서
-        </div>
-      </div>
-      <div class="menu_group_title dduk-inline-014" onclick="toggleMenu('menu_ai')">
-        AI 업무지원 <i class="dduk-inline-015" data-lucide="chevron-down" id="icon_ai"></i>
-      </div>
-      <div class="submenu collapsed dduk-inline-018" id="menu_ai">
-        <div class="menu_item">
-          <i class="dduk-inline-012" data-lucide="bot"></i>AI 챗봇
-        </div>
-        <div class="menu_item">
-          <i class="dduk-inline-012" data-lucide="alert-triangle"></i>이상 탐지
-        </div>
-        <div class="menu_item">
-          <i class="dduk-inline-012" data-lucide="brain"></i>예측 분석
-        </div>
-      </div>
-      <div class="menu_group_title dduk-inline-014" onclick="toggleMenu('menu_admin')">
-        관리자 <i class="dduk-inline-015" data-lucide="chevron-down" id="icon_admin"></i>
-      </div>
-      <div class="submenu collapsed dduk-inline-016" id="menu_admin">
-        <div class="menu_item">
-          <i class="dduk-inline-012" data-lucide="users"></i>사용자 관리
-        </div>
-        <div class="menu_item">
-          <i class="dduk-inline-012" data-lucide="shield"></i>권한 관리
-        </div>
-        <div class="menu_item">
-          <i class="dduk-inline-012" data-lucide="scroll"></i>시스템 로그
-        </div>
-        <div class="menu_item">
-          <i class="dduk-inline-012" data-lucide="server"></i>서버 모니터링
-        </div>
-      </div>
-    </nav><!-- Bottom -->
-    <div class="dduk-inline-019">
-      <div class="dduk-inline-020">
-        <div class="dduk-inline-021">
-          <i class="dduk-inline-022" data-lucide="user"></i>
-        </div>
-        <div>
-          <p class="dduk-inline-023">김도연</p>
-          <p class="dduk-inline-024">관리자</p>
-        </div>
-      </div>
-      <div class="dduk-inline-025"><span class="status_dot dduk-inline-026"></span> <span class="dduk-inline-024">서버 정상
-          · 99.9% uptime</span>
-      </div>
-    </div>
-  </aside><!-- Main -->
+<body data-template-id="__page-root" class="w-full">
+  <aside data-dduk-sidebar></aside><!-- Main -->
   <div class="main_wrap"><!-- Topbar -->
     <header class="topbar"><button class="sidebar_icon_btn dduk-inline-027" onclick="toggleSidebar()"
         id="mobile_menu_btn" aria-label="메뉴"><i class="dduk-inline-028" data-lucide="menu"></i></button>
@@ -368,9 +215,8 @@
     </main>
   </div>
   <script src="/_sdk/editing_sdk.js"></script>
+  <script src="services/common/sidebar.js"></script>
   <script>
-    const RECENT_MENU_KEY = 'dduk_dashboard_recent_menu';
-    const RECENT_MENU_TTL = 3 * 24 * 60 * 60 * 1000;
     const SALES_HALF_DATA = {
       first: {
         title: '상반기 매출 추이',
@@ -401,105 +247,6 @@
         ]
       }
     };
-
-    lucide.createIcons();
-
-    function toggleMenu(id) {
-      const el = document.getElementById(id);
-      if (!el) return;
-
-      const shouldOpen = el.classList.contains('collapsed');
-      document.querySelectorAll('.submenu').forEach(submenu => {
-        if (submenu.id !== id) {
-          submenu.classList.add('collapsed');
-          updateMenuIcon(submenu.id, false);
-        }
-      });
-      el.classList.toggle('collapsed', !shouldOpen);
-      updateMenuIcon(id, shouldOpen);
-    }
-
-    function updateMenuIcon(id, isOpen) {
-      const icon = document.getElementById('icon_' + id.replace('menu_', ''));
-      if (!icon) return;
-      icon.setAttribute('data-lucide', isOpen ? 'chevron-up' : 'chevron-down');
-      lucide.createIcons();
-    }
-
-    function toggleRecentMenu() {
-      const items = document.getElementById('recent_menu_items');
-      const icon = document.getElementById('icon_recent');
-      const header = document.querySelector('.recent_header');
-      if (!items || !icon) return;
-
-      const isCollapsed = items.classList.toggle('collapsed');
-      icon.setAttribute('data-lucide', isCollapsed ? 'chevron-down' : 'chevron-up');
-      if (header) header.setAttribute('aria-expanded', String(!isCollapsed));
-      lucide.createIcons();
-    }
-
-    function getMenuLabel(menuItem) {
-      return Array.from(menuItem.childNodes)
-        .filter(node => node.nodeType === Node.TEXT_NODE)
-        .map(node => node.textContent.trim())
-        .join(' ')
-        .trim();
-    }
-
-    function readRecentMenus() {
-      const now = Date.now();
-      try {
-        return JSON.parse(localStorage.getItem(RECENT_MENU_KEY) || '[]')
-          .filter(item => item.expiresAt > now)
-          .sort((a, b) => b.usedAt - a.usedAt)
-          .slice(0, 5);
-      } catch (error) {
-        localStorage.removeItem(RECENT_MENU_KEY);
-        return [];
-      }
-    }
-
-    function writeRecentMenus(items) {
-      localStorage.setItem(RECENT_MENU_KEY, JSON.stringify(items));
-    }
-
-    function addRecentMenu(menuItem) {
-      if (menuItem.closest('.recent_group')) return;
-
-      const label = getMenuLabel(menuItem);
-      if (!label) return;
-
-      const icon = menuItem.querySelector('[data-lucide]');
-      const iconName = icon ? icon.getAttribute('data-lucide') : 'circle';
-      const now = Date.now();
-      const items = readRecentMenus().filter(item => item.label !== label);
-      items.unshift({
-        label,
-        iconName,
-        usedAt: now,
-        expiresAt: now + RECENT_MENU_TTL
-      });
-      writeRecentMenus(items.slice(0, 5));
-      renderRecentMenus();
-    }
-
-    function renderRecentMenus() {
-      const container = document.getElementById('recent_menu_items');
-      if (!container) return;
-
-      const items = readRecentMenus();
-      if (items.length === 0) {
-        container.innerHTML = '<div class="recent_empty">최근 사용한 메뉴가 없습니다.</div>';
-        return;
-      }
-
-      container.innerHTML = items.map(item => `
-            <div class="menu_item recent_menu_item">
-                <i class="dduk-inline-012" data-lucide="${item.iconName}"></i>${item.label}
-            </div>
-        `).join('');
-      lucide.createIcons();
-    }
 
     function renderSalesHalf(half) {
       const data = SALES_HALF_DATA[half] || SALES_HALF_DATA.first;
@@ -534,27 +281,10 @@
       });
     }
 
-    function toggleSidebar() {
-      document.getElementById('sidebar').classList.toggle('open');
-    }
-
-    // Show mobile menu button
-    function checkMobile() {
-      const btn = document.getElementById('mobile_menu_btn');
-      if (window.innerWidth <= 1024) { btn.style.display = 'flex'; }
-      else { btn.style.display = 'none'; }
-    }
-    checkMobile();
-    window.addEventListener('resize', checkMobile);
-    document.querySelectorAll('.submenu').forEach(submenu => updateMenuIcon(submenu.id, !submenu.classList.contains('collapsed')));
-    document.querySelectorAll('.menu_item').forEach(menuItem => {
-      menuItem.addEventListener('click', () => addRecentMenu(menuItem));
-    });
     document.querySelectorAll('[data-sales-half]').forEach(button => {
       button.addEventListener('click', () => renderSalesHalf(button.dataset.salesHalf));
     });
     renderSalesHalf('first');
-    renderRecentMenus();
   </script>
   <script>(function () { function c() { var b = a.contentDocument || a.contentWindow.document; if (b) { var d = b.createElement('script'); d.innerHTML = "window.__CF$cv$params={r:'9fb8227b560ec7b5',t:'MTc3ODc0MzE2Ny4wMDAwMDA='};var a=document.createElement('script');a.nonce='';a.src='/cdn-cgi/challenge-platform/scripts/jsd/main.js';document.getElementsByTagName('head')[0].appendChild(a);"; b.getElementsByTagName('head')[0].appendChild(d) } } if (document.body) { var a = document.createElement('iframe'); a.height = 1; a.width = 1; a.style.position = 'absolute'; a.style.top = 0; a.style.left = 0; a.style.border = 'none'; a.style.visibility = 'hidden'; document.body.appendChild(a); if ('loading' !== document.readyState) c(); else if (window.addEventListener) document.addEventListener('DOMContentLoaded', c); else { var e = document.onreadystatechange || function () { }; document.onreadystatechange = function (b) { e(b); 'loading' !== document.readyState && (document.onreadystatechange = e, c()) } } } })();</script>
 </body>
