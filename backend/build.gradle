@@ -25,6 +25,11 @@ dependencies {
     implementation 'org.springframework.boot:spring-boot-starter-data-jpa'
     implementation 'org.springframework.boot:spring-boot-starter-security'
     implementation 'org.springframework.boot:spring-boot-starter-web'
+    // YAML 설정값들을 자바 객체로 바인딩하기 위해 필수
+    annotationProcessor "org.springframework.boot:spring-boot-configuration-processor"
+    implementation 'io.github.cdimascio:dotenv-java:3.0.0'
+    // implementation 'io.github.cdimascio:dotenv-spring-boot-starter:3.0.0'
+
     
     // JWT를 위한 라이브러리 추가
     implementation 'io.jsonwebtoken:jjwt-api:0.11.5'
