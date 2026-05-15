@@ -10,8 +10,6 @@ import org.springframework.transaction.annotation.Transactional;
 
 import java.math.BigDecimal;
 import java.math.RoundingMode;
-import java.util.ArrayList;
-import java.util.List;
 import java.util.Map;
 
 @Service
@@ -67,7 +65,7 @@ public class PayrollService {
         BigDecimal netPay = grossPay.subtract(totalDeductions);
 
         Payroll payroll = payrollRepository.findByEmployeeIdAndPayMonth(employeeId, payMonth)
-                .orElse(new Payroll());
+                .orElseGet(Payroll::new);
 
         payroll.setEmployee(employee);
         payroll.setPayMonth(payMonth);

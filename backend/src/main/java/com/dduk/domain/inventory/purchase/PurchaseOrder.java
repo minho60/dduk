@@ -1,6 +1,7 @@
 package com.dduk.domain.inventory.purchase;
 
-import com.dduk.domain.member.Member;
+import com.dduk.entity.admin.Member;
+import com.dduk.domain.inventory.warehouse.Warehouse;
 import com.dduk.domain.inventory.vendor.Vendor;
 import jakarta.persistence.*;
 import lombok.*;
@@ -31,7 +32,7 @@ public class PurchaseOrder {
 
     @ManyToOne(fetch = FetchType.LAZY)
     @JoinColumn(name = "warehouse_id", nullable = false)
-    private com.dduk.domain.inventory.warehouse.Warehouse warehouse;
+    private Warehouse warehouse;
 
     @Enumerated(EnumType.STRING)
     @Column(nullable = false)

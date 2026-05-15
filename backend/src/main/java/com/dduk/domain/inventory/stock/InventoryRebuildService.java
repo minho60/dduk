@@ -5,8 +5,7 @@ import lombok.RequiredArgsConstructor;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
-import java.util.List;
-import java.util.stream.Collectors;
+import java.math.BigDecimal;
 
 @Service
 @RequiredArgsConstructor
@@ -32,7 +31,7 @@ public class InventoryRebuildService {
             // Create an adjustment movement to reflect the rebuild mathematically
             int difference = dto.getCalculatedStock() - oldStock;
             MovementType type = difference > 0 ? MovementType.INBOUND : MovementType.OUTBOUND;
-            java.math.BigDecimal cost = inv.getAverageCost();
+            BigDecimal cost = inv.getAverageCost();
             
             StockMovement rebuildMovement = StockMovement.builder()
                     .item(inv.getItem())
@@ -41,7 +40,7 @@ public class InventoryRebuildService {
                     .movementReason(MovementReason.REBUILD_ADJUSTMENT)
                     .referenceNo("REBUILD-" + System.currentTimeMillis())
                     .unitCost(cost)
-                    .totalAmount(cost.multiply(java.math.BigDecimal.valueOf(Math.abs(difference))))
+                    .totalAmount(cost.multiply(BigDecimal.valueOf(Math.abs(difference))))
                     .quantity(Math.abs(difference))
                     .beforeQuantity(oldStock)
                     .afterQuantity(dto.getCalculatedStock())

@@ -4,6 +4,7 @@ import com.dduk.domain.inventory.item.Inventory;
 import org.springframework.data.jpa.repository.JpaRepository;
 import org.springframework.data.jpa.repository.Query;
 
+import java.math.BigDecimal;
 import java.util.List;
 import java.util.Optional;
 
@@ -21,7 +22,7 @@ public interface InventoryRepository extends JpaRepository<Inventory, Long> {
     Long getTotalStockQuantity();
 
     @Query("SELECT SUM(i.inventoryValue) FROM Inventory i")
-    java.math.BigDecimal getTotalInventoryValue();
+    BigDecimal getTotalInventoryValue();
 
     @Query("SELECT COUNT(i) FROM Inventory i WHERE i.currentStock <= i.safetyStock")
     Long countLowStockItems();

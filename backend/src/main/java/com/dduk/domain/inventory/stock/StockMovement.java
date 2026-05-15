@@ -7,6 +7,7 @@ import com.dduk.domain.inventory.warehouse.Warehouse;
 import jakarta.persistence.*;
 import lombok.*;
 
+import java.math.BigDecimal;
 import java.time.LocalDateTime;
 
 @Entity
@@ -41,10 +42,10 @@ public class StockMovement {
     private String referenceNo;
 
     @Column(name = "unit_cost", nullable = false, precision = 19, scale = 4)
-    private java.math.BigDecimal unitCost;
+    private BigDecimal unitCost;
 
     @Column(name = "total_amount", nullable = false, precision = 19, scale = 4)
-    private java.math.BigDecimal totalAmount;
+    private BigDecimal totalAmount;
 
     @Column(name = "source_type", updatable = false)
     private String sourceType;

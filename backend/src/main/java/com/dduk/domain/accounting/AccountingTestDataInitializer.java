@@ -2,8 +2,6 @@ package com.dduk.domain.accounting;
 
 import com.dduk.domain.accounting.journal.AccountingService;
 import com.dduk.domain.accounting.journal.JournalLineRequest;
-import com.dduk.domain.accounting.ledger.Account;
-import com.dduk.domain.accounting.ledger.AccountRepository;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.beans.factory.annotation.Value;
@@ -28,7 +26,6 @@ import java.util.List;
 public class AccountingTestDataInitializer {
 
     private final AccountingService accountingService;
-    private final AccountRepository accountRepository;
 
     @Value("${app.accounting.seed:false}")
     private boolean seedEnabled;

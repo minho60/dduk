@@ -1,7 +1,7 @@
-package com.dduk.dto.inventory;
+package com.dduk.domain.inventory.purchase.dto;
 
-import com.dduk.entity.inventory.PurchaseOrder;
-import com.dduk.entity.inventory.PurchaseOrderItem;
+import com.dduk.domain.inventory.purchase.PurchaseOrder;
+import com.dduk.domain.inventory.purchase.PurchaseOrderItem;
 import lombok.Builder;
 import lombok.Getter;
 
@@ -34,13 +34,13 @@ public class PurchaseRequestResponseDto {
         return PurchaseRequestResponseDto.builder()
                 .purchaseOrderId(purchaseOrder.getId())
                 .purchaseOrderNo(purchaseOrder.getPurchaseOrderNo())
-                .status(purchaseOrder.getStatus())
+                .status(purchaseOrder.getStatus().name())
                 .itemId(purchaseOrderItem.getItem().getId())
                 .itemName(purchaseOrderItem.getItem().getName())
                 .vendorId(purchaseOrder.getVendor().getId())
                 .vendorName(purchaseOrder.getVendor().getName())
-                .requestedByMemberId(purchaseOrder.getRequestedBy().getId())
-                .requestedByMemberName(purchaseOrder.getRequestedBy().getName())
+                .requestedByMemberId(purchaseOrder.getRequestedBy() != null ? purchaseOrder.getRequestedBy().getId() : null)
+                .requestedByMemberName(purchaseOrder.getRequestedBy() != null ? purchaseOrder.getRequestedBy().getName() : null)
                 .quantity(purchaseOrderItem.getQuantity())
                 .unit(purchaseOrderItem.getUnit())
                 .unitPrice(purchaseOrderItem.getUnitPrice())

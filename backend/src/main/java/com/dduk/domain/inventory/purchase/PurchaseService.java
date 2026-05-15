@@ -33,7 +33,6 @@ import java.util.List;
 public class PurchaseService {
 
     private final PurchaseOrderRepository purchaseOrderRepository;
-    private final PurchaseOrderItemRepository purchaseOrderItemRepository;
     private final VendorRepository vendorRepository;
     private final MemberRepository memberRepository;
     private final ItemRepository itemRepository;
@@ -181,7 +180,66 @@ public class PurchaseService {
                 .orElseThrow(() -> new ResponseStatusException(HttpStatus.NOT_FOUND, "사용자를 찾을 수 없습니다."));
     }
 
+    @Transactional
+    public PurchaseRequestResponseDto createPurchaseRequest(PurchaseRequestCreateDto requestDto, Long requestedByMemberId) {
+        validatePurchaseRequest(requestDto, requestedByMemberId);
+
+        Item item = itemRepository.findById(requestDto.getItemId())
+                .orElseThrow(() -> new ResponseStatusException(HttpStatus.NOT_FOUND, "품목을 찾을 수 없습니다."));
+        Vendor vendor = vendorRepository.findById(requestDto.getVendorId())
+                .orElseThrow(() -> new ResponseStatusException(HttpStatus.NOT_FOUND, "거래처를 찾을 수 없습니다."));
+        Member requestedBy = findMember(requestedByMemberId);
+        
+        Warehouse warehouse = warehouseRepository.findAll().stream().findFirst()
+                .orElseThrow(() -> new ResponseStatusException(HttpStatus.INTERNAL_SERVER_ERROR, "등록된 창고가 없습니다."));
+
+        BigDecimal unitPrice = requestDto.getUnitPrice().setScale(2, RoundingMode.HALF_UP);
+        BigDecimal supplyAmount = unitPrice.multiply(BigDecimal.valueOf(requestDto.getQuantity())).setScale(2, RoundingMode.HALF_UP);
+        BigDecimal taxAmount = supplyAmount.multiply(TAX_RATE).setScale(2, RoundingMode.HALF_UP);
+        BigDecimal totalAmount = supplyAmount.add(taxAmount);
+
+        PurchaseOrder purchaseOrder = PurchaseOrder.builder()
+                .purchaseOrderNo(generatePurchaseRequestNo())
+                .vendor(vendor)
+                .warehouse(warehouse)
+                .requestedBy(requestedBy)
+                .orderDate(LocalDate.now())
+                .expectedDate(requestDto.getExpectedDate())
+                .status(PurchaseStatus.DRAFT) // 요청 상태를 DRAFT로 매핑 (혹은 REQUESTED 추가 가능)
+                .totalAmount(totalAmount)
+                .note(requestDto.getNote())
+                .build();
+
+        PurchaseOrderItem orderItem = PurchaseOrderItem.builder()
+                .purchaseOrder(purchaseOrder)
+                .item(item)
+                .quantity(requestDto.getQuantity())
+                .unit(item.getUnit())
+                .unitPrice(unitPrice)
+                .supplyAmount(supplyAmount)
+                .taxAmount(taxAmount)
+                .lineAmount(totalAmount)
+                .expectedDate(requestDto.getExpectedDate())
+                .note(requestDto.getNote())
+                .build();
+
+        purchaseOrder.getItems().add(orderItem);
+        PurchaseOrder savedOrder = purchaseOrderRepository.save(purchaseOrder);
+        
+        return PurchaseRequestResponseDto.from(savedOrder, orderItem);
+    }
+
+    private void validatePurchaseRequest(PurchaseRequestCreateDto requestDto, Long requestedByMemberId) {
+        if (requestDto == null || requestDto.getItemId() == null || requestDto.getVendorId() == null || requestedByMemberId == null) {
+            throw new ResponseStatusException(HttpStatus.BAD_REQUEST, "구매 요청 정보가 부족합니다.");
+        }
+    }
+
     private String generatePurchaseOrderNo() {
         return "PO-" + LocalDate.now().format(DateTimeFormatter.BASIC_ISO_DATE) + "-" + System.currentTimeMillis();
+    }
+
+    private String generatePurchaseRequestNo() {
+        return "PR-" + LocalDate.now().format(DateTimeFormatter.BASIC_ISO_DATE) + "-" + System.currentTimeMillis();
     }
 }

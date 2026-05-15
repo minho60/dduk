@@ -5,6 +5,9 @@ import com.fasterxml.jackson.annotation.JsonIgnoreProperties;
 import com.dduk.domain.inventory.warehouse.Warehouse;
 import jakarta.persistence.*;
 import lombok.*;
+
+import java.math.BigDecimal;
+import java.math.RoundingMode;
 import java.time.LocalDateTime;
 
 @Entity
@@ -38,10 +41,10 @@ public class Inventory {
     private Integer allocatedStock; // 예약수량
 
     @Column(name = "average_cost", nullable = false, precision = 19, scale = 4)
-    private java.math.BigDecimal averageCost;
+    private BigDecimal averageCost;
 
     @Column(name = "inventory_value", nullable = false, precision = 19, scale = 4)
-    private java.math.BigDecimal inventoryValue;
+    private BigDecimal inventoryValue;
 
     @Column(name = "updated_at", nullable = false)
     private LocalDateTime updatedAt;
@@ -53,17 +56,17 @@ public class Inventory {
         return currentStock - allocatedStock;
     }
 
-    public void increaseStock(int amount, java.math.BigDecimal unitCost) {
+    public void increaseStock(int amount, BigDecimal unitCost) {
         if (amount < 0) throw new IllegalArgumentException("Amount must be positive");
         
-        java.math.BigDecimal totalCostOfNewItems = unitCost.multiply(java.math.BigDecimal.valueOf(amount));
-        java.math.BigDecimal currentTotalValue = this.inventoryValue != null ? this.inventoryValue : java.math.BigDecimal.ZERO;
+        BigDecimal totalCostOfNewItems = unitCost.multiply(BigDecimal.valueOf(amount));
+        BigDecimal currentTotalValue = this.inventoryValue != null ? this.inventoryValue : BigDecimal.ZERO;
         
         int newTotalQty = this.currentStock + amount;
-        java.math.BigDecimal newTotalValue = currentTotalValue.add(totalCostOfNewItems);
+        BigDecimal newTotalValue = currentTotalValue.add(totalCostOfNewItems);
         
         if (newTotalQty > 0) {
-            this.averageCost = newTotalValue.divide(java.math.BigDecimal.valueOf(newTotalQty), 4, java.math.RoundingMode.HALF_UP);
+            this.averageCost = newTotalValue.divide(BigDecimal.valueOf(newTotalQty), 4, RoundingMode.HALF_UP);
         }
         
         this.currentStock = newTotalQty;
@@ -76,7 +79,7 @@ public class Inventory {
         
         this.currentStock -= amount;
         // When decreasing stock, we use the current average cost to reduce the inventory value
-        this.inventoryValue = this.averageCost.multiply(java.math.BigDecimal.valueOf(this.currentStock));
+        this.inventoryValue = this.averageCost.multiply(BigDecimal.valueOf(this.currentStock));
     }
 
     @PrePersist
@@ -86,7 +89,7 @@ public class Inventory {
         if (currentStock == null) currentStock = 0;
         if (safetyStock == null) safetyStock = 0;
         if (allocatedStock == null) allocatedStock = 0;
-        if (averageCost == null) averageCost = java.math.BigDecimal.ZERO;
-        if (inventoryValue == null) inventoryValue = java.math.BigDecimal.ZERO;
+        if (averageCost == null) averageCost = BigDecimal.ZERO;
+        if (inventoryValue == null) inventoryValue = BigDecimal.ZERO;
     }
 }
