@@ -5,14 +5,86 @@
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
   <title>DDUK ERP - 로그인</title>
+  <meta name="description" content="DDUK ERP - 스마트한 기업 운영 시스템 로그인">
   <link rel="stylesheet" href="styles/admin/login.css">
 </head>
 
 <body>
-  <main class="login-page" aria-label="DDUK ERP 로그인">
+  <main class="login-page" aria-label="DDUK ERP 로그인" style="background-image: url(./assets/login_bg.png);">
+
+    <!-- 왼쪽 소개 패널 -->
+    <aside class="intro-panel" aria-label="DDUK ERP 소개">
+        <span class="logo-name">DDUK ERP</span>
+      </div>
+
+      <div class="intro-headline">
+        <h1>스마트한 기업 운영의 시작</h1>
+        <p>회계, 재고, 구매, 매출 데이터를<br>하나의 시스템으로 통합 관리하세요.</p>
+      </div>
+
+      <ul class="feature-list" aria-label="주요 기능">
+        <li class="feature-item">
+          <div class="feature-icon" aria-hidden="true">
+            <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round">
+              <line x1="18" y1="20" x2="18" y2="10"/>
+              <line x1="12" y1="20" x2="12" y2="4"/>
+              <line x1="6" y1="20" x2="6" y2="14"/>
+            </svg>
+          </div>
+          <div class="feature-text">
+            <strong>통합 데이터 관리</strong>
+            <span>모든 업무 데이터를 실시간으로 통합 관리</span>
+          </div>
+        </li>
+        <li class="feature-item">
+          <div class="feature-icon" aria-hidden="true">
+            <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round">
+              <rect x="5" y="2" width="14" height="20" rx="2"/>
+              <line x1="9" y1="7" x2="15" y2="7"/>
+              <line x1="9" y1="11" x2="15" y2="11"/>
+              <line x1="9" y1="15" x2="13" y2="15"/>
+            </svg>
+          </div>
+          <div class="feature-text">
+            <strong>업무 효율성 향상</strong>
+            <span>반복 업무 자동화로 생산성 극대화</span>
+          </div>
+        </li>
+        <li class="feature-item">
+          <div class="feature-icon" aria-hidden="true">
+            <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round">
+              <path d="M12 22s8-4 8-10V5l-8-3-8 3v7c0 6 8 10 8 10z"/>
+            </svg>
+          </div>
+          <div class="feature-text">
+            <strong>안정적인 시스템</strong>
+            <span>검증된 보안과 안정적인 시스템 운영</span>
+          </div>
+        </li>
+        <li class="feature-item">
+          <div class="feature-icon" aria-hidden="true">
+            <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round">
+              <circle cx="12" cy="12" r="10"/>
+              <polyline points="12 6 12 12 16 14"/>
+            </svg>
+          </div>
+          <div class="feature-text">
+            <strong>실시간 의사결정 지원</strong>
+            <span>정확한 데이터 기반의 빠른 의사결정 지원</span>
+          </div>
+        </li>
+      </ul>
+
+      <div class="system-status" role="status">
+        <div class="status-row">
+          <span class="status-dot" aria-hidden="true"></span>
+          <span class="status-label">System Online</span>
+        </div>
+        <span class="status-version">v2.4 Enterprise Edition</span>
+      </div>
+    </aside>
     <section class="login-card" aria-label="로그인">
       <header class="login-header">
-        <p class="product-name">DDUK ERP</p>
         <h1>로그인</h1>
         <p>시스템 접근을 위해 계정 정보를 입력하세요</p>
       </header>
@@ -31,7 +103,7 @@
               <path d="M9 15h1" />
               <path d="M14 15h1" />
             </svg>
-            <input type="text" id="companyCode" name="companyCode" placeholder="회사 코드" autocomplete="organization">
+            <input type="text" id="companyCode" name="companyCode" placeholder="회사 코드" autocomplete="organization" value="DDK-AX92K">
           </div>
         </div>
 
@@ -66,16 +138,16 @@
 
         <div class="form-options">
           <label class="checkbox-label">
+            <input type="checkbox" name="saveCompanyCode" checked>
+            <span>회사코드 저장</span>
+          </label>
+          <label class="checkbox-label">
             <input type="checkbox" name="rememberId">
             <span>아이디 저장</span>
           </label>
-          <label class="checkbox-label">
-            <input type="checkbox" name="autoLogin">
-            <span>자동 로그인</span>
-          </label>
         </div>
 
-        <p class="security-note">공용 PC에서는 자동 로그인을 사용하지 마세요</p>
+        <p class="security-note">공용 PC에서는 로그인 정보를 저장하지 마세요</p>
 
         <button type="submit" id="loginBtn">로그인</button>
       </form>
@@ -83,7 +155,6 @@
       <p id="message" class="message" aria-live="polite"></p>
 
       <footer class="login-footer">
-        <span>ERP v2.4 Enterprise System</span>
         <span>모든 접속 기록은 저장됩니다</span>
       </footer>
     </section>

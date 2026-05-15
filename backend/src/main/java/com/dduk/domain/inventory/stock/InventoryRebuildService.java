@@ -31,13 +31,17 @@ public class InventoryRebuildService {
 
             // Create an adjustment movement to reflect the rebuild mathematically
             int difference = dto.getCalculatedStock() - oldStock;
-            MovementType type = difference > 0 ? MovementType.IN : MovementType.OUT;
+            MovementType type = difference > 0 ? MovementType.INBOUND : MovementType.OUTBOUND;
+            java.math.BigDecimal cost = inv.getAverageCost();
             
             StockMovement rebuildMovement = StockMovement.builder()
                     .item(inv.getItem())
                     .warehouse(inv.getWarehouse())
                     .movementType(type)
                     .movementReason(MovementReason.REBUILD_ADJUSTMENT)
+                    .referenceNo("REBUILD-" + System.currentTimeMillis())
+                    .unitCost(cost)
+                    .totalAmount(cost.multiply(java.math.BigDecimal.valueOf(Math.abs(difference))))
                     .quantity(Math.abs(difference))
                     .beforeQuantity(oldStock)
                     .afterQuantity(dto.getCalculatedStock())

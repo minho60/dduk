@@ -29,8 +29,8 @@
             <section class="hr_grid">
                 <form class="hr_card span_8" id="journal_form">
                     <div class="hr_card_header">
-                        <h3>전표 정보</h3>
-                        <span class="hr_badge warn">계정 코드는 백엔드 계정과목 기준</span>
+                        <h3>전표 등록</h3>
+                        <span class="hr_badge warn" id="balance_badge">차대 불일치</span>
                     </div>
                     <div class="hr_form_grid">
                         <div class="hr_field">
@@ -43,20 +43,99 @@
                         </div>
                     </div>
                     <div class="journal_items" id="journal_items" style="margin-top: 16px;"></div>
+                    
+                    <div class="hr_summary_bar" style="margin-top: 16px; padding: 12px; background: #f8f9fa; border-radius: 4px; display: flex; justify-content: space-between; align-items: center;">
+                        <div>
+                            <span>차변 합계: <strong id="sum_debit">0</strong></span>
+                            <span style="margin-left: 20px;">대변 합계: <strong id="sum_credit">0</strong></span>
+                        </div>
+                        <div id="validation_msg" class="hr_text_error" style="font-weight: bold;">차대 금액이 일치하지 않습니다.</div>
+                    </div>
+
                     <div class="hr_actions" style="margin-top: 16px;">
-                        <button class="hr_button primary" type="submit"><i data-lucide="send"></i>전표 생성</button>
+                        <button class="hr_button primary" type="submit" id="btn_submit_journal" disabled><i data-lucide="send"></i>전표 생성</button>
                     </div>
                 </form>
 
                 <article class="hr_card span_4">
                     <div class="hr_card_header">
-                        <h3>처리 결과</h3>
+                        <h3>도움말</h3>
                     </div>
-                    <div class="hr_status" id="page_status"></div>
-                    <pre class="hr_result" id="journal_result">전표 생성 결과가 여기에 표시됩니다.</pre>
+                    <div class="hr_help_content">
+                        <ul style="padding-left: 20px; color: #666; font-size: 0.9em;">
+                            <li>차변과 대변의 합계가 반드시 일치해야 합니다.</li>
+                            <li>계정 코드는 백엔드에 등록된 유효한 코드여야 합니다.</li>
+                            <li>기표(POSTED)된 전표는 수정/삭제가 불가능하며 역분개만 가능합니다.</li>
+                        </ul>
+                    </div>
+                </article>
+
+                <!-- 전표 목록 섹션 추가 -->
+                <article class="hr_card span_12">
+                    <div class="hr_card_header">
+                        <h3>최근 전표 목록</h3>
+                        <div class="hr_card_actions">
+                            <button class="hr_button" id="btn_refresh_journals"><i data-lucide="refresh-cw"></i></button>
+                        </div>
+                    </div>
+                    <table class="hr_table">
+                        <thead>
+                            <tr>
+                                <th>일자</th>
+                                <th>전표번호</th>
+                                <th>설명</th>
+                                <th class="amount">차변 합계</th>
+                                <th class="amount">대변 합계</th>
+                                <th>상태</th>
+                                <th>작업</th>
+                            </tr>
+                        </thead>
+                        <tbody id="journal_list_rows"></tbody>
+                    </table>
                 </article>
             </section>
         </main>
+    </div>
+
+    <!-- 전표 상세 Modal -->
+    <div id="journal_detail_modal" class="hr_modal" style="display: none;">
+        <div class="hr_modal_content">
+            <div class="hr_modal_header">
+                <h3>전표 상세 내역</h3>
+                <button class="hr_close_btn" onclick="closeJournalModal()">&times;</button>
+            </div>
+            <div class="hr_modal_body">
+                <div class="hr_detail_info">
+                    <p><strong>전표번호:</strong> <span id="detail_journal_no">-</span></p>
+                    <p><strong>거래일자:</strong> <span id="detail_date">-</span></p>
+                    <p><strong>설명:</strong> <span id="detail_desc">-</span></p>
+                    <p><strong>상태:</strong> <span id="detail_status" class="hr_badge">-</span></p>
+                </div>
+                <table class="hr_table" style="margin-top: 16px;">
+                    <thead>
+                        <tr>
+                            <th>계정코드</th>
+                            <th>계정명</th>
+                            <th class="amount">차변</th>
+                            <th class="amount">대변</th>
+                            <th>라인 설명</th>
+                        </tr>
+                    </thead>
+                    <tbody id="detail_line_rows"></tbody>
+                    <tfoot>
+                        <tr style="background: #f8f9fa; font-weight: bold;">
+                            <td colspan="2" style="text-align: center;">합계</td>
+                            <td class="amount" id="detail_sum_debit">0</td>
+                            <td class="amount" id="detail_sum_credit">0</td>
+                            <td></td>
+                        </tr>
+                    </tfoot>
+                </table>
+            </div>
+            <div class="hr_modal_footer">
+                <button class="hr_button" onclick="closeJournalModal()">닫기</button>
+            </div>
+        </div>
     </div>
 
     <script src="../../../services/common/session.js"></script>

@@ -3,7 +3,6 @@ package com.dduk.domain.accounting.journal;
 import com.dduk.domain.accounting.AccountingConstants;
 import com.dduk.domain.accounting.ledger.Account;
 import com.dduk.domain.accounting.ledger.AccountRepository;
-import com.dduk.domain.hr.payroll.Payroll;
 import lombok.RequiredArgsConstructor;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
@@ -14,122 +13,226 @@ import java.util.ArrayList;
 import java.util.List;
 import java.util.Map;
 
+/**
+ * 회계 전표 서비스 (Accounting Engine Core)
+ *
+ * 상태 흐름:
+ *   DRAFT → APPROVED → POSTED → REVERSED
+ *
+ * - POSTED 이후 수정/삭제 불가 (immutable)
+ * - 역분개(REVERSED)는 새 전표 생성 + 원본 markReversed() 처리
+ */
 @Service
 @RequiredArgsConstructor
 public class AccountingService {
 
     private final JournalEntryRepository journalEntryRepository;
     private final AccountRepository accountRepository;
+    private final JournalValidationService journalValidationService;
 
-    @Transactional(rollbackFor = Exception.class)
-    public JournalEntry createAndPost(LocalDate date, String description, List<Map<String, Object>> items, String sourceType, Long sourceId) {
-        if (items == null || items.isEmpty()) {
-            throw new RuntimeException("분개 항목이 비어 있습니다.");
+    // ===================== CRUD / 조회 =====================
+
+    @Transactional(readOnly = true)
+    public JournalEntry findById(Long id) {
+        return journalEntryRepository.findById(id)
+                .orElseThrow(() -> new IllegalArgumentException("전표를 찾을 수 없습니다. id=" + id));
+    }
+
+    @Transactional(readOnly = true)
+    public List<JournalEntry> findAll() {
+        return journalEntryRepository.findAll();
+    }
+
+    @Transactional(readOnly = true)
+    public List<JournalEntry> findByFiscal(int year, int month) {
+        return journalEntryRepository.findByFiscalYearAndFiscalMonth(year, month);
+    }
+
+    @Transactional(readOnly = true)
+    public List<JournalEntry> findByStatus(String status) {
+        return journalEntryRepository.findByStatus(status);
+    }
+
+    // ===================== 전표 생성 =====================
+
+    /**
+     * 전표 생성 (DRAFT 상태)
+     */
+    @Transactional
+    public JournalEntry createJournal(LocalDate date, String description,
+                                      List<JournalLineRequest> lineRequests,
+                                      String sourceType, Long sourceId) {
+        journalValidationService.validatePeriodNotClosed(date);
+        journalValidationService.validateLines(lineRequests);
+
+        // 중복 전표 체크 (동일 원천)
+        if (sourceType != null && sourceId != null
+                && journalEntryRepository.existsBySourceTypeAndSourceId(sourceType, sourceId)) {
+            throw new IllegalStateException("이미 해당 원천에 대한 전표가 존재합니다: " + sourceType + " #" + sourceId);
         }
-
-        // 1. Fiscal Period Check (Mocked placeholder)
-        String yearMonth = date.toString().substring(0, 7);
-        if ("2026-04".equals(yearMonth)) { // Example: April is closed
-            throw new RuntimeException("마감된 회계 기간(" + yearMonth + ")에는 전표를 생성할 수 없습니다.");
-        }
-
-        BigDecimal debitSum = BigDecimal.ZERO;
-        BigDecimal creditSum = BigDecimal.ZERO;
 
         JournalEntry entry = JournalEntry.builder()
-                .journalNo("JRN-" + System.currentTimeMillis())
+                .journalNo(generateJournalNo())
                 .transactionDate(date)
                 .description(description)
-                .status(AccountingConstants.JOURNAL_STATUS_POSTED)
+                .status(AccountingConstants.JOURNAL_STATUS_DRAFT)
                 .sourceType(sourceType)
                 .sourceId(sourceId)
+                .totalDebit(BigDecimal.ZERO)
+                .totalCredit(BigDecimal.ZERO)
                 .build();
 
-        for (Map<String, Object> itemData : items) {
-            String accountCode = (String) itemData.get("accountCode");
-            BigDecimal amount = new BigDecimal(itemData.get("amount").toString());
-            String side = (String) itemData.get("side");
+        for (JournalLineRequest req : lineRequests) {
+            Account account = accountRepository.findByCode(req.getAccountCode())
+                    .orElseThrow(() -> new IllegalArgumentException("계정코드를 찾을 수 없습니다: " + req.getAccountCode()));
 
-            Account account = accountRepository.findByCode(accountCode)
-                    .orElseThrow(() -> new RuntimeException("계정 코드를 찾을 수 없습니다: " + accountCode));
-
-            JournalItem item = JournalItem.builder()
+            JournalLine line = JournalLine.builder()
                     .account(account)
-                    .amount(amount)
-                    .side(side)
+                    .debitAmount(req.getDebitAmount() != null ? req.getDebitAmount() : BigDecimal.ZERO)
+                    .creditAmount(req.getCreditAmount() != null ? req.getCreditAmount() : BigDecimal.ZERO)
+                    .description(req.getDescription())
+                    .referenceType(req.getReferenceType())
+                    .referenceId(req.getReferenceId())
                     .build();
-
-            entry.addItem(item);
-
-            if (AccountingConstants.SIDE_DEBIT.equals(side)) {
-                debitSum = debitSum.add(amount);
-            } else if (AccountingConstants.SIDE_CREDIT.equals(side)) {
-                creditSum = creditSum.add(amount);
-            }
-        }
-
-        // 2. Double Entry Validation
-        if (debitSum.compareTo(BigDecimal.ZERO) == 0 || creditSum.compareTo(BigDecimal.ZERO) == 0) {
-             throw new RuntimeException("금액은 0보다 커야 합니다.");
-        }
-
-        if (debitSum.compareTo(creditSum) != 0) {
-            throw new RuntimeException("차대 불일치: 차변(" + debitSum + ")과 대변(" + creditSum + ")의 합계가 일치해야 합니다.");
+            entry.addLine(line);
         }
 
         return journalEntryRepository.save(entry);
     }
 
-    /**
-     * 급여 정보를 바탕으로 회계 전표 생성
-     */
-    @Transactional(rollbackFor = Exception.class)
-    public JournalEntry createPayrollJournal(Payroll payroll) {
-        // 중복 전표 체크 (Source 기반)
-        if (journalEntryRepository.existsBySourceTypeAndSourceId(AccountingConstants.SOURCE_PAYROLL, payroll.getId())) {
-             throw new RuntimeException("이미 해당 급여에 대한 회계 전표가 존재합니다.");
-        }
+    // ===================== 상태 전이 =====================
 
-        String description = String.format("%s 급여 확정 반영 (사번: %s)", 
-            payroll.getPayMonth(), payroll.getEmployee().getEmployeeNo());
-        
-        List<Map<String, Object>> items = new ArrayList<>();
-        items.add(Map.of("accountCode", AccountingConstants.PAYROLL_EXPENSE, "amount", payroll.getBaseSalary().add(payroll.getAllowanceAmount()), "side", AccountingConstants.SIDE_DEBIT));
-        items.add(Map.of("accountCode", AccountingConstants.WITHHOLDING_PAYABLE, "amount", payroll.getDeductionAmount(), "side", AccountingConstants.SIDE_CREDIT));
-        items.add(Map.of("accountCode", AccountingConstants.SALARY_PAYABLE, "amount", payroll.getNetSalary(), "side", AccountingConstants.SIDE_CREDIT));
+    /** DRAFT → APPROVED */
+    @Transactional
+    public JournalEntry approveJournal(Long id) {
+        JournalEntry entry = findById(id);
+        journalValidationService.validatePeriodNotClosed(entry.getTransactionDate());
+        entry.approve();
+        return journalEntryRepository.save(entry);
+    }
 
-        return createAndPost(LocalDate.now(), description, items, AccountingConstants.SOURCE_PAYROLL, payroll.getId());
+    /** APPROVED → POSTED (불변 전환) */
+    @Transactional
+    public JournalEntry postJournal(Long id) {
+        JournalEntry entry = findById(id);
+        journalValidationService.validatePeriodNotClosed(entry.getTransactionDate());
+        entry.post();
+        return journalEntryRepository.save(entry);
     }
 
     /**
-     * 매입 발주 정보를 바탕으로 회계 전표 생성
+     * 역분개 (POSTED → REVERSED + 역분개 전표 생성)
+     * - 원본 전표 markReversed()
+     * - 차대변 반전된 새 전표 생성 후 POSTED
      */
-    @Transactional(rollbackFor = Exception.class)
-    public JournalEntry createPurchaseJournal(com.dduk.domain.inventory.purchase.PurchaseOrder order) {
-        // 중복 전표 체크
-        if (journalEntryRepository.existsBySourceTypeAndSourceId(AccountingConstants.SOURCE_PURCHASE, order.getId())) {
-             throw new RuntimeException("이미 해당 발주에 대한 회계 전표가 존재합니다.");
+    @Transactional
+    public JournalEntry reverseJournal(Long id) {
+        JournalEntry original = findById(id);
+        
+        // 1. 기간 마감 체크
+        journalValidationService.validatePeriodNotClosed(original.getTransactionDate());
+
+        // 2. 이미 역분개된 전표인지 체크 (JournalEntry.markReversed() 내부에서도 체크하지만 서비스 레벨에서 명시적 처리)
+        if (AccountingConstants.JOURNAL_STATUS_REVERSED.equals(original.getStatus())) {
+            throw new IllegalStateException("이미 역분개된 전표입니다.");
+        }
+        if (!AccountingConstants.JOURNAL_STATUS_POSTED.equals(original.getStatus())) {
+            throw new IllegalStateException("기표(POSTED) 상태의 전표만 역분개할 수 있습니다.");
+        }
+        
+        // 3. 중복 역분개 전표 생성 방지 (sourceType/sourceId 유니크 체크 활용)
+        if (journalEntryRepository.existsBySourceTypeAndSourceId(AccountingConstants.SOURCE_REVERSAL, original.getId())) {
+            throw new IllegalStateException("이미 해당 전표에 대한 역분개 전표가 존재합니다.");
         }
 
-        String description = String.format("%s 매입 확정 (%s)", 
-            order.getPurchaseOrderNo(), order.getVendor().getName());
+        // 역분개 라인 생성 (차대변 반전)
+        List<JournalLineRequest> reversedLines = new ArrayList<>();
+        for (JournalLine line : original.getLines()) {
+            JournalLineRequest req = new JournalLineRequest();
+            req.setAccountCode(line.getAccount().getCode());
+            req.setDebitAmount(line.getCreditAmount());   // 반전
+            req.setCreditAmount(line.getDebitAmount());   // 반전
+            req.setDescription("[역분개] " + (line.getDescription() != null ? line.getDescription() : ""));
+            req.setReferenceType(original.getSourceType());
+            req.setReferenceId(original.getId());
+            reversedLines.add(req);
+        }
 
-        List<Map<String, Object>> items = new ArrayList<>();
+        // 역분개 전표 생성 → APPROVED → POSTED
+        JournalEntry reversal = createJournal(
+                LocalDate.now(),
+                "[역분개] " + original.getDescription(),
+                reversedLines,
+                AccountingConstants.SOURCE_REVERSAL,
+                original.getId()
+        );
+        reversal.approve();
+        reversal.post();
+        journalEntryRepository.save(reversal);
+
+        // 원본 전표 REVERSED 처리
+        original.markReversed();
+        journalEntryRepository.save(original);
+
+        return reversal;
+    }
+
+    /**
+     * 전표 삭제 (DRAFT 상태만 허용)
+     */
+    @Transactional
+    public void deleteJournal(Long id) {
+        JournalEntry entry = findById(id);
+        journalValidationService.validatePeriodNotClosed(entry.getTransactionDate());
         
-        // 차변: 재고자산
-        items.add(Map.of(
-            "accountCode", AccountingConstants.INVENTORY_ASSET,
-            "amount", order.getTotalAmount(),
-            "side", AccountingConstants.SIDE_DEBIT
-        ));
+        if (!AccountingConstants.JOURNAL_STATUS_DRAFT.equals(entry.getStatus())) {
+            throw new IllegalStateException("DRAFT 상태의 전표만 삭제할 수 있습니다.");
+        }
+        journalEntryRepository.delete(entry);
+    }
 
-        // 대변: 외상매입금
-        items.add(Map.of(
-            "accountCode", AccountingConstants.ACCOUNTS_PAYABLE,
-            "amount", order.getTotalAmount(),
-            "side", AccountingConstants.SIDE_CREDIT
-        ));
+    // ===================== 내부 헬퍼 =====================
 
-        return createAndPost(order.getOrderDate(), description, items, AccountingConstants.SOURCE_PURCHASE, order.getId());
+    /**
+     * 자동분개 전략 연동용: 생성 후 즉시 POSTED 상태로 전환
+     */
+    @Transactional
+    public JournalEntry createAndPostJournal(LocalDate date, String description,
+                                             List<JournalLineRequest> lineRequests,
+                                             String sourceType, Long sourceId) {
+        JournalEntry entry = createJournal(date, description, lineRequests, sourceType, sourceId);
+        entry.approve();
+        entry.post();
+        return journalEntryRepository.save(entry);
+    }
+
+    /**
+     * 하위 호환: Map 기반 아이템 입력 지원 (레거시 API용)
+     */
+    @Transactional
+    public JournalEntry createAndPost(LocalDate date, String description,
+                                      List<Map<String, Object>> items,
+                                      String sourceType, Long sourceId) {
+        List<JournalLineRequest> lineRequests = new ArrayList<>();
+        for (Map<String, Object> item : items) {
+            JournalLineRequest req = new JournalLineRequest();
+            req.setAccountCode((String) item.get("accountCode"));
+            Object amt = item.get("amount");
+            BigDecimal amount = new BigDecimal(amt.toString());
+            String side = (String) item.get("side");
+            if ("DEBIT".equals(side)) {
+                req.setDebitAmount(amount);
+                req.setCreditAmount(BigDecimal.ZERO);
+            } else {
+                req.setDebitAmount(BigDecimal.ZERO);
+                req.setCreditAmount(amount);
+            }
+            lineRequests.add(req);
+        }
+        return createAndPostJournal(date, description, lineRequests, sourceType, sourceId);
+    }
+
+    private String generateJournalNo() {
+        return "JRN-" + System.currentTimeMillis();
     }
 }

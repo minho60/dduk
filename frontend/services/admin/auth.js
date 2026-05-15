@@ -36,17 +36,19 @@ function storeSession(data) {
     localStorage.setItem("userName", data.name);
 }
 
-function redirectIfSessionExists() {
-    const token = localStorage.getItem("token");
-    const role = localStorage.getItem("role");
-
-    if (!token || !role) {
-        return;
+function loadSavedValues() {
+    const saveCompanyCode = document.querySelector('[name="saveCompanyCode"]');
+    const savedCompanyCode = localStorage.getItem('savedCompanyCode');
+    if (savedCompanyCode) {
+        document.getElementById('companyCode').value = savedCompanyCode;
+        if (saveCompanyCode) saveCompanyCode.checked = true;
     }
 
-    const redirectPath = roleRedirectMap[role];
-    if (redirectPath) {
-        window.location.href = redirectPath;
+    const rememberId = document.querySelector('[name="rememberId"]');
+    const savedLoginId = localStorage.getItem('savedLoginId');
+    if (savedLoginId) {
+        document.getElementById('loginId').value = savedLoginId;
+        if (rememberId) rememberId.checked = true;
     }
 }
 
@@ -64,7 +66,7 @@ function initPasswordToggle() {
     });
 }
 
-redirectIfSessionExists();
+loadSavedValues();
 initPasswordToggle();
 
 loginForm.addEventListener("submit", async (event) => {
@@ -96,11 +98,29 @@ loginForm.addEventListener("submit", async (event) => {
         }
 
         storeSession(data);
+
+        // 회사코드 저장
+        const saveCompanyCodeCheckbox = document.querySelector('[name="saveCompanyCode"]');
+        const companyCodeVal = document.getElementById('companyCode').value.trim();
+        if (saveCompanyCodeCheckbox && saveCompanyCodeCheckbox.checked) {
+            localStorage.setItem('savedCompanyCode', companyCodeVal);
+        } else {
+            localStorage.removeItem('savedCompanyCode');
+        }
+
+        // 아이디 저장
+        const rememberIdCheckbox = document.querySelector('[name="rememberId"]');
+        if (rememberIdCheckbox && rememberIdCheckbox.checked) {
+            localStorage.setItem('savedLoginId', loginId);
+        } else {
+            localStorage.removeItem('savedLoginId');
+        }
+
         loginSucceeded = true;
         setMessage("로그인에 성공했습니다. 페이지로 이동합니다.", "success");
         setLoginButtonText("Access Granted");
 
-        const redirectPath = roleRedirectMap[data.role] || roleRedirectMap.INVENTORY;
+        const redirectPath = "dashboard.html";
         window.setTimeout(() => {
             window.location.href = redirectPath;
         }, 300);

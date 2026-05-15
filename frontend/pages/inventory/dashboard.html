@@ -1,0 +1,151 @@
+<!doctype html>
+<html lang="ko">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>재고 대시보드 | DDUK ERP</title>
+    <script src="https://cdn.tailwindcss.com/3.4.17"></script>
+    <script src="https://cdn.jsdelivr.net/npm/lucide@0.263.0/dist/umd/lucide.min.js"></script>
+    <link href="https://fonts.googleapis.com/css2?family=DM+Sans:wght@400;500;600;700&display=swap" rel="stylesheet">
+    <link rel="stylesheet" href="../../styles/common/dashboard.css">
+    <style>
+        .kpi_grid { display: grid; grid-template-columns: repeat(auto-fit, minmax(240px, 1fr)); gap: 1.5rem; margin-bottom: 2rem; }
+        .kpi_card { background: white; padding: 1.5rem; border-radius: 1rem; box-shadow: 0 4px 6px -1px rgb(0 0 0 / 0.1); border: 1px solid #f3f4f6; }
+        .kpi_label { color: #6b7280; font-size: 0.875rem; font-weight: 500; margin-bottom: 0.5rem; }
+        .kpi_value { font-size: 1.875rem; font-weight: 700; color: #111827; }
+        .kpi_trend { font-size: 0.875rem; margin-top: 0.5rem; }
+        .trend_up { color: #10b981; }
+        .trend_down { color: #ef4444; }
+        .section_grid { display: grid; grid-template-columns: 2fr 1fr; gap: 1.5rem; margin-bottom: 2rem; }
+        .section_card { background: white; padding: 1.5rem; border-radius: 1rem; box-shadow: 0 4px 6px -1px rgb(0 0 0 / 0.1); border: 1px solid #f3f4f6; }
+        .section_title { font-size: 1.125rem; font-weight: 600; color: #111827; margin-bottom: 1.25rem; display: flex; align-items: center; gap: 0.5rem; }
+    </style>
+</head>
+<body class="bg-gray-50 min-h-screen">
+    <aside data-dduk-sidebar></aside>
+    <div class="main_wrap">
+        <header class="topbar px-6 py-4 flex justify-between items-center bg-white border-b">
+            <div class="flex items-center gap-4">
+                <button id="mobile_menu_btn" class="lg:hidden p-2 hover:bg-gray-100 rounded-lg"><i data-lucide="menu"></i></button>
+                <h1 class="text-xl font-bold text-gray-800">재고관리 대시보드</h1>
+            </div>
+            <div class="flex items-center gap-3">
+                <button class="p-2 hover:bg-gray-100 rounded-lg"><i data-lucide="bell" class="w-5 h-5"></i></button>
+                <button class="p-2 hover:bg-gray-100 rounded-lg"><i data-lucide="user" class="w-5 h-5"></i></button>
+            </div>
+        </header>
+
+        <main class="content_area p-6">
+            <!-- KPI Section -->
+            <div id="kpi-container" class="kpi_grid">
+                <div class="kpi_card">
+                    <p class="kpi_label">총 재고 수량</p>
+                    <p id="total-qty" class="kpi_value">-</p>
+                    <p class="kpi_trend trend_up">전일 대비 ▲ 2.4%</p>
+                </div>
+                <div class="kpi_card">
+                    <p class="kpi_label">총 재고 자산 가치</p>
+                    <p id="total-value" class="kpi_value">-</p>
+                    <p class="kpi_trend trend_up">전월 대비 ▲ 5.1%</p>
+                </div>
+                <div class="kpi_card">
+                    <p class="kpi_label">부족 품목 (안전재고 하회)</p>
+                    <p id="low-stock-count" class="kpi_value text-red-600">-</p>
+                    <p class="kpi_trend text-gray-500">조치 필요 항목</p>
+                </div>
+                <div class="kpi_card">
+                    <p class="kpi_label">최근 30일 출고량</p>
+                    <p id="outbound-volume" class="kpi_value">-</p>
+                    <p class="kpi_trend trend_down">전월 대비 ▼ 1.2%</p>
+                </div>
+            </div>
+
+            <div class="section_grid">
+                <!-- Stock Distribution -->
+                <div class="section_card">
+                    <h3 class="section_title"><i data-lucide="pie-chart" class="w-5 h-5 text-indigo-500"></i>창고별 재고 현황</h3>
+                    <div id="distribution-list" class="space-y-4">
+                        <!-- JS handles injection -->
+                    </div>
+                </div>
+
+                <!-- Quick Actions -->
+                <div class="section_card">
+                    <h3 class="section_title"><i data-lucide="zap" class="w-5 h-5 text-yellow-500"></i>빠른 작업</h3>
+                    <div class="grid grid-cols-1 gap-3">
+                        <button onclick="location.href='list.html'" class="flex items-center gap-3 p-3 bg-gray-50 hover:bg-indigo-50 rounded-xl transition-colors text-left">
+                            <div class="p-2 bg-indigo-100 text-indigo-600 rounded-lg"><i data-lucide="package" class="w-5 h-5"></i></div>
+                            <div>
+                                <p class="font-semibold text-gray-800">재고 현황 조회</p>
+                                <p class="text-xs text-gray-500">전체 품목 및 창고별 재고 확인</p>
+                            </div>
+                        </button>
+                        <button onclick="location.href='transfers.html'" class="flex items-center gap-3 p-3 bg-gray-50 hover:bg-green-50 rounded-xl transition-colors text-left">
+                            <div class="p-2 bg-green-100 text-green-600 rounded-lg"><i data-lucide="move" class="w-5 h-5"></i></div>
+                            <div>
+                                <p class="font-semibold text-gray-800">창고 이동 등록</p>
+                                <p class="text-xs text-gray-500">창고 간 재고 이동 원장 생성</p>
+                            </div>
+                        </button>
+                        <button onclick="location.href='reorder.html'" class="flex items-center gap-3 p-3 bg-gray-50 hover:bg-orange-50 rounded-xl transition-colors text-left">
+                            <div class="p-2 bg-orange-100 text-orange-600 rounded-lg"><i data-lucide="alert-triangle" class="w-5 h-5"></i></div>
+                            <div>
+                                <p class="font-semibold text-gray-800">자동 발주 추천</p>
+                                <p class="text-xs text-gray-500">부족 재고 확인 및 발주 추천</p>
+                            </div>
+                        </button>
+                        <button onclick="location.href='movements.html'" class="flex items-center gap-3 p-3 bg-gray-50 hover:bg-blue-50 rounded-xl transition-colors text-left">
+                            <div class="p-2 bg-blue-100 text-blue-600 rounded-lg"><i data-lucide="history" class="w-5 h-5"></i></div>
+                            <div>
+                                <p class="font-semibold text-gray-800">입출고 이력(원장)</p>
+                                <p class="text-xs text-gray-500">모든 재고 변동 내역 추적</p>
+                            </div>
+                        </button>
+                    </div>
+                </div>
+            </div>
+        </main>
+    </div>
+
+    <script src="../../services/inventory/inventory-service.js"></script>
+    <script src="../../services/common/sidebar.js"></script>
+    <script>
+        document.addEventListener('DOMContentLoaded', async () => {
+            lucide.createIcons();
+            await loadStats();
+        });
+
+        async function loadStats() {
+            try {
+                const response = await InventoryService.getDashboardStats();
+                if (response.status === 'success') {
+                    const stats = response.data;
+                    document.getElementById('total-qty').textContent = (stats.totalQuantity || 0).toLocaleString();
+                    document.getElementById('total-value').textContent = '₩' + (stats.totalValue || 0).toLocaleString();
+                    document.getElementById('low-stock-count').textContent = stats.lowStockCount || 0;
+                    document.getElementById('outbound-volume').textContent = (stats.outboundVolume30Days || 0).toLocaleString();
+
+                    const distList = document.getElementById('distribution-list');
+                    distList.innerHTML = stats.warehouseDistribution.map(item => `
+                        <div class="flex items-center justify-between p-4 bg-gray-50 rounded-xl">
+                            <div class="flex items-center gap-3">
+                                <div class="w-2 h-10 bg-indigo-500 rounded-full"></div>
+                                <div>
+                                    <p class="font-bold text-gray-800">${item[0]}</p>
+                                    <p class="text-xs text-gray-500">보유 자산: ₩${(item[2] || 0).toLocaleString()}</p>
+                                </div>
+                            </div>
+                            <div class="text-right">
+                                <p class="text-lg font-bold text-indigo-600">${(item[1] || 0).toLocaleString()}</p>
+                                <p class="text-xs text-gray-400">수량</p>
+                            </div>
+                        </div>
+                    `).join('');
+                }
+            } catch (error) {
+                console.error('Failed to load stats:', error);
+            }
+        }
+    </script>
+</body>
+</html>
