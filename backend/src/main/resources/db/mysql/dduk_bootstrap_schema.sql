@@ -302,6 +302,7 @@ CREATE TABLE IF NOT EXISTS accounts (
     code VARCHAR(20) NOT NULL,
     name VARCHAR(100) NOT NULL,
     type VARCHAR(30) NOT NULL,
+    normal_balance VARCHAR(10) NOT NULL DEFAULT 'DEBIT',
     level INT NOT NULL DEFAULT 1,
     parent_code VARCHAR(20) NULL,
     is_active TINYINT(1) NOT NULL DEFAULT 1,
@@ -317,27 +318,78 @@ CREATE TABLE IF NOT EXISTS journal_entries (
     transaction_date DATE NOT NULL,
     description VARCHAR(255) NOT NULL,
     status VARCHAR(30) NOT NULL DEFAULT 'DRAFT',
+    source_type VARCHAR(50) NULL,
+    source_id BIGINT NULL,
+    total_debit DECIMAL(15,2) NOT NULL DEFAULT 0.00,
+    total_credit DECIMAL(15,2) NOT NULL DEFAULT 0.00,
+    created_by VARCHAR(100) NULL,
+    fiscal_year INT NULL,
+    fiscal_month INT NULL,
     created_at DATETIME NOT NULL DEFAULT CURRENT_TIMESTAMP,
     updated_at DATETIME NOT NULL DEFAULT CURRENT_TIMESTAMP ON UPDATE CURRENT_TIMESTAMP,
     PRIMARY KEY (id),
-    UNIQUE KEY uk_journal_entries_no (journal_no)
+    UNIQUE KEY uk_journal_entries_no (journal_no),
+    KEY idx_journal_entries_source (source_type, source_id),
+    KEY idx_journal_entries_fiscal (fiscal_year, fiscal_month),
+    KEY idx_journal_entries_status (status)
 ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci;
 
 CREATE TABLE IF NOT EXISTS journal_items (
     id BIGINT NOT NULL AUTO_INCREMENT,
     journal_entry_id BIGINT NOT NULL,
     account_id BIGINT NOT NULL,
-    amount DECIMAL(15,2) NOT NULL,
-    side VARCHAR(10) NOT NULL,
+    debit_amount DECIMAL(15,2) NOT NULL DEFAULT 0.00,
+    credit_amount DECIMAL(15,2) NOT NULL DEFAULT 0.00,
+    description VARCHAR(255) NULL,
+    reference_type VARCHAR(50) NULL,
+    reference_id BIGINT NULL,
     PRIMARY KEY (id),
+    KEY idx_journal_items_entry (journal_entry_id),
+    KEY idx_journal_items_account (account_id),
     CONSTRAINT fk_journal_items_entry FOREIGN KEY (journal_entry_id) REFERENCES journal_entries (id) ON DELETE CASCADE,
     CONSTRAINT fk_journal_items_account FOREIGN KEY (account_id) REFERENCES accounts (id) ON DELETE RESTRICT
 ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci;
 
--- Default Chart of Accounts Seeds
-INSERT INTO accounts (code, name, type, level, is_active, created_at, updated_at) VALUES 
-('1001', '현금', 'ASSET', 1, 1, NOW(), NOW()),
-('2001', '미지급금', 'LIABILITY', 1, 1, NOW(), NOW()),
-('2002', '미지급비용(급여)', 'LIABILITY', 1, 1, NOW(), NOW()),
-('5001', '급여', 'EXPENSE', 1, 1, NOW(), NOW())
-ON DUPLICATE KEY UPDATE updated_at = NOW();
+CREATE TABLE IF NOT EXISTS accounting_periods (
+    id BIGINT NOT NULL AUTO_INCREMENT,
+    fiscal_year INT NOT NULL,
+    fiscal_month INT NOT NULL,
+    status VARCHAR(20) NOT NULL DEFAULT 'OPEN',
+    closed_at DATETIME NULL,
+    closed_by VARCHAR(100) NULL,
+    created_at DATETIME NOT NULL DEFAULT CURRENT_TIMESTAMP,
+    updated_at DATETIME NOT NULL DEFAULT CURRENT_TIMESTAMP ON UPDATE CURRENT_TIMESTAMP,
+    PRIMARY KEY (id),
+    UNIQUE KEY uk_accounting_periods_year_month (fiscal_year, fiscal_month)
+) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci;
+
+-- Default Chart of Accounts (ERP 湲곕낯 怨꾩젙怨쇰ぉ 泥닿퀎)
+INSERT INTO accounts (code, name, type, normal_balance, level, parent_code, is_active, created_at, updated_at) VALUES
+('1000', '?먯궛',           'ASSET',     'DEBIT',  1, NULL,   1, NOW(), NOW()),
+('1100', '?좊룞?먯궛',        'ASSET',     'DEBIT',  2, '1000', 1, NOW(), NOW()),
+('1001', '?꾧툑',           'ASSET',     'DEBIT',  3, '1100', 1, NOW(), NOW()),
+('1002', '蹂댄넻?덇툑',        'ASSET',     'DEBIT',  3, '1100', 1, NOW(), NOW()),
+('1003', '?ш퀬?먯궛',        'ASSET',     'DEBIT',  3, '1100', 1, NOW(), NOW()),
+('1004', '?몄긽留ㅼ텧湲?,      'ASSET',     'DEBIT',  3, '1100', 1, NOW(), NOW()),
+('2000', '遺梨?,           'LIABILITY', 'CREDIT', 1, NULL,   1, NOW(), NOW()),
+('2100', '?좊룞遺梨?,        'LIABILITY', 'CREDIT', 2, '2000', 1, NOW(), NOW()),
+('2001', '?몄긽留ㅼ엯湲?,      'LIABILITY', 'CREDIT', 3, '2100', 1, NOW(), NOW()),
+('2002', '誘몄?湲됯툑',        'LIABILITY', 'CREDIT', 3, '2100', 1, NOW(), NOW()),
+('2003', '誘몄?湲됰퉬??湲됱뿬)', 'LIABILITY', 'CREDIT', 3, '2100', 1, NOW(), NOW()),
+('2004', '?덉닔湲?,         'LIABILITY', 'CREDIT', 3, '2100', 1, NOW(), NOW()),
+('3000', '?먮낯',           'EQUITY',    'CREDIT', 1, NULL,   1, NOW(), NOW()),
+('3001', '?먮낯湲?,         'EQUITY',    'CREDIT', 2, '3000', 1, NOW(), NOW()),
+('3002', '?댁씡?됱뿬湲?,      'EQUITY',    'CREDIT', 2, '3000', 1, NOW(), NOW()),
+('4000', '?섏씡',           'REVENUE',   'CREDIT', 1, NULL,   1, NOW(), NOW()),
+('4001', '留ㅼ텧??,         'REVENUE',   'CREDIT', 2, '4000', 1, NOW(), NOW()),
+('5000', '鍮꾩슜',           'EXPENSE',   'DEBIT',  1, NULL,   1, NOW(), NOW()),
+('5001', '湲됱뿬',           'EXPENSE',   'DEBIT',  2, '5000', 1, NOW(), NOW()),
+('5002', '留ㅼ텧?먭?',        'EXPENSE',   'DEBIT',  2, '5000', 1, NOW(), NOW()),
+('5003', '蹂듬━?꾩깮鍮?,      'EXPENSE',   'DEBIT',  2, '5000', 1, NOW(), NOW())
+ON DUPLICATE KEY UPDATE
+    name = VALUES(name),
+    type = VALUES(type),
+    normal_balance = VALUES(normal_balance),
+    level = VALUES(level),
+    parent_code = VALUES(parent_code),
+    updated_at = NOW();

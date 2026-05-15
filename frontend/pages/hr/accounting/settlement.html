@@ -43,14 +43,28 @@
                     <div class="hr_kpi_hint">마감 실행 API는 아직 없음</div>
                 </article>
                 <article class="hr_card span_6">
+                    <div class="hr_card_header">
+                        <h3>회계 마감 실행</h3>
+                    </div>
+                    <form id="settlement_form" style="display: flex; gap: 12px; align-items: flex-end; margin-bottom: 16px;">
+                        <div class="hr_field" style="margin-bottom: 0;">
+                            <label for="period_month">마감 월</label>
+                            <input class="hr_input" id="period_month" type="month" required>
+                        </div>
+                        <button class="hr_button primary" type="submit"><i data-lucide="lock"></i>마감 처리</button>
+                    </form>
                     <div class="hr_notice">
-                        월마감 실행, 마감 취소, 마감 이력 조회 API는 현재 백엔드에 구현되어 있지 않습니다.
-                        이 화면은 구현된 보고서 API 범위 안에서 정산 전 확인 화면으로 구성했습니다.
+                        마감이 완료된 회계기간에는 전표를 등록, 수정, 삭제할 수 없으며 상태를 변경할 수 없습니다.
                     </div>
                 </article>
                 <article class="hr_card span_6">
-                    <div class="hr_card_header"><h3>API 적용 범위</h3></div>
-                    <pre class="hr_result" id="settlement_api_state">-</pre>
+                    <div class="hr_card_header">
+                        <h3>마감 내역</h3>
+                    </div>
+                    <table class="hr_table">
+                        <thead><tr><th>마감월</th><th>상태</th><th>마감일시</th><th>처리자</th><th>관리</th></tr></thead>
+                        <tbody id="period_rows"></tbody>
+                    </table>
                 </article>
                 <article class="hr_card">
                     <div class="hr_status" id="page_status"></div>

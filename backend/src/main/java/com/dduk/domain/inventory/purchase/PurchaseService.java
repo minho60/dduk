@@ -1,6 +1,7 @@
 package com.dduk.domain.inventory.purchase;
 
-import com.dduk.domain.accounting.journal.AccountingService;
+import com.dduk.domain.accounting.AccountingConstants;
+import com.dduk.domain.accounting.autojounal.AutoJournalService;
 import com.dduk.domain.inventory.stock.InventoryService;
 import com.dduk.domain.inventory.stock.MovementReason;
 import com.dduk.domain.inventory.stock.MovementType;
@@ -16,7 +17,7 @@ import java.util.List;
 public class PurchaseService {
 
     private final PurchaseOrderRepository purchaseOrderRepository;
-    private final AccountingService accountingService;
+    private final AutoJournalService autoJournalService;
     private final InventoryService inventoryService;
     private final StockMovementRepository stockMovementRepository;
 
@@ -66,7 +67,11 @@ public class PurchaseService {
                 }
                 
                 // 중복 생성 방지는 AccountingService 내부에서 수행됨
-                accountingService.createPurchaseJournal(order);
+                autoJournalService.createAndPostJournal(
+                        AccountingConstants.SOURCE_PURCHASE,
+                        order.getId(),
+                        order
+                );
             }
         }
 

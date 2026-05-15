@@ -14,7 +14,8 @@ import java.util.Map;
 public class PayrollStatusService {
 
     private final PayrollRepository payrollRepository;
-    private final com.dduk.domain.accounting.journal.AccountingService accountingService;
+    private final com.dduk.domain.accounting.autojounal.AutoJournalService autoJournalService;
+    private final com.dduk.domain.accounting.AccountingConstants accountingConstants;
 
     private static final Map<String, List<String>> VALID_TRANSITIONS = new HashMap<>();
 
@@ -50,7 +51,11 @@ public class PayrollStatusService {
 
         // 2. POSTED 전환 시 회계 전표 생성 (트랜잭션 내 포함)
         if ("POSTED".equals(nextStatus)) {
-            accountingService.createPayrollJournal(payroll);
+            autoJournalService.createAndPostJournal(
+                    com.dduk.domain.accounting.AccountingConstants.SOURCE_PAYROLL,
+                    payroll.getId(),
+                    payroll
+            );
         }
 
         payroll.setStatus(nextStatus);

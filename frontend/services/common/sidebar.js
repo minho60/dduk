@@ -29,13 +29,14 @@
             id: 'accounting',
             label: '회계관리',
             items: [
-                { label: '회계 대시보드', icon: 'bar-chart-3', href: 'pages/hr/accounting/dashboard.html' },
-                { label: '세금계산서', icon: 'receipt', href: 'pages/hr/accounting/transactions.html' },
-                { label: '비용 처리', icon: 'credit-card', href: '#' },
-                { label: '매입/매출', icon: 'trending-up', href: 'pages/hr/accounting/trial-balance.html' },
-                { label: '월별 정산', icon: 'calendar', href: 'pages/hr/accounting/settlement.html' },
-                { label: '급여 계산', icon: 'wallet', href: 'pages/hr/payroll/list.html', match: 'pages/hr/payroll/' },
-                { label: '회계 리포트', icon: 'file-bar-chart', href: 'pages/hr/accounting/reports.html' }
+                { label: '회계 대시보드',    icon: 'bar-chart-3',   href: 'pages/hr/accounting/dashboard.html' },
+                { label: '거래 내역 등록',   icon: 'file-plus',     href: 'pages/hr/accounting/transactions.html' },
+                { label: '합계잔액시산표',   icon: 'trending-up',   href: 'pages/hr/accounting/trial-balance.html' },
+                { label: '월 마감',          icon: 'calendar-check', href: 'pages/hr/accounting/settlement.html' },
+                { label: '급여 계산',        icon: 'wallet',        href: 'pages/hr/payroll/list.html', match: 'pages/hr/payroll/' },
+                { label: '회계 리포트',      icon: 'file-bar-chart', href: 'pages/hr/accounting/reports.html' },
+                { label: '세금계산서',       icon: 'receipt',       href: 'pages/hr/accounting/wip.html', disabled: true },
+                { label: '비용 처리',        icon: 'credit-card',   href: 'pages/hr/accounting/wip.html', disabled: true }
             ]
         },
         {
@@ -101,6 +102,15 @@
 
     function renderMenuItem(item, extraClass) {
         const currentClass = isCurrentPage(item) ? ' active' : '';
+        if (item.disabled) {
+            return `
+                <span class="menu_item menu_item_disabled${extraClass ? ` ${extraClass}` : ''}" title="${item.label}" aria-disabled="true">
+                    <i class="dduk-inline-012" data-lucide="${item.icon}"></i>
+                    <span class="menu_label">${item.label}</span>
+                    <span class="menu_badge_wip">준비중</span>
+                </span>
+            `;
+        }
         return `
             <a class="menu_item${extraClass ? ` ${extraClass}` : ''}${currentClass}" href="${resolveHref(item.href)}" data-label="${item.label}" title="${item.label}">
                 <i class="dduk-inline-012" data-lucide="${item.icon}"></i>

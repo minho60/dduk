@@ -210,22 +210,63 @@ async function initTrialBalance() {
     });
 }
 
+async function renderPeriods() {
+    const periods = await hrBackendApi.getPeriods();
+    const tbody = byId('period_rows');
+    if (!tbody) return;
+
+    if (!periods.length) {
+        tbody.innerHTML = '<tr><td colspan="5">마감된 회계기간이 없습니다.</td></tr>';
+        return;
+    }
+
+    tbody.innerHTML = periods.map(p => {
+        const month = `${p.fiscalYear}-${String(p.fiscalMonth).padStart(2, '0')}`;
+        const isClosed = p.status === 'CLOSED';
+        return `
+            <tr>
+                <td>${month}</td>
+                <td><span class="hr_badge ${isClosed ? 'warn' : 'ok'}">${p.status}</span></td>
+                <td>${p.closedAt ? p.closedAt.slice(0, 16).replace('T', ' ') : '-'}</td>
+                <td>${p.closedBy || '-'}</td>
+                <td>
+                    ${isClosed ? `<button class="hr_button" type="button" onclick="window.handleReopenPeriod('${month}')">마감 취소</button>` : '-'}
+                </td>
+            </tr>
+        `;
+    }).join('');
+    if (window.lucide) lucide.createIcons();
+}
+
+window.handleReopenPeriod = async function(yearMonth) {
+    if (!confirm(`${yearMonth} 회계기간 마감을 취소하시겠습니까?`)) return;
+    await safeRun('page_status', async () => {
+        await hrBackendApi.reopenPeriod(yearMonth, window.ddukSession?.getSession?.().loginId);
+        await renderPeriods();
+    });
+};
+
 async function initSettlement() {
     await safeRun('page_status', async () => {
         const { balanceSheet, profitLoss } = await loadReports();
         setText('settlement_income', money(profitLoss.netIncome));
         setText('settlement_assets', money(balanceSheet.totalAssets));
         setText('settlement_balance', balanceSheet.isBalanced ? '대차 일치' : '대차 불일치');
-        showJson('settlement_api_state', {
-            implemented: [
-                'GET /api/v1/accounting/report/balance-sheet',
-                'GET /api/v1/accounting/report/profit-loss'
-            ],
-            notImplementedYet: [
-                '월마감 실행 API',
-                '마감 취소 API',
-                '마감 이력 조회 API'
-            ]
+        
+        await renderPeriods();
+    });
+
+    const monthInput = byId('period_month');
+    if (monthInput) monthInput.value = new Date().toISOString().slice(0, 7);
+
+    byId('settlement_form')?.addEventListener('submit', event => {
+        event.preventDefault();
+        const yearMonth = byId('period_month').value;
+        if (!yearMonth) return;
+
+        safeRun('page_status', async () => {
+            await hrBackendApi.closePeriod(yearMonth, window.ddukSession?.getSession?.().loginId);
+            await renderPeriods();
         });
     });
 }
