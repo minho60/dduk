@@ -3,6 +3,7 @@ package com.dduk.config;
 import lombok.RequiredArgsConstructor;
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
+import org.springframework.http.HttpMethod;
 import org.springframework.security.config.Customizer;
 import org.springframework.security.config.annotation.web.builders.HttpSecurity;
 import org.springframework.security.config.annotation.web.configuration.EnableWebSecurity;
@@ -39,6 +40,24 @@ public class SecurityConfig {
             .authorizeHttpRequests(authorize -> authorize
                 .requestMatchers("/", "/index.html", "/dashboard.html", "/pages/**", "/styles/**", "/services/**", "/assets/**").permitAll()
                 .requestMatchers("/api/v1/auth/login").permitAll()
+                .requestMatchers(
+                        "/",
+                        "/index.html",
+                        "/dashboard.html",
+                        "/purchase-order-request.html",
+                        "/vendor-create.html",
+                        "/vendor-list.html",
+                        "/vendor-detail.html",
+                        "/vendor-edit.html",
+                        "/assets/**",
+                        "/pages/**",
+                        "/services/**",
+                        "/styles/**"
+                ).permitAll()
+                .requestMatchers(HttpMethod.POST, "/api/v1/inventory/vendors").permitAll()
+                .requestMatchers(HttpMethod.GET, "/api/v1/inventory/vendors/**").permitAll()
+                .requestMatchers(HttpMethod.PATCH, "/api/v1/inventory/vendors/*").permitAll()
+                .requestMatchers(HttpMethod.POST, "/api/v1/inventory/purchase-orders").permitAll()
                 .requestMatchers("/api/v1/admin/**").hasRole("ADMIN")
                 .requestMatchers("/api/v1/hr/**").hasAnyRole("ADMIN", "HR")
                 .requestMatchers("/api/v1/inventory/**").hasAnyRole("ADMIN", "INVENTORY")

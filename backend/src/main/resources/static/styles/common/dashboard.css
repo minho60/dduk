@@ -1,0 +1,22 @@
+/* Dashboard Specific Styles */
+
+.chart-placeholder-container {
+    margin-bottom: 2rem;
+    min-height: 300px;
+}
+
+.chart-placeholder {
+    height: 250px;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    background: #fcfcfc;
+    border: 1px dashed #eee;
+    border-radius: 8px;
+    color: #999;
+}
+
+.todo-list-container {
+    list-style: none;
+    padding: 0;
+}

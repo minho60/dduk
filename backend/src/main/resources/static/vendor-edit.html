@@ -1,0 +1,341 @@
+<!doctype html>
+<html lang="ko">
+<head>
+    <meta charset="utf-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1">
+    <title>DDUK ERP - 거래처 수정</title>
+    <script src="https://cdn.tailwindcss.com"></script>
+    <script>
+        tailwind.config = {
+            theme: {
+                extend: {
+                    colors: {
+                        brand: {
+                            50: "#fdf7f7",
+                            100: "#f8eded",
+                            500: "#8b3a3a",
+                            600: "#722f2f"
+                        }
+                    },
+                    boxShadow: {
+                        premium: "0 20px 50px rgba(31, 41, 55, 0.08)"
+                    }
+                }
+            }
+        };
+    </script>
+</head>
+<body class="bg-[#f6f7f8] text-slate-900 antialiased">
+<div class="min-h-screen lg:grid lg:grid-cols-[280px_minmax(0,1fr)]">
+    <aside class="border-b border-slate-200 bg-white lg:min-h-screen lg:border-b-0 lg:border-r">
+        <div class="flex h-full flex-col px-5 py-6">
+            <div class="mb-8 flex items-center justify-between">
+                <div>
+                    <p class="text-xs font-semibold uppercase tracking-[0.18em] text-brand-500">DDUK ERP</p>
+                    <h1 class="mt-1 text-2xl font-black tracking-tight text-slate-950">Inventory</h1>
+                </div>
+                <a href="/vendor-list.html" class="grid h-10 w-10 place-items-center rounded-xl bg-slate-100 text-sm font-bold text-slate-600" title="Home">홈</a>
+            </div>
+
+            <nav class="space-y-5" data-nav></nav>
+
+            <section class="mt-8 rounded-2xl border border-slate-200 bg-white p-4 shadow-sm lg:mt-auto">
+                <div class="flex items-center gap-3">
+                    <div class="grid h-10 w-10 place-items-center rounded-xl bg-brand-100 text-sm font-black text-brand-600">ERP</div>
+                    <div class="min-w-0">
+                        <p class="truncate text-sm font-bold text-slate-900" data-user-name>-</p>
+                        <p class="text-xs font-medium text-slate-500" data-role>-</p>
+                    </div>
+                </div>
+                <dl class="mt-4 grid grid-cols-[64px_1fr] gap-2 text-xs">
+                    <dt class="text-slate-400">아이디</dt>
+                    <dd class="truncate font-semibold text-slate-700" data-login-id>-</dd>
+                </dl>
+                <button type="button" data-action="logout" class="mt-4 h-10 w-full rounded-xl bg-brand-500 text-sm font-bold text-white transition hover:bg-brand-600">로그아웃</button>
+            </section>
+        </div>
+    </aside>
+
+    <main class="min-w-0 px-5 py-6 sm:px-8 lg:px-10">
+        <header class="mb-7">
+            <p class="mb-2 text-xs font-bold uppercase tracking-[0.18em] text-brand-500">Vendor Management</p>
+            <h2 class="text-3xl font-black tracking-tight text-slate-950" data-page-title>거래처 수정</h2>
+            <p class="mt-2 max-w-3xl text-sm leading-6 text-slate-500" data-page-description>등록 필수 정보는 유지하고, 연락처와 정산 정보를 수정합니다.</p>
+        </header>
+
+        <section class="mb-6 grid gap-4 md:grid-cols-3" data-summary-cards></section>
+
+        <form id="vendorEditForm" class="grid gap-6 xl:grid-cols-[minmax(0,1fr)_360px]">
+            <div class="space-y-6">
+                <section class="rounded-2xl border border-slate-200 bg-white p-5 shadow-premium">
+                    <h3 class="text-base font-black text-slate-950">필수 정보</h3>
+                    <p class="mt-1 text-sm text-slate-500">등록 시 필수로 받은 값은 이 화면에서 수정하지 않습니다.</p>
+
+                    <div class="mt-5 grid gap-4 md:grid-cols-2">
+                        <label class="block">
+                            <span class="mb-2 block text-sm font-bold text-slate-700">거래처 코드</span>
+                            <input id="vendorCode" readonly class="h-11 w-full rounded-xl border border-slate-200 bg-slate-100 px-3 text-sm font-bold text-slate-500 outline-none">
+                        </label>
+                        <label class="block">
+                            <span class="mb-2 block text-sm font-bold text-slate-700">사업자등록번호</span>
+                            <input id="businessRegistrationNo" readonly class="h-11 w-full rounded-xl border border-slate-200 bg-slate-100 px-3 text-sm font-bold text-slate-500 outline-none">
+                        </label>
+                        <label class="block">
+                            <span class="mb-2 block text-sm font-bold text-slate-700">거래처명</span>
+                            <input id="name" readonly class="h-11 w-full rounded-xl border border-slate-200 bg-slate-100 px-3 text-sm font-bold text-slate-500 outline-none">
+                        </label>
+                        <label class="block">
+                            <span class="mb-2 block text-sm font-bold text-slate-700">대표자명</span>
+                            <input id="representativeName" readonly class="h-11 w-full rounded-xl border border-slate-200 bg-slate-100 px-3 text-sm font-bold text-slate-500 outline-none">
+                        </label>
+                    </div>
+                </section>
+
+                <section class="rounded-2xl border border-slate-200 bg-white p-5 shadow-premium">
+                    <h3 class="text-base font-black text-slate-950">수정 가능 정보</h3>
+                    <div class="mt-5 grid gap-4 md:grid-cols-2">
+                        <label class="block">
+                            <span class="mb-2 block text-sm font-bold text-slate-700">업태</span>
+                            <input id="businessType" class="editable h-11 w-full rounded-xl border border-slate-200 bg-slate-50 px-3 text-sm outline-none transition focus:border-brand-500 focus:bg-white focus:ring-4 focus:ring-brand-100">
+                        </label>
+                        <label class="block">
+                            <span class="mb-2 block text-sm font-bold text-slate-700">종목</span>
+                            <input id="businessItem" class="editable h-11 w-full rounded-xl border border-slate-200 bg-slate-50 px-3 text-sm outline-none transition focus:border-brand-500 focus:bg-white focus:ring-4 focus:ring-brand-100">
+                        </label>
+                        <label class="block">
+                            <span class="mb-2 block text-sm font-bold text-slate-700">담당자명</span>
+                            <input id="contactName" class="editable h-11 w-full rounded-xl border border-slate-200 bg-slate-50 px-3 text-sm outline-none transition focus:border-brand-500 focus:bg-white focus:ring-4 focus:ring-brand-100">
+                        </label>
+                        <label class="block">
+                            <span class="mb-2 block text-sm font-bold text-slate-700">전화번호</span>
+                            <input id="contactPhone" class="editable h-11 w-full rounded-xl border border-slate-200 bg-slate-50 px-3 text-sm outline-none transition focus:border-brand-500 focus:bg-white focus:ring-4 focus:ring-brand-100">
+                        </label>
+                        <label class="block">
+                            <span class="mb-2 block text-sm font-bold text-slate-700">이메일</span>
+                            <input id="email" type="email" class="editable h-11 w-full rounded-xl border border-slate-200 bg-slate-50 px-3 text-sm outline-none transition focus:border-brand-500 focus:bg-white focus:ring-4 focus:ring-brand-100">
+                        </label>
+                        <label class="block">
+                            <span class="mb-2 block text-sm font-bold text-slate-700">주소</span>
+                            <input id="address" class="editable h-11 w-full rounded-xl border border-slate-200 bg-slate-50 px-3 text-sm outline-none transition focus:border-brand-500 focus:bg-white focus:ring-4 focus:ring-brand-100">
+                        </label>
+                    </div>
+                </section>
+
+                <section class="rounded-2xl border border-slate-200 bg-white p-5 shadow-premium">
+                    <h3 class="text-base font-black text-slate-950">정산 정보</h3>
+                    <div class="mt-5 grid gap-4 md:grid-cols-2">
+                        <label class="block">
+                            <span class="mb-2 block text-sm font-bold text-slate-700">은행명</span>
+                            <input id="bankName" class="editable h-11 w-full rounded-xl border border-slate-200 bg-slate-50 px-3 text-sm outline-none transition focus:border-brand-500 focus:bg-white focus:ring-4 focus:ring-brand-100">
+                        </label>
+                        <label class="block">
+                            <span class="mb-2 block text-sm font-bold text-slate-700">계좌번호</span>
+                            <input id="bankAccountNo" class="editable h-11 w-full rounded-xl border border-slate-200 bg-slate-50 px-3 text-sm outline-none transition focus:border-brand-500 focus:bg-white focus:ring-4 focus:ring-brand-100">
+                        </label>
+                        <label class="block">
+                            <span class="mb-2 block text-sm font-bold text-slate-700">예금주</span>
+                            <input id="bankAccountHolder" class="editable h-11 w-full rounded-xl border border-slate-200 bg-slate-50 px-3 text-sm outline-none transition focus:border-brand-500 focus:bg-white focus:ring-4 focus:ring-brand-100">
+                        </label>
+                        <label class="block">
+                            <span class="mb-2 block text-sm font-bold text-slate-700">통장사본 경로</span>
+                            <input id="bankbookCopyFilePath" class="editable h-11 w-full rounded-xl border border-slate-200 bg-slate-50 px-3 text-sm outline-none transition focus:border-brand-500 focus:bg-white focus:ring-4 focus:ring-brand-100">
+                        </label>
+                        <label class="block md:col-span-2">
+                            <span class="mb-2 block text-sm font-bold text-slate-700">메모</span>
+                            <textarea id="memo" rows="4" class="editable w-full rounded-xl border border-slate-200 bg-slate-50 px-3 py-3 text-sm outline-none transition focus:border-brand-500 focus:bg-white focus:ring-4 focus:ring-brand-100"></textarea>
+                        </label>
+                    </div>
+                </section>
+            </div>
+
+            <aside class="space-y-6">
+                <section class="rounded-2xl border border-slate-200 bg-white p-5 shadow-premium xl:sticky xl:top-6">
+                    <h3 class="text-base font-black text-slate-950">수정 요약</h3>
+                    <div class="mt-5 space-y-3 text-sm">
+                        <div class="flex justify-between gap-4 text-slate-500">
+                            <span>상태</span>
+                            <strong id="status" class="text-emerald-700">-</strong>
+                        </div>
+                        <div class="flex justify-between gap-4 text-slate-500">
+                            <span>수정 범위</span>
+                            <strong class="text-right text-slate-950">선택 정보</strong>
+                        </div>
+                    </div>
+
+                    <div id="message" class="mt-5 min-h-11 rounded-xl border border-slate-200 bg-slate-50 px-4 py-3 text-sm font-semibold text-slate-500" aria-live="polite">거래처 정보를 불러오는 중입니다.</div>
+
+                    <div class="mt-5 flex flex-col gap-2">
+                        <button type="submit" class="h-11 rounded-xl bg-brand-500 px-5 text-sm font-bold text-white transition hover:bg-brand-600">수정 저장</button>
+                        <a id="backToDetailLink" href="/vendor-detail.html" class="h-11 rounded-xl border border-slate-200 bg-white px-5 py-3 text-center text-sm font-bold text-slate-700 transition hover:bg-slate-50">상세 조회로 돌아가기</a>
+                    </div>
+                </section>
+            </aside>
+        </form>
+    </main>
+</div>
+
+<script src="/services/common/app-shell.js"></script>
+<script>
+    window.ddukAppShell.hydratePage({
+        title: "거래처 수정",
+        description: "등록 필수 정보는 유지하고, 연락처와 정산 정보를 수정합니다.",
+        navItems: [
+            {
+                label: "발주 관리",
+                children: [
+                    { href: "/purchase-order-request.html", label: "발주 생성" },
+                    { href: "#", label: "발주 상태 변경" },
+                    { href: "#", label: "발주서 조회" }
+                ]
+            },
+            {
+                label: "거래처 관리",
+                children: [
+                    { href: "/vendor-create.html", label: "거래처 등록" },
+                    { href: "/vendor-list.html", label: "거래처 목록 조회" },
+                    { href: "#", label: "거래처 활성/비활성 변경" },
+                    { href: "#", label: "거래처별 발주 내역 조회" }
+                ]
+            },
+            { href: "#", label: "입고 등록" }
+        ],
+        cards: [
+            { title: "필수 정보", value: "읽기 전용", description: "등록값 유지" },
+            { title: "수정 방식", value: "PATCH", description: "거래처 정보 수정" },
+            { title: "수정 범위", value: "선택 정보", description: "연락처/정산/메모" }
+        ]
+    });
+
+    const previewSession = {
+        userName: localStorage.getItem("userName") || "미리보기 계정",
+        loginId: localStorage.getItem("loginId") || "inventory_preview",
+        role: localStorage.getItem("role") || "INVENTORY"
+    };
+    document.querySelector("[data-user-name]").textContent = previewSession.userName;
+    document.querySelector("[data-login-id]").textContent = previewSession.loginId;
+    document.querySelector("[data-role]").textContent = previewSession.role;
+    document.querySelector("[data-action='logout']").addEventListener("click", () => {
+        localStorage.removeItem("token");
+        localStorage.removeItem("loginId");
+        localStorage.removeItem("role");
+        localStorage.removeItem("userName");
+        location.reload();
+    });
+
+    const params = new URLSearchParams(window.location.search);
+    const vendorId = params.get("vendorId");
+    const form = document.getElementById("vendorEditForm");
+    const message = document.getElementById("message");
+    const backToDetailLink = document.getElementById("backToDetailLink");
+
+    const fields = [
+        "businessRegistrationNo",
+        "name",
+        "representativeName",
+        "businessType",
+        "businessItem",
+        "contactName",
+        "contactPhone",
+        "email",
+        "address",
+        "bankName",
+        "bankAccountNo",
+        "bankAccountHolder",
+        "bankbookCopyFilePath",
+        "memo"
+    ];
+
+    function valueOf(id) {
+        const element = document.getElementById(id);
+        const value = element.value.trim();
+        return value || null;
+    }
+
+    function setValue(id, value) {
+        const element = document.getElementById(id);
+        if (element) {
+            element.value = value || "";
+        }
+    }
+
+    function setMessage(textValue, type = "") {
+        const base = "mt-5 min-h-11 rounded-xl border px-4 py-3 text-sm font-semibold";
+        const state = type === "ok"
+            ? "border-emerald-200 bg-emerald-50 text-emerald-700"
+            : type === "error"
+                ? "border-rose-200 bg-rose-50 text-rose-700"
+                : "border-slate-200 bg-slate-50 text-slate-500";
+        message.className = `${base} ${state}`;
+        message.textContent = textValue;
+    }
+
+    function buildPayload() {
+        return Object.fromEntries(fields.map((field) => [field, valueOf(field)]));
+    }
+
+    function fillForm(vendor) {
+        setValue("vendorCode", vendor.vendorCode);
+        fields.forEach((field) => setValue(field, vendor[field]));
+        document.getElementById("status").textContent = vendor.status || "-";
+    }
+
+    async function loadVendor() {
+        if (!vendorId) {
+            setMessage("수정할 거래처 ID가 없습니다.", "error");
+            return;
+        }
+
+        backToDetailLink.href = `/vendor-detail.html?vendorId=${vendorId}`;
+        try {
+            const token = localStorage.getItem("token");
+            const headers = {};
+            if (token) {
+                headers.Authorization = `Bearer ${token}`;
+            }
+            const response = await fetch(`${window.location.origin}/api/v1/inventory/vendors/${vendorId}`, { headers });
+            const responseText = await response.text();
+            if (!response.ok) {
+                throw new Error(responseText || `HTTP ${response.status}`);
+            }
+            fillForm(JSON.parse(responseText));
+            setMessage("수정할 거래처 정보를 불러왔습니다.", "ok");
+        } catch (error) {
+            setMessage(`조회 실패: ${error.message}`, "error");
+        }
+    }
+
+    async function submitUpdate(event) {
+        event.preventDefault();
+        if (!vendorId) {
+            setMessage("수정할 거래처 ID가 없습니다.", "error");
+            return;
+        }
+
+        try {
+            setMessage("거래처 정보를 수정하는 중입니다.");
+            const token = localStorage.getItem("token");
+            const headers = {"Content-Type": "application/json"};
+            if (token) {
+                headers.Authorization = `Bearer ${token}`;
+            }
+            const response = await fetch(`${window.location.origin}/api/v1/inventory/vendors/${vendorId}`, {
+                method: "PATCH",
+                headers,
+                body: JSON.stringify(buildPayload())
+            });
+            const responseText = await response.text();
+            if (!response.ok) {
+                throw new Error(responseText || `HTTP ${response.status}`);
+            }
+            setMessage("거래처 정보가 수정되었습니다. 상세 조회로 이동합니다.", "ok");
+            window.location.href = `/vendor-detail.html?vendorId=${vendorId}`;
+        } catch (error) {
+            setMessage(`수정 실패: ${error.message}`, "error");
+        }
+    }
+
+    form.addEventListener("submit", submitUpdate);
+    loadVendor();
+</script>
+</body>
+</html>

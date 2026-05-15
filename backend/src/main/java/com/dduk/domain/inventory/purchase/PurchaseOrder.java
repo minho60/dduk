@@ -1,5 +1,6 @@
 package com.dduk.domain.inventory.purchase;
 
+import com.dduk.domain.member.Member;
 import com.dduk.domain.inventory.vendor.Vendor;
 import jakarta.persistence.*;
 import lombok.*;
@@ -44,6 +45,17 @@ public class PurchaseOrder {
 
     @Column(name = "expected_date")
     private LocalDate expectedDate;
+
+    @ManyToOne(fetch = FetchType.LAZY)
+    @JoinColumn(name = "requested_by_id")
+    private Member requestedBy;
+
+    @ManyToOne(fetch = FetchType.LAZY)
+    @JoinColumn(name = "approved_by_id")
+    private Member approvedBy;
+
+    @Column(length = 500)
+    private String note;
 
     @OneToMany(mappedBy = "purchaseOrder", cascade = CascadeType.ALL, orphanRemoval = true)
     @Builder.Default

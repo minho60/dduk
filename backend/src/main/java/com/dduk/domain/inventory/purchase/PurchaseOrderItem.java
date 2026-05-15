@@ -4,6 +4,7 @@ import com.dduk.domain.inventory.item.Item;
 import jakarta.persistence.*;
 import lombok.*;
 import java.math.BigDecimal;
+import java.time.LocalDate;
 
 @Entity
 @Table(name = "purchase_order_items")
@@ -28,9 +29,24 @@ public class PurchaseOrderItem {
     @Column(nullable = false)
     private Integer quantity;
 
+    @Column(length = 20)
+    private String unit;
+
     @Column(name = "unit_price", nullable = false)
     private BigDecimal unitPrice;
 
+    @Column(name = "supply_amount")
+    private BigDecimal supplyAmount;
+
+    @Column(name = "tax_amount")
+    private BigDecimal taxAmount;
+
     @Column(name = "line_amount", nullable = false)
     private BigDecimal lineAmount;
+
+    @Column(name = "expected_date")
+    private LocalDate expectedDate;
+
+    @Column(length = 500)
+    private String note;
 }
