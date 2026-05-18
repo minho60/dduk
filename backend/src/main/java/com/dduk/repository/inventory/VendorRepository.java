@@ -1,6 +1,7 @@
 package com.dduk.repository.inventory;
 
 import com.dduk.entity.inventory.Vendor;
+
 import org.springframework.data.jpa.repository.JpaRepository;
 import org.springframework.data.jpa.repository.Query;
 import org.springframework.data.repository.query.Param;

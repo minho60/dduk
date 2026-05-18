@@ -11,7 +11,13 @@ public interface StockMovementRepository extends JpaRepository<StockMovement, Lo
 
     List<StockMovement> findByItem(Item item);
 
+    List<StockMovement> findByItemId(Long itemId);
+
     List<StockMovement> findByInventory(Inventory inventory);
+
+    List<StockMovement> findByInventoryId(Long inventoryId);
+
+    boolean existsByReferenceTypeAndReferenceIdAndMovementType(String referenceType, Long referenceId, String movementType);
 
     List<StockMovement> findAllByOrderByIdDesc();
 }
