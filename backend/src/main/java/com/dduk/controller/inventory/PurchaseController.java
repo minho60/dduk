@@ -1,7 +1,7 @@
 package com.dduk.controller.inventory;
 
 import com.dduk.config.PrincipalDetails;
-import com.dduk.domain.inventory.PurchaseService;
+import com.dduk.service.inventory.PurchaseService;
 import com.dduk.dto.inventory.PurchaseRequestCreateDto;
 import com.dduk.dto.inventory.PurchaseRequestResponseDto;
 import lombok.RequiredArgsConstructor;

@@ -1,11 +1,11 @@
 package com.dduk.controller.inventory;
 
-import com.dduk.domain.inventory.InventoryQueryService;
-import com.dduk.domain.inventory.InventoryRebuildService;
-import com.dduk.domain.inventory.InventoryService;
-import com.dduk.domain.inventory.InventoryValidationService;
-import com.dduk.domain.inventory.MovementReason;
-import com.dduk.domain.inventory.MovementType;
+import com.dduk.entity.inventory.MovementReason;
+import com.dduk.entity.inventory.MovementType;
+import com.dduk.service.inventory.InventoryQueryService;
+import com.dduk.service.inventory.InventoryRebuildService;
+import com.dduk.service.inventory.InventoryService;
+import com.dduk.service.inventory.InventoryValidationService;
 import com.dduk.dto.inventory.InboundRequest;
 import com.dduk.dto.inventory.OutboundRequest;
 import com.dduk.dto.inventory.TransferRequest;

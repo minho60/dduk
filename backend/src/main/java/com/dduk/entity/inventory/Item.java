@@ -2,7 +2,7 @@ package com.dduk.entity.inventory;
 
 import com.fasterxml.jackson.annotation.JsonIgnoreProperties;
 
-import com.dduk.domain.inventory.ItemType;
+import com.dduk.entity.inventory.ItemType;
 import jakarta.persistence.*;
 import lombok.*;
 import java.math.BigDecimal;

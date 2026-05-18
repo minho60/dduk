@@ -1,10 +1,10 @@
 package com.dduk.controller.hr;
 
-import com.dduk.domain.hr.payroll.Payroll;
-import com.dduk.domain.hr.payroll.PayrollService;
-import com.dduk.domain.hr.payroll.PayrollStatusService;
-import com.dduk.domain.hr.payroll.dto.PayrollCalculationRequestDto;
-import com.dduk.domain.hr.payroll.dto.PayrollStatusTransitionRequestDto;
+import com.dduk.dto.hr.PayrollCalculationRequestDto;
+import com.dduk.dto.hr.PayrollStatusTransitionRequestDto;
+import com.dduk.entity.hr.Payroll;
+import com.dduk.service.hr.PayrollService;
+import com.dduk.service.hr.PayrollStatusService;
 import lombok.RequiredArgsConstructor;
 import org.springframework.web.bind.annotation.*;
 

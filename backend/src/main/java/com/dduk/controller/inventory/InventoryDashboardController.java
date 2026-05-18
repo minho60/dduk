@@ -1,6 +1,6 @@
 package com.dduk.controller.inventory;
 
-import com.dduk.domain.inventory.InventoryQueryService;
+import com.dduk.service.inventory.InventoryQueryService;
 import lombok.RequiredArgsConstructor;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.GetMapping;

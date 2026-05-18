@@ -1,6 +1,6 @@
 package com.dduk.repository.inventory;
 
-import com.dduk.domain.inventory.MovementType;
+import com.dduk.entity.inventory.MovementType;
 import com.dduk.entity.inventory.StockMovement;
 
 import org.springframework.data.jpa.repository.JpaRepository;

@@ -1,6 +1,6 @@
 package com.dduk.controller.inventory;
 
-import com.dduk.domain.inventory.VendorService;
+import com.dduk.service.inventory.VendorService;
 import com.dduk.dto.inventory.VendorCreateDto;
 import com.dduk.dto.inventory.VendorResponseDto;
 import com.dduk.dto.inventory.VendorStatusUpdateDto;

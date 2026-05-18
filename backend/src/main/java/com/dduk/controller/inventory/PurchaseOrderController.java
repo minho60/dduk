@@ -1,7 +1,7 @@
 package com.dduk.controller.inventory;
 
 import com.dduk.config.PrincipalDetails;
-import com.dduk.domain.inventory.PurchaseService;
+import com.dduk.service.inventory.PurchaseService;
 import com.dduk.dto.inventory.PurchaseOrderCreateDto;
 import com.dduk.dto.inventory.PurchaseOrderResponseDto;
 import com.dduk.dto.inventory.PurchaseOrderStatusUpdateDto;

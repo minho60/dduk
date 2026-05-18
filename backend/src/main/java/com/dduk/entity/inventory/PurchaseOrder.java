@@ -1,7 +1,7 @@
 package com.dduk.entity.inventory;
 
 import com.dduk.entity.admin.Member;
-import com.dduk.domain.inventory.PurchaseStatus;
+import com.dduk.entity.inventory.PurchaseStatus;
 import com.dduk.entity.inventory.Vendor;
 import com.dduk.entity.inventory.Warehouse;
 import jakarta.persistence.*;

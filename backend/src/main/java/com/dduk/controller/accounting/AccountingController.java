@@ -1,13 +1,13 @@
 package com.dduk.controller.accounting;
 
-import com.dduk.domain.accounting.journal.AccountingService;
-import com.dduk.domain.accounting.journal.JournalEntry;
-import com.dduk.domain.accounting.journal.JournalLineRequest;
-import com.dduk.domain.accounting.ledger.Account;
-import com.dduk.domain.accounting.ledger.AccountRepository;
-import com.dduk.domain.accounting.period.AccountingPeriod;
-import com.dduk.domain.accounting.period.AccountingPeriodService;
-import com.dduk.domain.accounting.report.ReportService;
+import com.dduk.dto.accounting.JournalLineRequest;
+import com.dduk.entity.accounting.Account;
+import com.dduk.entity.accounting.AccountingPeriod;
+import com.dduk.entity.accounting.JournalEntry;
+import com.dduk.repository.accounting.AccountRepository;
+import com.dduk.service.accounting.AccountingPeriodService;
+import com.dduk.service.accounting.AccountingService;
+import com.dduk.service.accounting.ReportService;
 import lombok.RequiredArgsConstructor;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;

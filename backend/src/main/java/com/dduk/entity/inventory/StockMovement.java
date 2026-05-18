@@ -2,8 +2,8 @@ package com.dduk.entity.inventory;
 
 import com.fasterxml.jackson.annotation.JsonIgnoreProperties;
 
-import com.dduk.domain.inventory.MovementReason;
-import com.dduk.domain.inventory.MovementType;
+import com.dduk.entity.inventory.MovementReason;
+import com.dduk.entity.inventory.MovementType;
 import com.dduk.entity.inventory.Item;
 import com.dduk.entity.inventory.Warehouse;
 import jakarta.persistence.*;
