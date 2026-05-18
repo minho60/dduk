@@ -20,6 +20,8 @@ public class PurchaseOrderResponseDto {
     private String vendorName;
     private Long requestedByMemberId;
     private String requestedByMemberName;
+    private Long approvedByMemberId;
+    private String approvedByMemberName;
     private LocalDate orderDate;
     private LocalDate expectedDate;
     private BigDecimal totalAmount;
@@ -35,6 +37,8 @@ public class PurchaseOrderResponseDto {
                 .vendorName(purchaseOrder.getVendor().getName())
                 .requestedByMemberId(purchaseOrder.getRequestedBy() != null ? purchaseOrder.getRequestedBy().getId() : null)
                 .requestedByMemberName(purchaseOrder.getRequestedBy() != null ? purchaseOrder.getRequestedBy().getName() : null)
+                .approvedByMemberId(purchaseOrder.getApprovedBy() == null ? null : purchaseOrder.getApprovedBy().getId())
+                .approvedByMemberName(purchaseOrder.getApprovedBy() == null ? null : purchaseOrder.getApprovedBy().getName())
                 .orderDate(purchaseOrder.getOrderDate())
                 .expectedDate(purchaseOrder.getExpectedDate())
                 .totalAmount(purchaseOrder.getTotalAmount())

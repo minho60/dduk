@@ -72,6 +72,7 @@ public class PurchaseService {
         Vendor vendor = vendorRepository.findById(requestDto.getVendorId())
                 .orElseThrow(() -> new ResponseStatusException(HttpStatus.NOT_FOUND, "거래처를 찾을 수 없습니다."));
         Member requestedBy = findMember(requestedByMemberId);
+        Member approvedBy = findMember(requestDto.getApprovedByMemberId());
         
         // 기본 창고 설정 (실제 구현에서는 요청에서 받거나 기본값을 설정해야 함)
         Warehouse warehouse = warehouseRepository.findAll().stream().findFirst()
@@ -85,6 +86,7 @@ public class PurchaseService {
                 .vendor(vendor)
                 .warehouse(warehouse)
                 .requestedBy(requestedBy)
+                .approvedBy(approvedBy)
                 .orderDate(LocalDate.now())
                 .expectedDate(requestDto.getExpectedDate())
                 .status(PurchaseStatus.ORDERED)
@@ -120,7 +122,7 @@ public class PurchaseService {
         purchaseOrder.setTotalAmount(totalAmount);
         purchaseOrder.setItems(items);
         
-        PurchaseOrder savedOrder = purchaseOrderRepository.save(purchaseOrder);
+        PurchaseOrder savedOrder = purchaseOrderRepository.saveAndFlush(purchaseOrder);
         return PurchaseOrderResponseDto.from(savedOrder, items);
     }
 
@@ -232,7 +234,7 @@ public class PurchaseService {
                 .build();
 
         purchaseOrder.getItems().add(orderItem);
-        PurchaseOrder savedOrder = purchaseOrderRepository.save(purchaseOrder);
+        PurchaseOrder savedOrder = purchaseOrderRepository.saveAndFlush(purchaseOrder);
         
         return PurchaseRequestResponseDto.from(savedOrder, orderItem);
     }
