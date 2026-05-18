@@ -71,7 +71,7 @@
         const path = window.location.pathname;
         if (path.includes('/pages/')) {
             const depth = path.split('/pages/')[1].split('/').length;
-            return '../'.repeat(depth + 1);
+            return '../'.repeat(depth);
         }
         return './';
     }

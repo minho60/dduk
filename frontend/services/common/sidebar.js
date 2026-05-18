@@ -8,7 +8,7 @@
             label: '구매/발주',
             items: [
                 { label: '구매/발주 대시보드', icon: 'bar-chart-3', href: '#' },
-                { label: '발주 요청', icon: 'file-plus', href: '#' },
+                { label: '발주 요청', icon: 'file-plus', href: 'pages/inventory/purchase-order-request.html' },
                 { label: '발주 관리', icon: 'clipboard-list', href: '#' },
                 { label: '입고 등록', icon: 'package-check', href: '#' },
                 { label: '거래처 관리', icon: 'building', href: '#' }
