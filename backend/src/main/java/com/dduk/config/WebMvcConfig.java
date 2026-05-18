@@ -14,6 +14,7 @@ public class WebMvcConfig implements WebMvcConfigurer {
     public void addResourceHandlers(ResourceHandlerRegistry registry) {
         Path frontendPath = Paths.get("../frontend").toAbsolutePath().normalize();
         registry.addResourceHandler("/**")
-                .addResourceLocations("file:" + frontendPath.toString() + "/");
+                .addResourceLocations("file:" + frontendPath.toString() + "/")
+                .addResourceLocations("classpath:/static/");
     }
 }

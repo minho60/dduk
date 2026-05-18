@@ -1,7 +1,6 @@
 package com.dduk.repository.accounting;
 
 import com.dduk.entity.accounting.JournalEntry;
-
 import org.springframework.data.jpa.repository.JpaRepository;
 import org.springframework.data.jpa.repository.Query;
 import org.springframework.data.repository.query.Param;
@@ -17,19 +16,18 @@ public interface JournalEntryRepository extends JpaRepository<JournalEntry, Long
     List<JournalEntry> findByStatus(String status);
 
     List<JournalEntry> findByFiscalYearAndFiscalMonth(Integer fiscalYear, Integer fiscalMonth);
-    
+
     boolean existsByFiscalYearAndFiscalMonthAndStatusIn(Integer fiscalYear, Integer fiscalMonth, List<String> statuses);
 
     List<JournalEntry> findByFiscalYearOrderByTransactionDateDesc(Integer fiscalYear);
 
-    /** 특정 계정코드의 기표된 전표 라인 집계 (합계잔액시산표용) */
     @Query("""
         SELECT l.account.code,
                SUM(l.debitAmount),
                SUM(l.creditAmount)
         FROM JournalEntry e
         JOIN e.lines l
-        WHERE e.status IN ('POSTED', 'REVERSED')
+        WHERE e.status = 'POSTED'
           AND (:fiscalYear IS NULL OR e.fiscalYear = :fiscalYear)
           AND (:fiscalMonth IS NULL OR e.fiscalMonth = :fiscalMonth)
         GROUP BY l.account.code
@@ -39,13 +37,12 @@ public interface JournalEntryRepository extends JpaRepository<JournalEntry, Long
             @Param("fiscalMonth") Integer fiscalMonth
     );
 
-    /** 특정 계정의 전표 라인 이력 (총계정원장용) */
     @Query("""
         SELECT e.transactionDate, e.journalNo, e.description,
                l.debitAmount, l.creditAmount, l.description
         FROM JournalEntry e
         JOIN e.lines l
-        WHERE e.status IN ('POSTED', 'REVERSED')
+        WHERE e.status = 'POSTED'
           AND l.account.code = :accountCode
           AND (:fiscalYear IS NULL OR e.fiscalYear = :fiscalYear)
           AND (:fiscalMonth IS NULL OR e.fiscalMonth = :fiscalMonth)

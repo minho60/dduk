@@ -1,7 +1,9 @@
 package com.dduk.service.accounting;
 
 import com.dduk.dto.accounting.JournalLineRequest;
+import com.dduk.entity.accounting.Account;
 import com.dduk.entity.accounting.JournalEntry;
+import com.dduk.repository.accounting.AccountRepository;
 import com.dduk.repository.accounting.AccountingPeriodRepository;
 import lombok.RequiredArgsConstructor;
 import org.springframework.stereotype.Service;
@@ -10,32 +12,40 @@ import java.math.BigDecimal;
 import java.time.LocalDate;
 import java.util.List;
 
-/**
- * 전표 유효성 검증 서비스
- * - 복식부기 검증 (차변 합계 == 대변 합계)
- * - 음수 금액 방지
- * - 빈 라인 방지
- * - POSTED 상태 수정 금지
- * - 마감 기간 전표 생성 금지
- */
 @Service
 @RequiredArgsConstructor
 public class JournalValidationService {
 
     private final AccountingPeriodRepository accountingPeriodRepository;
+    private final AccountRepository accountRepository;
 
-    /** 전표 라인 유효성 + 복식부기 검증 */
     public void validateLines(List<JournalLineRequest> lineRequests) {
         if (lineRequests == null || lineRequests.isEmpty()) {
             throw new IllegalArgumentException("전표 라인이 비어 있습니다.");
+        }
+
+        if (lineRequests.size() < 2) {
+            throw new IllegalArgumentException("전표 라인은 최소 2개 이상이어야 합니다.");
         }
 
         BigDecimal totalDebit = BigDecimal.ZERO;
         BigDecimal totalCredit = BigDecimal.ZERO;
 
         for (JournalLineRequest req : lineRequests) {
-            if (req.getDebitAmount() == null) req.setDebitAmount(BigDecimal.ZERO);
-            if (req.getCreditAmount() == null) req.setCreditAmount(BigDecimal.ZERO);
+            Account account = accountRepository.findByCode(req.getAccountCode())
+                    .orElseThrow(() -> new IllegalArgumentException("계정코드를 찾을 수 없습니다: " + req.getAccountCode()));
+
+            if (!Boolean.TRUE.equals(account.getIsActive())) {
+                throw new IllegalArgumentException(
+                        "비활성화된 계정입니다: " + req.getAccountCode() + " (" + account.getName() + ")");
+            }
+
+            if (req.getDebitAmount() == null) {
+                req.setDebitAmount(BigDecimal.ZERO);
+            }
+            if (req.getCreditAmount() == null) {
+                req.setCreditAmount(BigDecimal.ZERO);
+            }
 
             if (req.getDebitAmount().compareTo(BigDecimal.ZERO) < 0) {
                 throw new IllegalArgumentException("차변 금액은 음수일 수 없습니다.");
@@ -63,12 +73,10 @@ public class JournalValidationService {
             throw new IllegalArgumentException("대변 합계가 0입니다. 유효한 분개를 입력하세요.");
         }
         if (totalDebit.compareTo(totalCredit) != 0) {
-            throw new IllegalArgumentException(
-                    "차대 불일치: 차변(" + totalDebit + ") ≠ 대변(" + totalCredit + ")");
+            throw new IllegalArgumentException("차대 불일치: 차변(" + totalDebit + ") != 대변(" + totalCredit + ")");
         }
     }
 
-    /** 회계 마감 기간 검증 */
     public void validatePeriodNotClosed(LocalDate date) {
         int year = date.getYear();
         int month = date.getMonthValue();
@@ -81,7 +89,6 @@ public class JournalValidationService {
         }
     }
 
-    /** POSTED/REVERSED 상태 전표 수정 불가 검증 */
     public void validateMutable(JournalEntry entry) {
         entry.assertNotPosted();
     }
