@@ -41,3 +41,24 @@ ON DUPLICATE KEY UPDATE
     role = VALUES(role),
     active = VALUES(active),
     updated_at = NOW();
+
+INSERT INTO accounts (
+    code,
+    name,
+    type,
+    level,
+    is_active,
+    created_at,
+    updated_at
+)
+VALUES
+    ('1001', '현금', 'ASSET', 1, 1, NOW(), NOW()),
+    ('2001', '예수금', 'LIABILITY', 1, 1, NOW(), NOW()),
+    ('2002', '미지급금(급여)', 'LIABILITY', 1, 1, NOW(), NOW()),
+    ('5001', '급여비용', 'EXPENSE', 1, 1, NOW(), NOW())
+ON DUPLICATE KEY UPDATE
+    name = VALUES(name),
+    type = VALUES(type),
+    level = VALUES(level),
+    is_active = VALUES(is_active),
+    updated_at = NOW();

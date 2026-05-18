@@ -277,6 +277,72 @@ CREATE TABLE IF NOT EXISTS stock_movements (
         ON DELETE RESTRICT
         ON UPDATE CASCADE
 ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci;
+
+CREATE TABLE IF NOT EXISTS payroll_contracts (
+    id BIGINT NOT NULL AUTO_INCREMENT,
+    employee_id BIGINT NOT NULL,
+    contract_no VARCHAR(50) NOT NULL,
+    base_salary DECIMAL(15,2) NOT NULL,
+    hourly_rate DECIMAL(15,2) NULL,
+    contract_date DATE NOT NULL,
+    expiry_date DATE NULL,
+    status VARCHAR(30) NOT NULL DEFAULT 'ACTIVE',
+    bonus_rule TEXT NULL,
+    created_at DATETIME NOT NULL DEFAULT CURRENT_TIMESTAMP,
+    updated_at DATETIME NOT NULL DEFAULT CURRENT_TIMESTAMP ON UPDATE CURRENT_TIMESTAMP,
+    PRIMARY KEY (id),
+    UNIQUE KEY uk_payroll_contracts_no (contract_no),
+    KEY idx_payroll_contracts_employee_id (employee_id),
+    CONSTRAINT fk_payroll_contracts_employee
+        FOREIGN KEY (employee_id) REFERENCES employees (id)
+        ON DELETE CASCADE
+        ON UPDATE CASCADE
+) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci;
+
+CREATE TABLE IF NOT EXISTS accounts (
+    id BIGINT NOT NULL AUTO_INCREMENT,
+    code VARCHAR(20) NOT NULL,
+    name VARCHAR(100) NOT NULL,
+    type VARCHAR(30) NOT NULL,
+    level INT NOT NULL DEFAULT 1,
+    parent_code VARCHAR(20) NULL,
+    is_active TINYINT(1) NOT NULL DEFAULT 1,
+    created_at DATETIME NOT NULL DEFAULT CURRENT_TIMESTAMP,
+    updated_at DATETIME NOT NULL DEFAULT CURRENT_TIMESTAMP ON UPDATE CURRENT_TIMESTAMP,
+    PRIMARY KEY (id),
+    UNIQUE KEY uk_accounts_code (code)
+) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci;
+
+CREATE TABLE IF NOT EXISTS journal_entries (
+    id BIGINT NOT NULL AUTO_INCREMENT,
+    journal_no VARCHAR(50) NOT NULL,
+    transaction_date DATE NOT NULL,
+    description VARCHAR(255) NOT NULL,
+    status VARCHAR(30) NOT NULL DEFAULT 'DRAFT',
+    created_at DATETIME NOT NULL DEFAULT CURRENT_TIMESTAMP,
+    updated_at DATETIME NOT NULL DEFAULT CURRENT_TIMESTAMP ON UPDATE CURRENT_TIMESTAMP,
+    PRIMARY KEY (id),
+    UNIQUE KEY uk_journal_entries_no (journal_no)
+) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci;
+
+CREATE TABLE IF NOT EXISTS journal_items (
+    id BIGINT NOT NULL AUTO_INCREMENT,
+    journal_entry_id BIGINT NOT NULL,
+    account_id BIGINT NOT NULL,
+    amount DECIMAL(15,2) NOT NULL,
+    side VARCHAR(10) NOT NULL,
+    PRIMARY KEY (id),
+    KEY idx_journal_items_entry_id (journal_entry_id),
+    KEY idx_journal_items_account_id (account_id),
+    CONSTRAINT fk_journal_items_entry
+        FOREIGN KEY (journal_entry_id) REFERENCES journal_entries (id)
+        ON DELETE CASCADE
+        ON UPDATE CASCADE,
+    CONSTRAINT fk_journal_items_account
+        FOREIGN KEY (account_id) REFERENCES accounts (id)
+        ON DELETE RESTRICT
+        ON UPDATE CASCADE
+) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci;
 /*
 reference_type = PURCHASE_ORDER      → purchase_orders.id 참조
 reference_type = PURCHASE_ORDER_ITEM → purchase_order_items.id 참조
