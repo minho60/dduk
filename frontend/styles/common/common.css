@@ -1,0 +1,28 @@
+@charset "UTF-8";
+
+* {
+  margin: 0;
+  padding: 0;
+  box-sizing: border-box;
+}
+
+:root {
+  --primary-dark: #570808;
+  --primary-light: #F8F7F7;
+  --accent-gray: #8B8B8B;
+  --accent-light-gray: #D4D4D4;
+  --text-dark: #2C2C2C;
+  --text-light: #7A7A7A;
+  --border-light: #E5E5E5;
+  --bg-white: #FFFFFF;
+  --shadow-sm: 0 2px 8px rgba(0, 0, 0, 0.08);
+  --shadow-md: 0 4px 16px rgba(0, 0, 0, 0.12);
+  --transition: all 0.3s ease-in-out;
+}
+
+body {
+  font-family: 'Noto Sans KR', -apple-system, BlinkMacSystemFont, 'Segoe UI', sans-serif;
+  /* background-color: var(--primary-light); */
+  color: var(--text-dark);
+  line-height: 1.6;
+}

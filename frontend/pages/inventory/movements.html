@@ -1,0 +1,140 @@
+<!doctype html>
+<html lang="ko">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>재고 입출고 원장 | DDUK ERP</title>
+    <script src="https://cdn.tailwindcss.com/3.4.17"></script>
+    <script src="https://cdn.jsdelivr.net/npm/lucide@0.263.0/dist/umd/lucide.min.js"></script>
+    <link href="https://fonts.googleapis.com/css2?family=DM+Sans:wght@400;500;600;700&display=swap" rel="stylesheet">
+    <link rel="stylesheet" href="../../styles/common/dashboard.css">
+    <style>
+        .ledger_table { width: 100%; border-collapse: separate; border-spacing: 0; }
+        .ledger_table th { background: #f9fafb; padding: 1rem; text-align: left; font-size: 0.75rem; font-weight: 600; color: #6b7280; text-transform: uppercase; border-bottom: 1px solid #e5e7eb; }
+        .ledger_table td { padding: 1rem; font-size: 0.875rem; color: #374151; border-bottom: 1px solid #f3f4f6; }
+        .type_badge { padding: 0.25rem 0.625rem; border-radius: 9999px; font-size: 0.75rem; font-weight: 600; }
+        .type_inbound { background: #ecfdf5; color: #059669; }
+        .type_outbound { background: #fef2f2; color: #dc2626; }
+        .type_transfer { background: #eff6ff; color: #2563eb; }
+        .type_adjustment { background: #fff7ed; color: #ea580c; }
+        .ref_no { font-family: monospace; color: #2563eb; font-weight: 600; }
+    </style>
+</head>
+<body class="bg-gray-50 min-h-screen">
+    <aside data-dduk-sidebar></aside>
+    <div class="main_wrap">
+        <header class="topbar px-6 py-4 flex justify-between items-center bg-white border-b">
+            <div class="flex items-center gap-4">
+                <button id="mobile_menu_btn" class="lg:hidden p-2 hover:bg-gray-100 rounded-lg"><i data-lucide="menu"></i></button>
+                <h1 class="text-xl font-bold text-gray-800">재고 거래 원장</h1>
+            </div>
+            <div class="flex items-center gap-3">
+                <div class="flex gap-2">
+                    <select id="warehouse-filter" class="p-2 border rounded-lg text-sm bg-white">
+                        <option value="">모든 창고</option>
+                    </select>
+                    <select id="type-filter" class="p-2 border rounded-lg text-sm bg-white">
+                        <option value="">모든 유형</option>
+                        <option value="INBOUND">입고(IN)</option>
+                        <option value="OUTBOUND">출고(OUT)</option>
+                        <option value="TRANSFER_IN">창고입고(TR-IN)</option>
+                        <option value="TRANSFER_OUT">창고출고(TR-OUT)</option>
+                        <option value="ADJUSTMENT">조정(ADJ)</option>
+                    </select>
+                </div>
+            </div>
+        </header>
+
+        <main class="content_area p-6">
+            <div class="bg-white rounded-2xl shadow-sm border border-gray-100 overflow-hidden">
+                <table class="ledger_table">
+                    <thead>
+                        <tr>
+                            <th>일시</th>
+                            <th>참조번호</th>
+                            <th>유형</th>
+                            <th>품목</th>
+                            <th>창고</th>
+                            <th>수량</th>
+                            <th>단가</th>
+                            <th>총액</th>
+                            <th>비고(사유)</th>
+                        </tr>
+                    </thead>
+                    <tbody id="movement-list">
+                        <!-- Data rows -->
+                    </tbody>
+                </table>
+                <div id="empty-state" class="hidden p-12 text-center text-gray-500">
+                    <i data-lucide="inbox" class="w-12 h-12 mx-auto mb-4 opacity-20"></i>
+                    <p>거래 내역이 없습니다.</p>
+                </div>
+            </div>
+        </main>
+    </div>
+
+    <script src="../../services/inventory/inventory-service.js"></script>
+    <script src="../../services/common/sidebar.js"></script>
+    <script>
+        document.addEventListener('DOMContentLoaded', async () => {
+            lucide.createIcons();
+            await loadMovements();
+            
+            document.getElementById('warehouse-filter').addEventListener('change', loadMovements);
+            document.getElementById('type-filter').addEventListener('change', loadMovements);
+        });
+
+        async function loadMovements() {
+            const warehouseId = document.getElementById('warehouse-filter').value;
+            const movementType = document.getElementById('type-filter').value;
+            
+            try {
+                const response = await InventoryService.getMovements({ warehouseId, movementType });
+                const list = document.getElementById('movement-list');
+                const empty = document.getElementById('empty-state');
+                
+                if (response.status === 'success' && response.data.length > 0) {
+                    list.innerHTML = response.data.map(m => `
+                        <tr>
+                            <td class="text-xs text-gray-500">${new Date(m.createdAt).toLocaleString()}</td>
+                            <td><span class="ref_no">${m.referenceNo || '-'}</span></td>
+                            <td><span class="type_badge ${getTypeClass(m.movementType)}">${m.movementType}</span></td>
+                            <td>
+                                <p class="font-bold text-gray-800">${m.item.name}</p>
+                                <p class="text-xs text-gray-400">${m.item.itemCode}</p>
+                            </td>
+                            <td><span class="font-medium">${m.warehouse.warehouseName}</span></td>
+                            <td class="font-bold ${m.movementType.includes('OUT') ? 'text-red-600' : 'text-green-600'}">
+                                ${m.movementType.includes('OUT') ? '-' : '+'}${m.quantity.toLocaleString()}
+                            </td>
+                            <td class="text-gray-500">₩${(m.unitCost || 0).toLocaleString()}</td>
+                            <td class="font-semibold text-gray-800">₩${(m.totalAmount || 0).toLocaleString()}</td>
+                            <td>
+                                <div class="flex items-center gap-1">
+                                    <span class="text-xs px-2 py-0.5 bg-gray-100 rounded">${m.movementReason}</span>
+                                    ${m.referenceType ? `<span class="text-[10px] text-gray-400">(${m.referenceType})</span>` : ''}
+                                </div>
+                            </td>
+                        </tr>
+                    `).join('');
+                    list.classList.remove('hidden');
+                    empty.classList.add('hidden');
+                } else {
+                    list.innerHTML = '';
+                    empty.classList.remove('hidden');
+                }
+            } catch (error) {
+                console.error('Failed to load movements:', error);
+            }
+        }
+
+        function getTypeClass(type) {
+            if (type === 'INBOUND') return 'type_inbound';
+            if (type === 'OUTBOUND') return 'type_outbound';
+            if (type.startsWith('TRANSFER')) return 'type_transfer';
+            if (type === 'ADJUSTMENT') return 'type_adjustment';
+            return 'bg-gray-100 text-gray-600';
+        }
+    </script>
+</body>
+</html>

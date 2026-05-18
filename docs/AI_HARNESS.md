@@ -105,12 +105,16 @@ AI는 작업 요청 시:
 
 ## 5. Backend 규칙 (Spring Boot)
 
-구조 원칙:
+구조 원칙 (Layered Architecture):
 
-- Controller: 요청/응답 처리
-- Service: 비즈니스 로직 처리
-- Repository: DB 접근 처리
-- DTO / Entity 역할 분리
+- 모든 백엔드 코드는 전통적인 계층형 구조를 따르며, 최상단 패키지를 역할에 따라 나눈다.
+- **Controller**: `com.dduk.controller` 하위에 도메인별로 위치하며 요청/응답 처리를 담당한다.
+- **Service**: `com.dduk.service` 하위에 도메인별로 위치한다.
+- **Repository**: `com.dduk.repository` 하위에 도메인별로 위치한다.
+- **Entity**: `com.dduk.entity` (또는 `domain`) 하위에 위치한다.
+- **DTO**: `com.dduk.dto` 하위에 위치한다.
+- **Config**: `com.dduk.config` 하위에 전역 설정 파일들이 위치한다.
+- **역할 분리**: Controller에 비즈니스 로직 작성을 금지하며, 반드시 Service Layer를 거친다.
 
 네이밍:
 
@@ -122,7 +126,7 @@ AI는 작업 요청 시:
 - 가능하면 Service Layer 중심 구조를 유지한다.
 - 트랜잭션 경계를 고려한다.
 - 중복 코드를 줄인다.
-- 기존 구조가 있으면 그 흐름을 우선 따른다.
+- 계층형(Layered) 표준 구조를 엄격히 준수한다.
 
 단:
 
@@ -310,7 +314,7 @@ RESTful 규칙을 기본으로 따른다.
 AI는 아래를 우선한다.
 
 - 기존 코드 스타일 우선
-- 기존 구조 우선
+- 하네스 표준 구조 우선
 - 최소 수정 원칙 준수
 - unrelated 변경 금지
 - 임의 리팩토링 지양

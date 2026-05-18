@@ -1,0 +1,152 @@
+<!doctype html>
+<html lang="ko">
+
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>DDUK ERP - 공지사항 관리</title>
+  <script src="https://cdn.tailwindcss.com/3.4.17"></script>
+  <script src="https://cdn.jsdelivr.net/npm/lucide@0.263.0/dist/umd/lucide.min.js"></script>
+  <link href="https://fonts.googleapis.com/css2?family=DM+Sans:wght@400;500;600;700&amp;display=swap" rel="stylesheet">
+  <link rel="stylesheet" href="../../styles/common/dashboard.css">
+</head>
+
+<body class="w-full">
+  <aside data-dduk-sidebar></aside>
+  
+  <div class="main_wrap">
+    <!-- Topbar -->
+    <header class="topbar">
+      <button class="sidebar_icon_btn dduk-inline-027" onclick="toggleSidebar()" id="mobile_menu_btn" aria-label="메뉴">
+        <i class="dduk-inline-028" data-lucide="menu"></i>
+      </button>
+      <div class="flex-1 px-4">
+        <h2 class="text-lg font-semibold text-gray-800">커뮤니케이션 관리</h2>
+      </div>
+    </header>
+
+    <!-- Content -->
+    <main class="content_area p-6 space-y-6">
+      <!-- Page Title -->
+      <div class="flex items-end justify-between mb-8">
+        <div>
+          <h2 class="text-2xl font-bold text-gray-900">공지사항 관리</h2>
+          <p class="text-gray-500 mt-1">전사 공지사항 및 긴급 안내 팝업을 관리합니다.</p>
+        </div>
+        <button class="bg-blue-600 text-white px-5 py-2.5 rounded-lg font-bold flex items-center gap-2 hover:bg-blue-700 transition-all shadow-md">
+          <i data-lucide="plus-circle" class="w-5 h-5"></i> 새 공지 작성
+        </button>
+      </div>
+
+      <!-- KPI Summary -->
+      <div class="kpi_grid mb-8">
+        <div class="kpi_card">
+          <p class="text-xs text-gray-500 font-bold uppercase tracking-widest">게시 중인 공지</p>
+          <p class="text-2xl font-bold text-gray-900 mt-2">8건</p>
+          <p class="text-xs text-blue-600 mt-2">일반 5 · 긴급 3</p>
+        </div>
+        <div class="kpi_card">
+          <p class="text-xs text-gray-500 font-bold uppercase tracking-widest">오늘 조회수</p>
+          <p class="text-2xl font-bold text-gray-900 mt-2">1,240회</p>
+          <p class="text-xs text-emerald-600 mt-2">▲ 12% 전일 대비</p>
+        </div>
+        <div class="kpi_card">
+          <p class="text-xs text-gray-500 font-bold uppercase tracking-widest">미확인 사용자</p>
+          <p class="text-2xl font-bold text-gray-900 mt-2">42명</p>
+          <p class="text-xs text-amber-600 mt-2">긴급 공지 기준</p>
+        </div>
+      </div>
+
+      <!-- Notice List -->
+      <section class="section_card">
+        <div class="flex items-center justify-between mb-6">
+          <div class="flex items-center gap-2">
+            <i data-lucide="megaphone" class="text-blue-600"></i>
+            <h3 class="text-lg font-semibold text-gray-800">공지사항 리스트</h3>
+          </div>
+          <div class="flex items-center gap-2">
+            <select class="px-3 py-1.5 border border-gray-200 rounded-lg text-sm outline-none focus:ring-2 focus:ring-blue-500">
+              <option>전체 카테고리</option>
+              <option>일반공지</option>
+              <option>긴급안내</option>
+              <option>시스템점검</option>
+            </select>
+            <input type="text" placeholder="제목 검색..." class="px-3 py-1.5 border border-gray-200 rounded-lg text-sm outline-none focus:ring-2 focus:ring-blue-500">
+          </div>
+        </div>
+
+        <div class="overflow-x-auto">
+          <table class="w-full text-left text-sm">
+            <thead class="bg-gray-50 text-gray-500 uppercase text-[10px] tracking-widest">
+              <tr>
+                <th class="px-4 py-3">유형</th>
+                <th class="px-4 py-3">제목</th>
+                <th class="px-4 py-3">작성일</th>
+                <th class="px-4 py-3">게시 기간</th>
+                <th class="px-4 py-3 text-center">조회</th>
+                <th class="px-4 py-3 text-center">작업</th>
+              </tr>
+            </thead>
+            <tbody class="divide-y divide-gray-100">
+              <tr class="hover:bg-gray-50 transition-colors">
+                <td class="px-4 py-4"><span class="px-2 py-1 bg-red-50 text-red-700 rounded text-[10px] font-bold">긴급</span></td>
+                <td class="px-4 py-4 font-semibold text-gray-900">[긴급] 05/16 시스템 정기 점검 안내 (02:00 ~ 06:00)</td>
+                <td class="px-4 py-4 text-gray-500 font-mono">2026.05.15</td>
+                <td class="px-4 py-4 text-gray-500 font-mono">05.15 ~ 05.17</td>
+                <td class="px-4 py-4 text-center font-bold text-gray-700">842</td>
+                <td class="px-4 py-4 text-center space-x-2">
+                  <button class="text-blue-600 hover:text-blue-800"><i data-lucide="edit" class="w-4 h-4 inline"></i></button>
+                  <button class="text-red-600 hover:text-red-800"><i data-lucide="trash-2" class="w-4 h-4 inline"></i></button>
+                </td>
+              </tr>
+              <tr class="hover:bg-gray-50 transition-colors">
+                <td class="px-4 py-4"><span class="px-2 py-1 bg-blue-50 text-blue-700 rounded text-[10px] font-bold">일반</span></td>
+                <td class="px-4 py-4 font-semibold text-gray-900">2026년 하반기 복지 포인트 지급 안내</td>
+                <td class="px-4 py-4 text-gray-500 font-mono">2026.05.14</td>
+                <td class="px-4 py-4 text-gray-500 font-mono">상시게시</td>
+                <td class="px-4 py-4 text-center font-bold text-gray-700">1,105</td>
+                <td class="px-4 py-4 text-center space-x-2">
+                  <button class="text-blue-600 hover:text-blue-800"><i data-lucide="edit" class="w-4 h-4 inline"></i></button>
+                  <button class="text-red-600 hover:text-red-800"><i data-lucide="trash-2" class="w-4 h-4 inline"></i></button>
+                </td>
+              </tr>
+              <tr class="hover:bg-gray-50 transition-colors">
+                <td class="px-4 py-4"><span class="px-2 py-1 bg-gray-100 text-gray-600 rounded text-[10px] font-bold">점검</span></td>
+                <td class="px-4 py-4 font-semibold text-gray-900">회계 결산 시스템 안정화 작업 완료 공지</td>
+                <td class="px-4 py-4 text-gray-500 font-mono">2026.05.10</td>
+                <td class="px-4 py-4 text-gray-500 font-mono">상시게시</td>
+                <td class="px-4 py-4 text-center font-bold text-gray-700">420</td>
+                <td class="px-4 py-4 text-center space-x-2">
+                  <button class="text-blue-600 hover:text-blue-800"><i data-lucide="edit" class="w-4 h-4 inline"></i></button>
+                  <button class="text-red-600 hover:text-red-800"><i data-lucide="trash-2" class="w-4 h-4 inline"></i></button>
+                </td>
+              </tr>
+            </tbody>
+          </table>
+        </div>
+        <div class="mt-6 flex justify-center gap-2">
+          <button class="w-8 h-8 flex items-center justify-center rounded border border-gray-200 text-gray-400 hover:bg-gray-50 disabled:opacity-50" disabled><i data-lucide="chevron-left" class="w-4 h-4"></i></button>
+          <button class="w-8 h-8 flex items-center justify-center rounded bg-blue-600 text-white font-bold">1</button>
+          <button class="w-8 h-8 flex items-center justify-center rounded border border-gray-200 text-gray-600 hover:bg-gray-50">2</button>
+          <button class="w-8 h-8 flex items-center justify-center rounded border border-gray-200 text-gray-600 hover:bg-gray-50">3</button>
+          <button class="w-8 h-8 flex items-center justify-center rounded border border-gray-200 text-gray-600 hover:bg-gray-50"><i data-lucide="chevron-right" class="w-4 h-4"></i></button>
+        </div>
+      </section>
+    </main>
+  </div>
+
+  <script src="../../services/common/session.js"></script>
+  <script src="../../services/common/app-shell.js"></script>
+  <script src="../../services/common/sidebar.js"></script>
+  <script>
+    document.addEventListener('DOMContentLoaded', function() {
+      if (window.lucide) lucide.createIcons();
+      window.ddukAppShell.hydratePage({
+        title: "공지사항 관리",
+        description: "전사 공지사항 및 긴급 알림을 게시하고 조회 현황을 모니터링합니다."
+      });
+    });
+  </script>
+</body>
+
+</html>

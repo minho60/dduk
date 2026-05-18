@@ -1,0 +1,81 @@
+<!DOCTYPE html>
+<html lang="ko">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>DDUK ERP - 월별 정산</title>
+    <script src="https://cdn.jsdelivr.net/npm/lucide@0.263.0/dist/umd/lucide.min.js"></script>
+    <link rel="stylesheet" href="../../../styles/common/app-shell.css">
+    <link rel="stylesheet" href="../../../styles/common/dashboard.css">
+    <link rel="stylesheet" href="../../../styles/hr/hr-backend-pages.css">
+</head>
+<body data-hr-page="accounting-settlement">
+    <aside data-dduk-sidebar></aside>
+    <div class="main_wrap">
+        <main class="app-main hr_page">
+            <header class="hr_topbar">
+                <button class="sidebar_icon_btn dduk-inline-027" onclick="toggleSidebar()" id="mobile_menu_btn" aria-label="메뉴">
+                    <i class="dduk-inline-028" data-lucide="menu"></i>
+                </button>
+                <div class="hr_title">
+                    <h2>월별 정산</h2>
+                    <p>현재 구현된 회계 보고서 API를 기준으로 정산 전 상태를 확인합니다.</p>
+                </div>
+                <div class="hr_actions">
+                    <button class="hr_button" id="btn_refresh_settlement" type="button"><i data-lucide="refresh-cw"></i>새로고침</button>
+                </div>
+            </header>
+
+            <section class="hr_grid">
+                <article class="hr_card span_4">
+                    <div class="hr_kpi_label">현재 순손익</div>
+                    <div class="hr_kpi_value" id="settlement_income">-</div>
+                    <div class="hr_kpi_hint">손익계산서 API 기준</div>
+                </article>
+                <article class="hr_card span_4">
+                    <div class="hr_kpi_label">자산 합계</div>
+                    <div class="hr_kpi_value" id="settlement_assets">-</div>
+                    <div class="hr_kpi_hint">재무상태표 API 기준</div>
+                </article>
+                <article class="hr_card span_4">
+                    <div class="hr_kpi_label">대차 상태</div>
+                    <div class="hr_kpi_value" id="settlement_balance">-</div>
+                    <div class="hr_kpi_hint">마감 실행 API는 아직 없음</div>
+                </article>
+                <article class="hr_card span_6">
+                    <div class="hr_card_header">
+                        <h3>회계 마감 실행</h3>
+                    </div>
+                    <form id="settlement_form" style="display: flex; gap: 12px; align-items: flex-end; margin-bottom: 16px;">
+                        <div class="hr_field" style="margin-bottom: 0;">
+                            <label for="period_month">마감 월</label>
+                            <input class="hr_input" id="period_month" type="month" required>
+                        </div>
+                        <button class="hr_button primary" type="submit"><i data-lucide="lock"></i>마감 처리</button>
+                    </form>
+                    <div class="hr_notice">
+                        마감이 완료된 회계기간에는 전표를 등록, 수정, 삭제할 수 없으며 상태를 변경할 수 없습니다.
+                    </div>
+                </article>
+                <article class="hr_card span_6">
+                    <div class="hr_card_header">
+                        <h3>마감 내역</h3>
+                    </div>
+                    <table class="hr_table">
+                        <thead><tr><th>마감월</th><th>상태</th><th>마감일시</th><th>처리자</th><th>관리</th></tr></thead>
+                        <tbody id="period_rows"></tbody>
+                    </table>
+                </article>
+                <article class="hr_card">
+                    <div class="hr_status" id="page_status"></div>
+                </article>
+            </section>
+        </main>
+    </div>
+
+    <script src="../../../services/common/session.js"></script>
+    <script src="../../../services/common/app-shell.js"></script>
+    <script src="../../../services/common/sidebar.js"></script>
+    <script type="module" src="../../../services/hr/hr-backend-pages.js"></script>
+</body>
+</html>

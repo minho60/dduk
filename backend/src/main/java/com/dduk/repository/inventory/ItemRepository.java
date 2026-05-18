@@ -10,5 +10,13 @@ public interface ItemRepository extends JpaRepository<Item, Long> {
 
     Optional<Item> findByItemCode(String itemCode);
 
+    Optional<Item> findByBarcode(String barcode);
+
+    Optional<Item> findByName(String name);
+
+    List<Item> findByNameIgnoreCaseOrderByIdAsc(String name);
+
+    List<Item> findTop10ByNameContainingIgnoreCaseOrderByIdAsc(String name);
+
     List<Item> findAllByOrderByIdDesc();
 }
