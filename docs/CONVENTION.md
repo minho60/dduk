@@ -22,13 +22,15 @@
 | 구매/재고 | `inventory` | 김슬기 | 재고관리, 발주/입출고, 거래처 관리 등 |
 | 관리자/공통 | `admin` | 김민호 | 로그인/보안, 대시보드, 시스템 설정 등 |
 
-실제 디렉터리는 도메인 중심 구조를 따른다.
+실제 백엔드 디렉터리는 계층형 구조(Layered Architecture)를 따른다.
 
-- `backend/src/main/java/com/dduk/domain/[도메인]/[기능]`
+- `backend/src/main/java/com/dduk/controller/[도메인]`
+- `backend/src/main/java/com/dduk/service/[도메인]`
+- `backend/src/main/java/com/dduk/repository/[도메인]`
 - `frontend/pages/[도메인]`
 - `ai-server/services/[도메인]`
 
-새 코드를 추가할 때는 반드시 해당 도메인/기능 하위 패키지에 위치시킨다.
+새 백엔드 코드를 추가할 때는 역할(Controller, Service, Repository 등)에 맞는 최상단 패키지 하위의 도메인 폴더에 위치시킨다.
 
 ### 1.2 폴더 사용 규칙
 1. 본인 도메인이 아닌 코드도 수정할 수는 있지만, 공용 계약이나 다른 담당자 로직에 영향이 있으면 먼저 범위를 공유한다.
