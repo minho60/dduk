@@ -117,7 +117,14 @@
                         </div>
                     </div>
 
-                    <div class="grid gap-4 md:grid-cols-2">
+                    <div class="grid gap-4 md:grid-cols-3">
+                        <label class="block">
+                            <span class="mb-2 block text-sm font-bold text-slate-700">승인 담당자</span>
+                            <select id="approvedByMemberId" required class="h-11 w-full rounded-xl border border-slate-200 bg-slate-50 px-3 text-sm outline-none transition focus:border-brand-500 focus:bg-white focus:ring-4 focus:ring-brand-100">
+                                <option value="1" selected>admin</option>
+                                <option value="3">hr</option>
+                            </select>
+                        </label>
                         <label class="block">
                             <span class="mb-2 block text-sm font-bold text-slate-700">납기 예정일</span>
                             <input id="expectedDate" type="date" required class="h-11 w-full rounded-xl border border-slate-200 bg-slate-50 px-3 text-sm outline-none transition focus:border-brand-500 focus:bg-white focus:ring-4 focus:ring-brand-100">
@@ -139,12 +146,13 @@
                     </div>
 
                     <div class="overflow-x-auto">
-                        <table class="w-full min-w-[980px] border-collapse">
+                        <table class="w-full min-w-[1180px] border-collapse">
                             <thead class="bg-slate-50 text-left text-xs font-black uppercase tracking-wide text-slate-500">
                             <tr>
+                                <th class="px-4 py-3">품목 코드</th>
                                 <th class="px-4 py-3">선택</th>
-                                <th class="px-4 py-3">품목 ID</th>
-                                <th class="px-4 py-3">품목명</th>
+                                <th class="px-4 py-3">항목번호</th>
+                                <th class="px-4 py-3">품목명 조회/등록</th>
                                 <th class="px-4 py-3">품목 메모</th>
                                 <th class="px-4 py-3">수량</th>
                                 <th class="px-4 py-3">단가</th>
@@ -202,11 +210,50 @@
     </main>
 </div>
 
+<div id="itemPickerModal" class="fixed inset-0 z-50 hidden bg-slate-950/40 px-4 py-8">
+    <div class="mx-auto flex max-h-full max-w-3xl flex-col overflow-hidden rounded-2xl bg-white shadow-premium">
+        <div class="flex items-center justify-between border-b border-slate-100 px-5 py-4">
+            <h3 class="text-base font-black text-slate-950">품목 조회 및 등록</h3>
+            <button id="closeItemPickerBtn" class="grid h-9 w-9 place-items-center rounded-xl border border-slate-200 bg-white text-lg font-black text-slate-500 transition hover:bg-slate-50" type="button">×</button>
+        </div>
+        <div class="overflow-y-auto p-5">
+            <div class="flex gap-2">
+                <input id="itemSearchKeyword" class="h-11 min-w-0 flex-1 rounded-xl border border-slate-200 bg-white px-3 text-sm outline-none focus:border-brand-500 focus:ring-4 focus:ring-brand-100" placeholder="품목명 검색">
+                <button id="itemSearchBtn" class="h-11 rounded-xl bg-slate-950 px-5 text-sm font-bold text-white transition hover:bg-brand-600" type="button">검색</button>
+            </div>
+            <div id="itemSearchResults" class="mt-4 rounded-xl border border-slate-200 bg-slate-50 p-3 text-sm text-slate-500">검색어를 입력한 뒤 검색하세요.</div>
+
+            <div class="mt-5 border-t border-slate-100 pt-5">
+                <div class="flex items-center justify-between gap-3">
+                    <h4 class="text-sm font-black text-slate-900">새 품목 등록</h4>
+                    <button id="showItemCreateFormBtn" class="h-10 rounded-xl border border-brand-200 bg-brand-50 px-4 text-sm font-bold text-brand-600 transition hover:bg-brand-100" type="button">등록폼 열기</button>
+                </div>
+                <div id="itemCreateForm" class="mt-4 hidden grid gap-3 md:grid-cols-2">
+                    <input id="newItemName" class="h-11 rounded-xl border border-slate-200 bg-white px-3 text-sm outline-none focus:border-brand-500 focus:ring-4 focus:ring-brand-100" placeholder="품목명" required>
+                    <input id="newItemCategory" class="h-11 rounded-xl border border-slate-200 bg-white px-3 text-sm outline-none focus:border-brand-500 focus:ring-4 focus:ring-brand-100" placeholder="카테고리" required>
+                    <input id="newItemSpec" class="h-11 rounded-xl border border-slate-200 bg-white px-3 text-sm outline-none focus:border-brand-500 focus:ring-4 focus:ring-brand-100" placeholder="규격" required>
+                    <input id="newItemUnit" class="h-11 rounded-xl border border-slate-200 bg-white px-3 text-sm outline-none focus:border-brand-500 focus:ring-4 focus:ring-brand-100" placeholder="단위" required>
+                    <input id="newItemUnitPrice" class="h-11 rounded-xl border border-slate-200 bg-white px-3 text-sm outline-none focus:border-brand-500 focus:ring-4 focus:ring-brand-100" type="number" min="0" step="0.01" placeholder="단가" required>
+                    <button id="submitNewItemBtn" class="h-11 rounded-xl bg-brand-500 px-5 text-sm font-bold text-white transition hover:bg-brand-600 md:col-span-2" type="button">새 품목 등록</button>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+
 <template id="itemRowTemplate">
     <tr>
+        <td class="px-4 py-3"><input class="item-code h-10 w-36 rounded-xl border border-slate-200 bg-slate-100 px-3 text-slate-500 outline-none" readonly placeholder="조회 후 표시"></td>
         <td class="px-4 py-3"><input class="item-selected h-5 w-5 rounded border-slate-300 text-brand-600 focus:ring-brand-500" type="checkbox" checked></td>
-        <td class="px-4 py-3"><input class="item-id h-10 w-24 rounded-xl border border-slate-200 bg-white px-3 outline-none focus:border-brand-500 focus:ring-4 focus:ring-brand-100" type="number" min="1" required></td>
-        <td class="px-4 py-3"><input class="item-name h-10 w-full min-w-40 rounded-xl border border-slate-200 bg-white px-3 outline-none focus:border-brand-500 focus:ring-4 focus:ring-brand-100" placeholder="예: 밀가루"></td>
+        <td class="px-4 py-3"><input class="item-id h-10 w-24 rounded-xl border border-slate-200 bg-slate-100 px-3 text-slate-500 outline-none" type="number" min="1" readonly required placeholder="번호"></td>
+        <td class="px-4 py-3">
+            <div class="min-w-72 space-y-2">
+                <div class="flex gap-2">
+                    <input class="item-name h-10 min-w-0 flex-1 rounded-xl border border-slate-200 bg-slate-100 px-3 text-slate-600 outline-none" readonly placeholder="품목을 선택하세요">
+                    <button class="open-item-picker h-10 rounded-xl border border-slate-200 bg-white px-3 text-xs font-bold text-slate-700 transition hover:bg-slate-50" type="button">품목 찾기</button>
+                </div>
+            </div>
+        </td>
         <td class="px-4 py-3"><input class="item-note h-10 w-full min-w-52 rounded-xl border border-slate-200 bg-white px-3 outline-none focus:border-brand-500 focus:ring-4 focus:ring-brand-100" placeholder="예: 긴급 발주"></td>
         <td class="px-4 py-3"><input class="quantity h-10 w-24 rounded-xl border border-slate-200 bg-white px-3 outline-none focus:border-brand-500 focus:ring-4 focus:ring-brand-100" type="number" min="1" value="1" required></td>
         <td class="px-4 py-3"><input class="unit-price h-10 w-32 rounded-xl border border-slate-200 bg-white px-3 outline-none focus:border-brand-500 focus:ring-4 focus:ring-brand-100" type="number" min="0" step="0.01" value="0" required></td>
@@ -279,6 +326,18 @@
         ["contactPhone", "vendorSearchContactPhone"],
         ["businessRegistrationNo", "vendorSearchBusinessRegistrationNo"]
     ];
+    let activeItemRow = null;
+    const itemPickerModal = document.getElementById("itemPickerModal");
+    const itemSearchKeyword = document.getElementById("itemSearchKeyword");
+    const itemSearchResults = document.getElementById("itemSearchResults");
+    const itemCreateForm = document.getElementById("itemCreateForm");
+    const newItemFields = {
+        name: document.getElementById("newItemName"),
+        category: document.getElementById("newItemCategory"),
+        spec: document.getElementById("newItemSpec"),
+        unit: document.getElementById("newItemUnit"),
+        unitPrice: document.getElementById("newItemUnitPrice")
+    };
 
     const formatMoney = (value) => new Intl.NumberFormat("ko-KR", {
         maximumFractionDigits: 2
@@ -363,6 +422,132 @@
         }
     }
 
+    function buildAuthHeaders(json = false) {
+        const token = localStorage.getItem("token");
+        const headers = json ? {"Content-Type": "application/json"} : {};
+        if (token) {
+            headers.Authorization = `Bearer ${token}`;
+        }
+        return headers;
+    }
+
+    function applyItemToRow(row, item) {
+        row.querySelector(".item-id").value = item.id || "";
+        row.querySelector(".item-code").value = item.itemCode || "";
+        row.querySelector(".item-name").value = item.name || "";
+        if (item.unitPrice !== null && item.unitPrice !== undefined) {
+            row.querySelector(".unit-price").value = item.unitPrice;
+        }
+        updateView();
+    }
+
+    function openItemPicker(row) {
+        activeItemRow = row;
+        itemSearchKeyword.value = row.querySelector(".item-name").value || "";
+        itemSearchResults.textContent = "검색어를 입력한 뒤 검색하세요.";
+        itemCreateForm.classList.add("hidden");
+        Object.values(newItemFields).forEach((field) => {
+            field.value = "";
+        });
+        newItemFields.name.value = itemSearchKeyword.value;
+        itemPickerModal.classList.remove("hidden");
+        itemSearchKeyword.focus();
+    }
+
+    function closeItemPicker() {
+        itemPickerModal.classList.add("hidden");
+        activeItemRow = null;
+    }
+
+    function renderItemSearchResults(items) {
+        if (!items.length) {
+            itemSearchResults.innerHTML = `<div class="px-2 py-1 font-semibold text-slate-400">검색 결과가 없습니다. 등록폼을 열어 새 품목을 등록하세요.</div>`;
+            newItemFields.name.value = itemSearchKeyword.value.trim();
+            return;
+        }
+
+        itemSearchResults.innerHTML = items.map((item) => `
+            <a href="#" class="select-item flex w-full items-center justify-between rounded-lg px-2 py-2 text-left transition hover:bg-white hover:text-brand-600" data-item-id="${item.id}">
+                <span class="font-bold text-slate-800">${text(item.name)}</span>
+                <span class="text-slate-400">${text(item.itemCode)} / 항목번호 ${item.id}</span>
+            </a>
+        `).join("");
+
+        itemSearchResults.querySelectorAll(".select-item").forEach((link) => {
+            link.addEventListener("click", (event) => {
+                event.preventDefault();
+                const item = items.find((entry) => String(entry.id) === link.dataset.itemId);
+                if (item && activeItemRow) {
+                    applyItemToRow(activeItemRow, item);
+                    closeItemPicker();
+                }
+            });
+        });
+    }
+
+    async function searchItems() {
+        const name = itemSearchKeyword.value.trim();
+        const params = new URLSearchParams();
+        if (name) {
+            params.set("name", name);
+        }
+
+        try {
+            setMessage("품목을 조회하는 중입니다.");
+            itemSearchResults.innerHTML = `<div class="px-2 py-1 font-semibold text-slate-400">검색 중입니다.</div>`;
+            const query = params.toString();
+            const response = await fetch(`${window.location.origin}/api/v1/inventory/items/search${query ? `?${query}` : ""}`);
+            const responseText = await response.text();
+            if (!response.ok) {
+                throw new Error(responseText || `HTTP ${response.status}`);
+            }
+            renderItemSearchResults(responseText ? JSON.parse(responseText) : []);
+            setMessage("품목 조회가 완료되었습니다.", "ok");
+        } catch (error) {
+            itemSearchResults.innerHTML = `<div class="px-2 py-1 font-semibold text-rose-600">품목 조회 실패: ${error.message}</div>`;
+            setMessage(`품목 조회 실패: ${error.message}`, "error");
+        }
+    }
+
+    async function createItem() {
+        const payload = {
+            name: newItemFields.name.value.trim(),
+            category: newItemFields.category.value.trim(),
+            spec: newItemFields.spec.value.trim(),
+            unit: newItemFields.unit.value.trim(),
+            unitPrice: newItemFields.unitPrice.value === "" ? null : Number(newItemFields.unitPrice.value),
+            vendorId: Number(document.getElementById("vendorId").value)
+        };
+        if (!payload.vendorId || payload.vendorId < 1) {
+            setMessage("거래처를 먼저 조회해서 선택해야 품목을 등록할 수 있습니다.", "error");
+            return;
+        }
+        if (!payload.name || !payload.category || !payload.spec || !payload.unit || payload.unitPrice === null) {
+            setMessage("품목명, 카테고리, 규격, 단위, 단가를 모두 입력해야 합니다.", "error");
+            return;
+        }
+
+        try {
+            setMessage("품목을 등록하는 중입니다.");
+            const response = await fetch(`${window.location.origin}/api/v1/inventory/items`, {
+                method: "POST",
+                headers: {"Content-Type": "application/json"},
+                body: JSON.stringify(payload)
+            });
+            const responseText = await response.text();
+            if (!response.ok) {
+                throw new Error(responseText || `HTTP ${response.status}`);
+            }
+            if (activeItemRow) {
+                applyItemToRow(activeItemRow, JSON.parse(responseText));
+            }
+            closeItemPicker();
+            setMessage("품목이 등록되었습니다. 같은 이름이 이미 있으면 기존 품목을 사용합니다.", "ok");
+        } catch (error) {
+            setMessage(`품목 등록 실패: ${error.message}`, "error");
+        }
+    }
+
     function todayPlus(days) {
         const date = new Date();
         date.setDate(date.getDate() + days);
@@ -383,6 +568,7 @@
     function addItemRow(seed = {}) {
         const row = template.content.firstElementChild.cloneNode(true);
         row.querySelector(".item-id").value = seed.itemId || "";
+        row.querySelector(".item-code").value = seed.itemCode || "";
         row.querySelector(".quantity").value = seed.quantity || 1;
         row.querySelector(".unit-price").value = seed.unitPrice || 0;
         row.querySelector(".item-date").value = seed.expectedDate || "";
@@ -391,6 +577,7 @@
         row.querySelector(".item-selected").checked = seed.selected !== false;
 
         row.addEventListener("input", updateView);
+        row.querySelector(".open-item-picker").addEventListener("click", () => openItemPicker(row));
         row.querySelector(".remove-row").addEventListener("click", () => {
             if (itemsBody.children.length > 1) {
                 row.remove();
@@ -439,6 +626,7 @@
 
         return {
             vendorId: Number(document.getElementById("vendorId").value),
+            approvedByMemberId: Number(document.getElementById("approvedByMemberId").value),
             expectedDate: expectedDateInput.value || null,
             note: document.getElementById("orderNote").value.trim(),
             items: rows.map((row) => ({
@@ -473,6 +661,9 @@
     function validatePayload(payload) {
         if (!payload.vendorId || payload.vendorId < 1) {
             return "거래처를 조회한 뒤 선택해야 합니다.";
+        }
+        if (!payload.approvedByMemberId || payload.approvedByMemberId < 1) {
+            return "승인 담당자를 선택해야 합니다.";
         }
         if (!payload.expectedDate) {
             return "납기 예정일을 입력해야 합니다.";
@@ -529,6 +720,27 @@
         }
     }
 
+    document.getElementById("closeItemPickerBtn").addEventListener("click", closeItemPicker);
+    document.getElementById("itemSearchBtn").addEventListener("click", searchItems);
+    document.getElementById("showItemCreateFormBtn").addEventListener("click", () => {
+        itemCreateForm.classList.remove("hidden");
+        if (!newItemFields.name.value.trim()) {
+            newItemFields.name.value = itemSearchKeyword.value.trim();
+        }
+        newItemFields.name.focus();
+    });
+    document.getElementById("submitNewItemBtn").addEventListener("click", createItem);
+    itemSearchKeyword.addEventListener("keydown", (event) => {
+        if (event.key === "Enter") {
+            event.preventDefault();
+            searchItems();
+        }
+    });
+    itemPickerModal.addEventListener("click", (event) => {
+        if (event.target === itemPickerModal) {
+            closeItemPicker();
+        }
+    });
     document.getElementById("addItemBtn").addEventListener("click", () => addItemRow());
     document.getElementById("vendorSearchBtn").addEventListener("click", searchVendors);
     document.getElementById("submitSelectedBtn").addEventListener("click", (event) => submitOrder(event, true));
@@ -536,7 +748,7 @@
     form.addEventListener("submit", (event) => submitOrder(event, false));
 
     expectedDateInput.value = todayPlus(7);
-    addItemRow({itemId: 1, itemName: "밀가루", quantity: 20, unitPrice: 15000, expectedDate: expectedDateInput.value, note: "긴급 발주"});
+    addItemRow({quantity: 1, unitPrice: 0, expectedDate: expectedDateInput.value});
     searchVendors();
 </script>
 </body>

@@ -85,8 +85,8 @@ CREATE TABLE IF NOT EXISTS items (
     id BIGINT NOT NULL AUTO_INCREMENT,
     item_code VARCHAR(50) NOT NULL,
     name VARCHAR(100) NOT NULL,
-    category VARCHAR(100) NULL,
-    spec VARCHAR(100) NULL,
+    category VARCHAR(100) NOT NULL,
+    spec VARCHAR(100) NOT NULL,
     barcode VARCHAR(100) NULL,
     unit VARCHAR(30) NOT NULL,
     default_vendor_id BIGINT NULL,
@@ -97,6 +97,7 @@ CREATE TABLE IF NOT EXISTS items (
     updated_at DATETIME NOT NULL DEFAULT CURRENT_TIMESTAMP ON UPDATE CURRENT_TIMESTAMP,
     PRIMARY KEY (id),
     UNIQUE KEY uk_items_item_code (item_code),
+    UNIQUE KEY uk_items_name (name),
     UNIQUE KEY uk_items_barcode (barcode),
     KEY idx_items_default_vendor_id (default_vendor_id),
     CONSTRAINT fk_items_default_vendor

@@ -98,7 +98,7 @@ public class PurchaseService {
                 .totalAmount(totalAmount)
                 .note(requestDto.getNote())
                 .build();
-        PurchaseOrder savedPurchaseOrder = purchaseOrderRepository.save(purchaseOrder);
+        PurchaseOrder savedPurchaseOrder = purchaseOrderRepository.saveAndFlush(purchaseOrder);
 
         PurchaseOrderItem purchaseOrderItem = PurchaseOrderItem.builder()
                 .purchaseOrder(savedPurchaseOrder)
@@ -112,7 +112,7 @@ public class PurchaseService {
                 .expectedDate(requestDto.getExpectedDate())
                 .note(requestDto.getNote())
                 .build();
-        PurchaseOrderItem savedPurchaseOrderItem = purchaseOrderItemRepository.save(purchaseOrderItem);
+        PurchaseOrderItem savedPurchaseOrderItem = purchaseOrderItemRepository.saveAndFlush(purchaseOrderItem);
 
         return PurchaseRequestResponseDto.from(savedPurchaseOrder, savedPurchaseOrderItem);
     }

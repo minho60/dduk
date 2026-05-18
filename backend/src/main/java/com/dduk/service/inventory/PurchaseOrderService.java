@@ -80,6 +80,8 @@ public class PurchaseOrderService {
         Vendor vendor = vendorRepository.findById(requestDto.getVendorId())
                 .orElseThrow(() -> new ResponseStatusException(HttpStatus.NOT_FOUND, "거래처를 찾을 수 없습니다."));
         Member requestedBy = findRequestedBy(requestedByMemberId);
+        Member approvedBy = memberRepository.findById(requestDto.getApprovedByMemberId())
+                .orElseThrow(() -> new ResponseStatusException(HttpStatus.NOT_FOUND, "승인 담당자를 찾을 수 없습니다."));
 
         List<PurchaseOrderLine> lines = new ArrayList<>();
         BigDecimal totalAmount = BigDecimal.ZERO;
@@ -118,13 +120,14 @@ public class PurchaseOrderService {
                 .purchaseOrderNo(generatePurchaseOrderNo())
                 .vendor(vendor)
                 .requestedBy(requestedBy)
+                .approvedBy(approvedBy)
                 .orderDate(LocalDate.now())
                 .expectedDate(requestDto.getExpectedDate())
                 .status(STATUS_ORDERED)
                 .totalAmount(totalAmount)
                 .note(requestDto.getNote())
                 .build();
-        PurchaseOrder savedPurchaseOrder = purchaseOrderRepository.save(purchaseOrder);
+        PurchaseOrder savedPurchaseOrder = purchaseOrderRepository.saveAndFlush(purchaseOrder);
 
         List<PurchaseOrderItem> purchaseOrderItems = new ArrayList<>();
 
@@ -142,8 +145,9 @@ public class PurchaseOrderService {
                     .note(line.note())
                     .build();
 
-            purchaseOrderItems.add(purchaseOrderItemRepository.save(purchaseOrderItem));
+            purchaseOrderItems.add(purchaseOrderItem);
         }
+        purchaseOrderItems = purchaseOrderItemRepository.saveAllAndFlush(purchaseOrderItems);
 
         return PurchaseOrderResponseDto.from(savedPurchaseOrder, purchaseOrderItems);
     }
@@ -188,6 +192,9 @@ public class PurchaseOrderService {
         }
         if (requestDto.getVendorId() == null) {
             throw new ResponseStatusException(HttpStatus.BAD_REQUEST, "거래처를 선택해야 합니다.");
+        }
+        if (requestDto.getApprovedByMemberId() == null) {
+            throw new ResponseStatusException(HttpStatus.BAD_REQUEST, "승인 담당자를 선택해야 합니다.");
         }
         if (requestDto.getItems() == null || requestDto.getItems().isEmpty()) {
             throw new ResponseStatusException(HttpStatus.BAD_REQUEST, "발주 품목이 필요합니다.");
