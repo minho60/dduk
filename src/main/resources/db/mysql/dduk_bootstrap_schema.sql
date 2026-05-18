@@ -428,14 +428,14 @@ CREATE TABLE IF NOT EXISTS journal_items (
     CONSTRAINT fk_journal_items_account FOREIGN KEY (account_id) REFERENCES accounts (id) ON DELETE RESTRICT
 ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci;
 
--- Default Chart of Accounts Seeds
--- INSERT INTO accounts (code, name, type, level, is_active) VALUES
--- ('1001', '����', 'ASSET', 1, 1),
--- ('2001', '������', 'LIABILITY', 1, 1),
--- ('2002', '�����ޱ�(�޿�)', 'LIABILITY', 1, 1),
--- ('5001', '�޿����', 'EXPENSE', 1, 1)
--- ON DUPLICATE KEY UPDATE
---     name = VALUES(name),
---     type = VALUES(type),
---     level = VALUES(level),
---     is_active = VALUES(is_active);
+Default Chart of Accounts Seeds
+INSERT INTO accounts (code, name, type, level, is_active) VALUES
+('1001', '현금', 'ASSET', 1, 1),
+('2001', '외상매입금', 'LIABILITY', 1, 1),
+('2002', '미지급금(급여)', 'LIABILITY', 1, 1),
+('5001', '급여', 'EXPENSE', 1, 1)
+ON DUPLICATE KEY UPDATE
+    name = VALUES(name),
+    type = VALUES(type),
+    level = VALUES(level),
+    is_active = VALUES(is_active);
