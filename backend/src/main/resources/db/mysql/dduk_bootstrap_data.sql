@@ -53,7 +53,7 @@ INSERT INTO items (
     default_vendor_id,
     unit_price,
     safety_stock,
-    is_active,
+    active,
     created_at,
     updated_at
 )
@@ -61,11 +61,11 @@ VALUES
     (
         1,
         'ITEM-001',
-        '밀가루',
-        '원재료',
+        'Tea Leaves',
+        'RAW_MATERIAL',
         '20kg',
         'ITEM-001-BARCODE',
-        '포',
+        'BAG',
         NULL,
         15000.00,
         10,
@@ -82,5 +82,5 @@ ON DUPLICATE KEY UPDATE
     unit = VALUES(unit),
     unit_price = VALUES(unit_price),
     safety_stock = VALUES(safety_stock),
-    is_active = VALUES(is_active),
+    active = VALUES(active),
     updated_at = NOW();

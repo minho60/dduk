@@ -31,6 +31,9 @@ public class Inventory {
     @JoinColumn(name = "warehouse_id", nullable = false)
     private Warehouse warehouse;
 
+    @Column(name = "location", nullable = false, length = 100)
+    private String location;
+
     @Column(name = "quantity", nullable = false)
     private Integer currentStock;
 
@@ -86,6 +89,9 @@ public class Inventory {
     @PreUpdate
     protected void onUpdate() {
         updatedAt = LocalDateTime.now();
+        if (location == null && warehouse != null) {
+            location = warehouse.getWarehouseCode();
+        }
         if (currentStock == null) currentStock = 0;
         if (safetyStock == null) safetyStock = 0;
         if (allocatedStock == null) allocatedStock = 0;
