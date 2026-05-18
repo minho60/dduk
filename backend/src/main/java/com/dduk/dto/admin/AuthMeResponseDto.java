@@ -8,24 +8,22 @@ import java.time.LocalDateTime;
 
 @Getter
 @Builder
-public class MemberResponseDto {
+public class AuthMeResponseDto {
     private Long id;
     private String loginId;
     private String name;
     private String role;
     private boolean active;
     private LocalDateTime lastLoginAt;
-    private LocalDateTime createdAt;
 
-    public static MemberResponseDto from(Member member) {
-        return MemberResponseDto.builder()
+    public static AuthMeResponseDto from(Member member) {
+        return AuthMeResponseDto.builder()
                 .id(member.getId())
                 .loginId(member.getLoginId())
                 .name(member.getName())
                 .role(member.getRole().name())
                 .active(member.isActive())
                 .lastLoginAt(member.getLastLoginAt())
-                .createdAt(member.getCreatedAt())
                 .build();
     }
 }
