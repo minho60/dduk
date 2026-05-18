@@ -1,10 +1,10 @@
 package com.dduk.controller.inventory;
 
+import com.dduk.service.inventory.VendorService;
 import com.dduk.dto.inventory.VendorCreateDto;
 import com.dduk.dto.inventory.VendorResponseDto;
 import com.dduk.dto.inventory.VendorStatusUpdateDto;
 import com.dduk.dto.inventory.VendorUpdateDto;
-import com.dduk.service.inventory.VendorService;
 import lombok.RequiredArgsConstructor;
 import org.springframework.web.bind.annotation.GetMapping;
 import org.springframework.web.bind.annotation.PatchMapping;

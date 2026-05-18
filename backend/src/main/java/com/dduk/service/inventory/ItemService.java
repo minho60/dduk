@@ -3,6 +3,7 @@ package com.dduk.service.inventory;
 import com.dduk.dto.inventory.ItemCreateDto;
 import com.dduk.dto.inventory.ItemResponseDto;
 import com.dduk.entity.inventory.Item;
+import com.dduk.entity.inventory.ItemType;
 import com.dduk.entity.inventory.Vendor;
 import com.dduk.repository.inventory.ItemRepository;
 import com.dduk.repository.inventory.VendorRepository;
@@ -68,12 +69,12 @@ public class ItemService {
                 .itemCode(generateItemCode())
                 .barcode(generateBarcode())
                 .name(name)
+                .itemType(ItemType.FINISHED_GOOD)
                 .category(category)
                 .spec(spec)
                 .unit(unit)
                 .defaultVendor(defaultVendor)
                 .unitPrice(unitPrice)
-                .safetyStock(0)
                 .active(true)
                 .build();
 

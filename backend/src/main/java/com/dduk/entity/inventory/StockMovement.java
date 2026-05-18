@@ -1,79 +1,80 @@
 package com.dduk.entity.inventory;
 
-import jakarta.persistence.Column;
-import jakarta.persistence.Entity;
-import jakarta.persistence.FetchType;
-import jakarta.persistence.GeneratedValue;
-import jakarta.persistence.GenerationType;
-import jakarta.persistence.Id;
-import jakarta.persistence.JoinColumn;
-import jakarta.persistence.ManyToOne;
-import jakarta.persistence.Table;
-import lombok.AccessLevel;
-import lombok.Builder;
-import lombok.Getter;
-import lombok.NoArgsConstructor;
-import org.hibernate.annotations.CreationTimestamp;
+import com.fasterxml.jackson.annotation.JsonIgnoreProperties;
 
+import com.dduk.entity.inventory.MovementReason;
+import com.dduk.entity.inventory.MovementType;
+import com.dduk.entity.inventory.Item;
+import com.dduk.entity.inventory.Warehouse;
+import jakarta.persistence.*;
+import lombok.*;
+
+import java.math.BigDecimal;
 import java.time.LocalDateTime;
 
 @Entity
+@Table(name = "stock_movements")
 @Getter
 @NoArgsConstructor(access = AccessLevel.PROTECTED)
-@Table(name = "stock_movements")
+@AllArgsConstructor
+@Builder
+@JsonIgnoreProperties({"hibernateLazyInitializer", "handler"})
 public class StockMovement {
-
     @Id
     @GeneratedValue(strategy = GenerationType.IDENTITY)
     private Long id;
 
-    @ManyToOne(fetch = FetchType.LAZY, optional = false)
-    @JoinColumn(name = "item_id", nullable = false)
+    @ManyToOne(fetch = FetchType.LAZY)
+    @JoinColumn(name = "item_id", nullable = false, updatable = false)
     private Item item;
 
-    @ManyToOne(fetch = FetchType.LAZY, optional = false)
-    @JoinColumn(name = "inventory_id", nullable = false)
-    private Inventory inventory;
+    @ManyToOne(fetch = FetchType.LAZY)
+    @JoinColumn(name = "warehouse_id", nullable = false, updatable = false)
+    private Warehouse warehouse;
 
-    @Column(nullable = false, length = 30)
-    private String movementType;
+    @Enumerated(EnumType.STRING)
+    @Column(name = "movement_type", nullable = false, updatable = false)
+    private MovementType movementType;
 
-    @Column(nullable = false)
-    private int quantity;
+    @Enumerated(EnumType.STRING)
+    @Column(name = "movement_reason", nullable = false, updatable = false)
+    private MovementReason movementReason;
 
-    @Column(length = 50)
+    @Column(name = "reference_no", nullable = false, unique = true, updatable = false)
+    private String referenceNo;
+
+    @Column(name = "unit_cost", nullable = false, precision = 19, scale = 4)
+    private BigDecimal unitCost;
+
+    @Column(name = "total_amount", nullable = false, precision = 19, scale = 4)
+    private BigDecimal totalAmount;
+
+    @Column(name = "source_type", updatable = false)
+    private String sourceType;
+
+    @Column(name = "source_id", updatable = false)
+    private String sourceId;
+
+    @Column(nullable = false, updatable = false)
+    private Integer quantity;
+
+    @Column(name = "before_quantity", nullable = false, updatable = false)
+    private Integer beforeQuantity;
+
+    @Column(name = "after_quantity", nullable = false, updatable = false)
+    private Integer afterQuantity;
+
+    @Column(name = "reference_type", updatable = false)
     private String referenceType;
 
-    private Long referenceId;
+    @Column(name = "reference_id", updatable = false)
+    private String referenceId;
 
-    @Column(nullable = false)
-    private LocalDateTime movedAt;
-
-    @Column(length = 255)
-    private String note;
-
-    @CreationTimestamp
-    @Column(nullable = false, updatable = false)
+    @Column(name = "created_at", nullable = false, updatable = false)
     private LocalDateTime createdAt;
 
-    @Builder
-    public StockMovement(
-            Item item,
-            Inventory inventory,
-            String movementType,
-            int quantity,
-            String referenceType,
-            Long referenceId,
-            LocalDateTime movedAt,
-            String note
-    ) {
-        this.item = item;
-        this.inventory = inventory;
-        this.movementType = movementType;
-        this.quantity = quantity;
-        this.referenceType = referenceType;
-        this.referenceId = referenceId;
-        this.movedAt = movedAt;
-        this.note = note;
+    @PrePersist
+    protected void onCreate() {
+        createdAt = LocalDateTime.now();
     }
 }

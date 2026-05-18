@@ -161,11 +161,11 @@
             navElement.innerHTML = renderNav();
         }
 
-        if (titleElement) {
+        if (titleElement && config.title !== undefined) {
             titleElement.textContent = config.title || "";
         }
 
-        if (descriptionElement) {
+        if (descriptionElement && config.description !== undefined) {
             descriptionElement.textContent = config.description || "";
         }
 

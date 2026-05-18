@@ -1,17 +1,28 @@
 package com.dduk.service.inventory;
 
+import com.dduk.service.accounting.AccountingConstants;
+import com.dduk.service.accounting.autojounal.AutoJournalService;
+import com.dduk.dto.inventory.PurchaseOrderCreateDto;
+import com.dduk.dto.inventory.PurchaseOrderItemCreateDto;
+import com.dduk.dto.inventory.PurchaseOrderResponseDto;
+import com.dduk.dto.inventory.PurchaseOrderStatusUpdateDto;
 import com.dduk.dto.inventory.PurchaseRequestCreateDto;
 import com.dduk.dto.inventory.PurchaseRequestResponseDto;
-import com.dduk.entity.admin.Member;
 import com.dduk.entity.inventory.Item;
+import com.dduk.entity.inventory.MovementReason;
+import com.dduk.entity.inventory.MovementType;
 import com.dduk.entity.inventory.PurchaseOrder;
 import com.dduk.entity.inventory.PurchaseOrderItem;
+import com.dduk.entity.inventory.PurchaseStatus;
 import com.dduk.entity.inventory.Vendor;
-import com.dduk.repository.admin.MemberRepository;
+import com.dduk.entity.inventory.Warehouse;
 import com.dduk.repository.inventory.ItemRepository;
-import com.dduk.repository.inventory.PurchaseOrderItemRepository;
 import com.dduk.repository.inventory.PurchaseOrderRepository;
+import com.dduk.repository.inventory.StockMovementRepository;
 import com.dduk.repository.inventory.VendorRepository;
+import com.dduk.repository.inventory.WarehouseRepository;
+import com.dduk.entity.admin.Member;
+import com.dduk.repository.admin.MemberRepository;
 import lombok.RequiredArgsConstructor;
 import org.springframework.http.HttpStatus;
 import org.springframework.stereotype.Service;
@@ -22,86 +33,195 @@ import java.math.BigDecimal;
 import java.math.RoundingMode;
 import java.time.LocalDate;
 import java.time.format.DateTimeFormatter;
+import java.util.ArrayList;
+import java.util.List;
 
-/**
- * 
-   com.dduk.service.inventory
-   ├─ VendorService              // 거래처 등록/조회/수정/비활성화
-   ├─ PurchaseService            // 구매 요청/승인
-   └─ PurchaseOrderService       // 발주 생성/상태 변경 
-
-    InboundService: 입고 등록, 입고 목록 조회, 입고 취소
-    OutboundService: 출고 등록, 출고 목록 조회, 출고 취소
-    PurchaseService: 구매 요청, 구매 승인, 구매 내역
-    PurchaseOrderService: 발주 생성, 발주 상태 변경, 발주서 조회
-    InventoryService: 현재 재고 조회, 재고 반영, 안전재고 확인
-    VendorService: 거래처 등록, 거래처 조회, 거래처 수정, 거래처 비활성화
-
-   재고 부족 확인(흐름)
-    → 구매 요청
-    → 구매 승인
-    → 발주서 생성
-    → 거래처에 발주
-    → 입고
-    → 재고 반영
-
-   상태(status)로 관리
-   REQUESTED(DEFAULT) = 구매 요청
-   APPROVED = 구매 승인
-   ORDERED = 발주 완료
-   RECEIVED = 입고 완료
-   CANCELED = 취소
-
-   구매(정의) = 회사 내부의 구매 필요/요청/승인 관리
- */
 @Service
 @RequiredArgsConstructor
-@Transactional(readOnly = true)
 public class PurchaseService {
 
-    private static final String STATUS_REQUESTED = "REQUESTED";
-    private static final BigDecimal TAX_RATE = BigDecimal.valueOf(0.1);
-
-    private final ItemRepository itemRepository;
+    private final PurchaseOrderRepository purchaseOrderRepository;
     private final VendorRepository vendorRepository;
     private final MemberRepository memberRepository;
-    private final PurchaseOrderRepository purchaseOrderRepository;
-    private final PurchaseOrderItemRepository purchaseOrderItemRepository;
+    private final ItemRepository itemRepository;
+    private final WarehouseRepository warehouseRepository;
+    private final AutoJournalService autoJournalService;
+    private final InventoryService inventoryService;
+    private final StockMovementRepository stockMovementRepository;
+
+    private static final BigDecimal TAX_RATE = new BigDecimal("0.1");
+
+    public List<PurchaseOrder> getAllOrders() {
+        return purchaseOrderRepository.findAll();
+    }
+
+    public PurchaseOrder getOrder(Long id) {
+        return purchaseOrderRepository.findById(id)
+                .orElseThrow(() -> new ResponseStatusException(HttpStatus.NOT_FOUND, "발주서를 찾을 수 없습니다."));
+    }
+
+    @Transactional
+    public PurchaseOrder createOrder(PurchaseOrder order) {
+        return purchaseOrderRepository.save(order);
+    }
+
+    @Transactional
+    public PurchaseOrderResponseDto createPurchaseOrder(PurchaseOrderCreateDto requestDto, Long requestedByMemberId) {
+        validateCreateRequest(requestDto);
+
+        Vendor vendor = vendorRepository.findById(requestDto.getVendorId())
+                .orElseThrow(() -> new ResponseStatusException(HttpStatus.NOT_FOUND, "거래처를 찾을 수 없습니다."));
+        Member requestedBy = findMember(requestedByMemberId);
+        Member approvedBy = findMember(requestDto.getApprovedByMemberId());
+        
+        // 기본 창고 설정 (실제 구현에서는 요청에서 받거나 기본값을 설정해야 함)
+        Warehouse warehouse = warehouseRepository.findAll().stream().findFirst()
+                .orElseThrow(() -> new ResponseStatusException(HttpStatus.INTERNAL_SERVER_ERROR, "등록된 창고가 없습니다."));
+
+        BigDecimal totalAmount = BigDecimal.ZERO;
+        List<PurchaseOrderItem> items = new ArrayList<>();
+
+        PurchaseOrder purchaseOrder = PurchaseOrder.builder()
+                .purchaseOrderNo(generatePurchaseOrderNo())
+                .vendor(vendor)
+                .warehouse(warehouse)
+                .requestedBy(requestedBy)
+                .approvedBy(approvedBy)
+                .orderDate(LocalDate.now())
+                .expectedDate(requestDto.getExpectedDate())
+                .status(PurchaseStatus.ORDERED)
+                .totalAmount(BigDecimal.ZERO) // 임시
+                .note(requestDto.getNote())
+                .build();
+
+        for (PurchaseOrderItemCreateDto itemDto : requestDto.getItems()) {
+            Item item = itemRepository.findById(itemDto.getItemId())
+                    .orElseThrow(() -> new ResponseStatusException(HttpStatus.NOT_FOUND, "품목을 찾을 수 없습니다."));
+            
+            BigDecimal unitPrice = itemDto.getUnitPrice().setScale(2, RoundingMode.HALF_UP);
+            BigDecimal supplyAmount = unitPrice.multiply(BigDecimal.valueOf(itemDto.getQuantity())).setScale(2, RoundingMode.HALF_UP);
+            BigDecimal taxAmount = supplyAmount.multiply(TAX_RATE).setScale(2, RoundingMode.HALF_UP);
+            BigDecimal lineAmount = supplyAmount.add(taxAmount);
+
+            PurchaseOrderItem orderItem = PurchaseOrderItem.builder()
+                    .purchaseOrder(purchaseOrder)
+                    .item(item)
+                    .quantity(itemDto.getQuantity())
+                    .unitPrice(unitPrice)
+                    .supplyAmount(supplyAmount)
+                    .taxAmount(taxAmount)
+                    .lineAmount(lineAmount)
+                    .expectedDate(itemDto.getExpectedDate() != null ? itemDto.getExpectedDate() : requestDto.getExpectedDate())
+                    .note(itemDto.getNote())
+                    .build();
+            
+            items.add(orderItem);
+            totalAmount = totalAmount.add(lineAmount);
+        }
+
+        purchaseOrder.setTotalAmount(totalAmount);
+        purchaseOrder.setItems(items);
+        
+        PurchaseOrder savedOrder = purchaseOrderRepository.saveAndFlush(purchaseOrder);
+        return PurchaseOrderResponseDto.from(savedOrder, items);
+    }
+
+    @Transactional
+    public PurchaseOrderResponseDto updatePurchaseOrderStatus(Long id, PurchaseOrderStatusUpdateDto requestDto, Long memberId) {
+        PurchaseStatus nextStatus = PurchaseStatus.valueOf(requestDto.getStatus().toUpperCase());
+        PurchaseOrder order = transitionStatus(id, nextStatus);
+        
+        if (nextStatus == PurchaseStatus.APPROVED) {
+            order.setApprovedBy(findMember(memberId));
+            purchaseOrderRepository.save(order);
+        }
+
+        return PurchaseOrderResponseDto.from(order, order.getItems());
+    }
+
+    @Transactional(rollbackFor = Exception.class)
+    public PurchaseOrder transitionStatus(Long id, PurchaseStatus nextStatus) {
+        PurchaseOrder order = getOrder(id);
+        PurchaseStatus currentStatus = order.getStatus();
+
+        if (currentStatus == nextStatus) return order;
+        
+        if (nextStatus == PurchaseStatus.RECEIVED || nextStatus == PurchaseStatus.COMPLETED) {
+            if (currentStatus != PurchaseStatus.RECEIVED && currentStatus != PurchaseStatus.COMPLETED) {
+                boolean alreadyReceived = stockMovementRepository.existsByReferenceTypeAndReferenceIdAndMovementType(
+                        "PURCHASE", order.getPurchaseOrderNo(), MovementType.INBOUND
+                );
+                
+                if (!alreadyReceived) {
+                    for (PurchaseOrderItem item : order.getItems()) {
+                        inventoryService.increaseStock(
+                                item.getItem().getId(),
+                                order.getWarehouse().getId(),
+                                item.getQuantity(),
+                                item.getUnitPrice(),
+                                MovementReason.PURCHASE_RECEIVED,
+                                "PURCHASE",
+                                order.getPurchaseOrderNo()
+                        );
+                    }
+                }
+                
+                autoJournalService.createAndPostJournal(
+                        AccountingConstants.SOURCE_PURCHASE,
+                        order.getId(),
+                        order
+                );
+            }
+        }
+
+        order.setStatus(nextStatus);
+        return purchaseOrderRepository.save(order);
+    }
+
+    private void validateCreateRequest(PurchaseOrderCreateDto requestDto) {
+        if (requestDto == null || requestDto.getVendorId() == null || requestDto.getItems() == null || requestDto.getItems().isEmpty()) {
+            throw new ResponseStatusException(HttpStatus.BAD_REQUEST, "발주 정보가 부족합니다.");
+        }
+    }
+
+    private Member findMember(Long memberId) {
+        if (memberId == null) return null;
+        return memberRepository.findById(memberId)
+                .orElseThrow(() -> new ResponseStatusException(HttpStatus.NOT_FOUND, "사용자를 찾을 수 없습니다."));
+    }
 
     @Transactional
     public PurchaseRequestResponseDto createPurchaseRequest(PurchaseRequestCreateDto requestDto, Long requestedByMemberId) {
-        validateCreateRequest(requestDto, requestedByMemberId);
+        validatePurchaseRequest(requestDto, requestedByMemberId);
 
         Item item = itemRepository.findById(requestDto.getItemId())
                 .orElseThrow(() -> new ResponseStatusException(HttpStatus.NOT_FOUND, "품목을 찾을 수 없습니다."));
         Vendor vendor = vendorRepository.findById(requestDto.getVendorId())
                 .orElseThrow(() -> new ResponseStatusException(HttpStatus.NOT_FOUND, "거래처를 찾을 수 없습니다."));
-        Member requestedBy = memberRepository.findById(requestedByMemberId)
-                .orElseThrow(() -> new ResponseStatusException(HttpStatus.NOT_FOUND, "요청자를 찾을 수 없습니다."));
+        Member requestedBy = findMember(requestedByMemberId);
+        
+        Warehouse warehouse = warehouseRepository.findAll().stream().findFirst()
+                .orElseThrow(() -> new ResponseStatusException(HttpStatus.INTERNAL_SERVER_ERROR, "등록된 창고가 없습니다."));
 
         BigDecimal unitPrice = requestDto.getUnitPrice().setScale(2, RoundingMode.HALF_UP);
-        BigDecimal supplyAmount = unitPrice
-                .multiply(BigDecimal.valueOf(requestDto.getQuantity()))
-                .setScale(2, RoundingMode.HALF_UP);
-        BigDecimal taxAmount = supplyAmount
-                .multiply(TAX_RATE)
-                .setScale(2, RoundingMode.HALF_UP);
+        BigDecimal supplyAmount = unitPrice.multiply(BigDecimal.valueOf(requestDto.getQuantity())).setScale(2, RoundingMode.HALF_UP);
+        BigDecimal taxAmount = supplyAmount.multiply(TAX_RATE).setScale(2, RoundingMode.HALF_UP);
         BigDecimal totalAmount = supplyAmount.add(taxAmount);
 
         PurchaseOrder purchaseOrder = PurchaseOrder.builder()
                 .purchaseOrderNo(generatePurchaseRequestNo())
                 .vendor(vendor)
+                .warehouse(warehouse)
                 .requestedBy(requestedBy)
                 .orderDate(LocalDate.now())
                 .expectedDate(requestDto.getExpectedDate())
-                .status(STATUS_REQUESTED)
+                .status(PurchaseStatus.DRAFT) // 요청 상태를 DRAFT로 매핑 (혹은 REQUESTED 추가 가능)
                 .totalAmount(totalAmount)
                 .note(requestDto.getNote())
                 .build();
-        PurchaseOrder savedPurchaseOrder = purchaseOrderRepository.saveAndFlush(purchaseOrder);
 
-        PurchaseOrderItem purchaseOrderItem = PurchaseOrderItem.builder()
-                .purchaseOrder(savedPurchaseOrder)
+        PurchaseOrderItem orderItem = PurchaseOrderItem.builder()
+                .purchaseOrder(purchaseOrder)
                 .item(item)
                 .quantity(requestDto.getQuantity())
                 .unit(item.getUnit())
@@ -112,30 +232,21 @@ public class PurchaseService {
                 .expectedDate(requestDto.getExpectedDate())
                 .note(requestDto.getNote())
                 .build();
-        PurchaseOrderItem savedPurchaseOrderItem = purchaseOrderItemRepository.saveAndFlush(purchaseOrderItem);
 
-        return PurchaseRequestResponseDto.from(savedPurchaseOrder, savedPurchaseOrderItem);
+        purchaseOrder.getItems().add(orderItem);
+        PurchaseOrder savedOrder = purchaseOrderRepository.saveAndFlush(purchaseOrder);
+        
+        return PurchaseRequestResponseDto.from(savedOrder, orderItem);
     }
 
-    private void validateCreateRequest(PurchaseRequestCreateDto requestDto, Long requestedByMemberId) {
-        if (requestDto == null) {
-            throw new ResponseStatusException(HttpStatus.BAD_REQUEST, "구매요청 정보가 필요합니다.");
+    private void validatePurchaseRequest(PurchaseRequestCreateDto requestDto, Long requestedByMemberId) {
+        if (requestDto == null || requestDto.getItemId() == null || requestDto.getVendorId() == null || requestedByMemberId == null) {
+            throw new ResponseStatusException(HttpStatus.BAD_REQUEST, "구매 요청 정보가 부족합니다.");
         }
-        if (requestDto.getItemId() == null) {
-            throw new ResponseStatusException(HttpStatus.BAD_REQUEST, "품목을 선택해야 합니다.");
-        }
-        if (requestDto.getVendorId() == null) {
-            throw new ResponseStatusException(HttpStatus.BAD_REQUEST, "거래처를 선택해야 합니다.");
-        }
-        if (requestedByMemberId == null) {
-            throw new ResponseStatusException(HttpStatus.BAD_REQUEST, "요청자 정보가 필요합니다.");
-        }
-        if (requestDto.getQuantity() == null || requestDto.getQuantity() <= 0) {
-            throw new ResponseStatusException(HttpStatus.BAD_REQUEST, "구매 수량은 1 이상이어야 합니다.");
-        }
-        if (requestDto.getUnitPrice() == null || requestDto.getUnitPrice().compareTo(BigDecimal.ZERO) < 0) {
-            throw new ResponseStatusException(HttpStatus.BAD_REQUEST, "단가는 0 이상이어야 합니다.");
-        }
+    }
+
+    private String generatePurchaseOrderNo() {
+        return "PO-" + LocalDate.now().format(DateTimeFormatter.BASIC_ISO_DATE) + "-" + System.currentTimeMillis();
     }
 
     private String generatePurchaseRequestNo() {

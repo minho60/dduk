@@ -1,0 +1,188 @@
+<!doctype html>
+<html lang="ko">
+
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>DDUK ERP - 조직 및 부서 관리</title>
+  <script src="https://cdn.tailwindcss.com/3.4.17"></script>
+  <script src="https://cdn.jsdelivr.net/npm/lucide@0.263.0/dist/umd/lucide.min.js"></script>
+  <link href="https://fonts.googleapis.com/css2?family=DM+Sans:wght@400;500;600;700&amp;display=swap" rel="stylesheet">
+  <link rel="stylesheet" href="../../styles/common/dashboard.css">
+  <link rel="stylesheet" href="../../styles/admin/admin-pages.css">
+</head>
+
+<body class="w-full">
+  <aside data-dduk-sidebar></aside>
+  
+  <div class="main_wrap">
+    <!-- Topbar -->
+    <header class="topbar">
+      <button class="sidebar_icon_btn dduk-inline-027" onclick="toggleSidebar()" id="mobile_menu_btn" aria-label="메뉴">
+        <i class="dduk-inline-028" data-lucide="menu"></i>
+      </button>
+      <div class="flex-1 px-4">
+        <h2 class="text-lg font-semibold text-gray-800">조직 구조 관리</h2>
+      </div>
+    </header>
+
+    <!-- Content -->
+    <main class="content_area p-6 space-y-6">
+      <!-- Page Title -->
+      <div class="flex items-end justify-between mb-8">
+        <div>
+          <h2 class="text-2xl font-bold text-gray-900">조직 및 부서 관리</h2>
+          <p class="text-gray-500 mt-1">회사의 부서 계층 구조와 직책 정보를 통합 관리합니다.</p>
+        </div>
+        <button class="bg-indigo-600 text-white px-5 py-2.5 rounded-lg font-bold flex items-center gap-2 hover:bg-indigo-700 transition-all shadow-md">
+          <i data-lucide="folder-plus" class="w-5 h-5"></i> 부서 추가
+        </button>
+      </div>
+
+      <!-- Org KPIs -->
+      <div class="kpi_grid mb-8">
+        <div class="kpi_card">
+          <p class="text-xs text-gray-500 font-bold uppercase tracking-widest">전체 부서 수</p>
+          <p class="text-2xl font-bold text-gray-900 mt-2">12개</p>
+          <p class="text-xs text-indigo-600 mt-2 font-medium">3단계 계층 구조</p>
+        </div>
+        <div class="kpi_card">
+          <p class="text-xs text-gray-500 font-bold uppercase tracking-widest">최대 규모 부서</p>
+          <p class="text-2xl font-bold text-gray-900 mt-2">제조본부</p>
+          <p class="text-xs text-gray-400 mt-2">총 42명 소속</p>
+        </div>
+        <div class="kpi_card">
+          <p class="text-xs text-gray-500 font-bold uppercase tracking-widest">신설 예정 부서</p>
+          <p class="text-2xl font-bold text-gray-900 mt-2">1개</p>
+          <p class="text-xs text-emerald-600 mt-2 font-medium">AI 전략팀 (승인 대기)</p>
+        </div>
+      </div>
+
+      <div class="grid grid-cols-1 lg:grid-cols-3 gap-6">
+        <!-- Org Tree View -->
+        <div class="lg:col-span-2">
+          <section class="section_card">
+            <div class="flex items-center gap-2 mb-6">
+              <i data-lucide="network" class="text-indigo-600"></i>
+              <h3 class="text-lg font-semibold text-gray-800">전사 조직도</h3>
+            </div>
+            
+            <div class="space-y-2 pl-4">
+              <!-- Root -->
+              <div class="flex items-center gap-3 p-3 bg-indigo-50 border border-indigo-100 rounded-lg">
+                <i data-lucide="building-2" class="text-indigo-600 w-5 h-5"></i>
+                <span class="font-bold text-indigo-900">DDUK ERP (본사)</span>
+                <span class="ml-auto text-xs bg-indigo-200 text-indigo-800 px-2 py-0.5 rounded font-bold">ROOT</span>
+              </div>
+              
+              <!-- Level 1 -->
+              <div class="ml-8 space-y-2 pt-2">
+                <div class="tree-line flex items-center gap-3 p-2 hover:bg-gray-50 rounded-lg transition-colors group">
+                  <i data-lucide="briefcase" class="text-gray-400 w-4 h-4"></i>
+                  <span class="font-semibold text-gray-700">경영지원본부</span>
+                  <span class="text-xs text-gray-400">(12명)</span>
+                  <button class="ml-auto opacity-0 group-hover:opacity-100 text-gray-400 hover:text-blue-600"><i data-lucide="plus-square" class="w-4 h-4"></i></button>
+                </div>
+                
+                <!-- Level 2 -->
+                <div class="ml-8 space-y-2 border-l-2 border-gray-100 pl-4 py-1">
+                  <div class="flex items-center gap-3 p-2 hover:bg-gray-50 rounded-lg transition-colors group">
+                    <span class="w-1.5 h-1.5 bg-gray-300 rounded-full"></span>
+                    <span class="text-sm text-gray-600">인사팀</span>
+                    <span class="text-xs text-gray-400 font-mono">HR_DEPT</span>
+                    <button class="ml-auto opacity-0 group-hover:opacity-100 text-gray-400 hover:text-red-600"><i data-lucide="trash-2" class="w-4 h-4"></i></button>
+                  </div>
+                  <div class="flex items-center gap-3 p-2 hover:bg-gray-50 rounded-lg transition-colors group">
+                    <span class="w-1.5 h-1.5 bg-gray-300 rounded-full"></span>
+                    <span class="text-sm text-gray-600 font-bold text-blue-600 bg-blue-50 px-2 rounded">회계팀 (선택됨)</span>
+                    <span class="text-xs text-gray-400 font-mono">ACC_DEPT</span>
+                    <button class="ml-auto opacity-0 group-hover:opacity-100 text-gray-400 hover:text-red-600"><i data-lucide="trash-2" class="w-4 h-4"></i></button>
+                  </div>
+                </div>
+
+                <div class="tree-line flex items-center gap-3 p-2 hover:bg-gray-50 rounded-lg transition-colors group">
+                  <i data-lucide="briefcase" class="text-gray-400 w-4 h-4"></i>
+                  <span class="font-semibold text-gray-700">IT 사업본부</span>
+                  <span class="text-xs text-gray-400">(24명)</span>
+                  <button class="ml-auto opacity-0 group-hover:opacity-100 text-gray-400 hover:text-blue-600"><i data-lucide="plus-square" class="w-4 h-4"></i></button>
+                </div>
+                
+                <div class="tree-line flex items-center gap-3 p-2 hover:bg-gray-50 rounded-lg transition-colors group">
+                  <i data-lucide="briefcase" class="text-gray-400 w-4 h-4"></i>
+                  <span class="font-semibold text-gray-700">제조본부</span>
+                  <span class="text-xs text-gray-400">(42명)</span>
+                  <button class="ml-auto opacity-0 group-hover:opacity-100 text-gray-400 hover:text-blue-600"><i data-lucide="plus-square" class="w-4 h-4"></i></button>
+                </div>
+              </div>
+            </div>
+            
+            <div class="mt-8 p-4 bg-amber-50 border border-amber-100 rounded-lg flex items-start gap-3">
+              <i data-lucide="alert-circle" class="text-amber-600 mt-1 w-5 h-5"></i>
+              <p class="text-xs text-amber-800 leading-relaxed font-medium">
+                부서 삭제 시 해당 부서에 소속된 모든 직원은 '부서 미지정' 상태가 됩니다. 조직 개편 전 반드시 직원의 소속을 먼저 변경해 주세요.
+              </p>
+            </div>
+          </section>
+        </div>
+
+        <!-- Detail Form -->
+        <div class="lg:col-span-1">
+          <section class="section_card h-full">
+            <div class="flex items-center gap-2 mb-6">
+              <i data-lucide="info" class="text-indigo-600"></i>
+              <h3 class="text-lg font-semibold text-gray-800">부서 상세 정보</h3>
+            </div>
+            <form class="space-y-4">
+              <div>
+                <label class="block text-sm font-bold text-gray-600 mb-1">부서명</label>
+                <input type="text" value="회계팀" class="w-full px-4 py-2 bg-gray-50 border border-gray-200 rounded-lg text-gray-900 font-semibold outline-none focus:ring-2 focus:ring-indigo-500">
+              </div>
+              <div>
+                <label class="block text-sm font-bold text-gray-600 mb-1">부서 코드</label>
+                <input type="text" value="ACC_DEPT" readonly class="w-full px-4 py-2 bg-gray-100 border border-gray-200 rounded-lg text-gray-400 font-mono text-xs outline-none">
+              </div>
+              <div>
+                <label class="block text-sm font-bold text-gray-600 mb-1">상위 부서</label>
+                <select class="w-full px-4 py-2 bg-gray-50 border border-gray-200 rounded-lg text-gray-900 font-semibold outline-none focus:ring-2 focus:ring-indigo-500">
+                  <option selected>경영지원본부</option>
+                  <option>IT 사업본부</option>
+                  <option>제조본부</option>
+                </select>
+              </div>
+              <div>
+                <label class="block text-sm font-bold text-gray-600 mb-1">부서장 (Manager)</label>
+                <div class="flex items-center gap-2">
+                  <input type="text" value="이수호 (M2042)" class="flex-1 px-4 py-2 bg-gray-50 border border-gray-200 rounded-lg text-gray-900 font-semibold outline-none focus:ring-2 focus:ring-indigo-500">
+                  <button type="button" class="bg-gray-100 p-2 rounded-lg hover:bg-gray-200"><i data-lucide="search" class="w-5 h-5 text-gray-600"></i></button>
+                </div>
+              </div>
+              <div>
+                <label class="block text-sm font-bold text-gray-600 mb-1">부서 설명</label>
+                <textarea class="w-full px-4 py-2 bg-gray-50 border border-gray-200 rounded-lg text-gray-700 text-sm h-24 outline-none focus:ring-2 focus:ring-indigo-500">전사 회계 결산 및 자금 운영을 담당하는 핵심 부서입니다.</textarea>
+              </div>
+              <div class="pt-4 space-y-2">
+                <button type="submit" class="w-full bg-indigo-600 text-white font-bold py-3 rounded-lg hover:bg-indigo-700 transition-all shadow-lg">부서 정보 업데이트</button>
+                <button type="button" class="w-full bg-white text-red-600 border border-red-200 font-bold py-3 rounded-lg hover:bg-red-50 transition-all">이 부서 삭제</button>
+              </div>
+            </form>
+          </section>
+        </div>
+      </div>
+    </main>
+  </div>
+
+  <script src="../../services/common/session.js"></script>
+  <script src="../../services/common/app-shell.js"></script>
+  <script src="../../services/common/sidebar.js"></script>
+  <script>
+    document.addEventListener('DOMContentLoaded', function() {
+      if (window.lucide) lucide.createIcons();
+      window.ddukAppShell.hydratePage({
+        title: "조직 및 부서 관리",
+        description: "회사의 조직 계층 구조를 정의하고 부서별 관리자 및 소속 인원을 관리합니다."
+      });
+    });
+  </script>
+</body>
+
+</html>

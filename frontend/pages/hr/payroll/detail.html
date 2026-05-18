@@ -1,0 +1,90 @@
+<!DOCTYPE html>
+<html lang="ko">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>DDUK ERP - 급여 상세/상태 전환</title>
+    <script src="https://cdn.jsdelivr.net/npm/lucide@0.263.0/dist/umd/lucide.min.js"></script>
+    <link rel="stylesheet" href="../../../styles/common/app-shell.css">
+    <link rel="stylesheet" href="../../../styles/common/dashboard.css">
+    <link rel="stylesheet" href="../../../styles/hr/hr-backend-pages.css">
+</head>
+<body data-hr-page="payroll-detail">
+    <aside data-dduk-sidebar></aside>
+    <div class="main_wrap">
+        <main class="app-main hr_page">
+            <header class="hr_topbar">
+                <button class="sidebar_icon_btn dduk-inline-027" onclick="toggleSidebar()" id="mobile_menu_btn" aria-label="메뉴">
+                    <i class="dduk-inline-028" data-lucide="menu"></i>
+                </button>
+                <div class="hr_title">
+                    <h2>급여 상세/상태 전환</h2>
+                    <p>POST /api/v1/hr/payroll/{id}/transition API로 급여 상태를 전환합니다.</p>
+                </div>
+                <div class="hr_actions">
+                    <a class="hr_button" href="./list.html"><i data-lucide="calculator"></i>급여 계산</a>
+                </div>
+            </header>
+
+            <section class="hr_grid">
+                <form class="hr_card span_4" id="transition_form">
+                    <div class="hr_card_header">
+                        <h3>상태 전환</h3>
+                        <span class="hr_badge warn">백엔드 상태 머신 기준</span>
+                    </div>
+                    <div class="hr_form_grid" style="grid-template-columns: 1fr;">
+                        <div class="hr_field">
+                            <label for="transition_payroll_id">급여 ID</label>
+                            <input class="hr_input" id="transition_payroll_id" type="number" min="1" required>
+                        </div>
+                        <div class="hr_field">
+                            <label for="next_status">다음 상태</label>
+                            <select class="hr_select" id="next_status" required>
+                                <option value="PENDING_APPROVAL">승인 대기</option>
+                                <option value="APPROVED">승인 완료</option>
+                                <option value="POSTED">전표 전송</option>
+                                <option value="PAID">지급 완료</option>
+                                <option value="CANCELLED">취소</option>
+                            </select>
+                        </div>
+                        <div class="hr_field">
+                            <label for="transition_user_id">처리자 ID</label>
+                            <input class="hr_input" id="transition_user_id" placeholder="admin_preview">
+                        </div>
+                        <div class="hr_field">
+                            <label for="transition_reason">사유</label>
+                            <textarea class="hr_textarea" id="transition_reason" placeholder="상태 전환 사유"></textarea>
+                        </div>
+                    </div>
+                    <div class="hr_actions" style="margin-top: 16px;">
+                        <button class="hr_button primary" type="submit"><i data-lucide="send"></i>상태 전환</button>
+                    </div>
+                </form>
+
+                <article class="hr_card span_8">
+                    <div class="hr_card_header">
+                        <h3>최근 급여 결과</h3>
+                        <span class="hr_badge" id="payroll_status">-</span>
+                    </div>
+                    <table class="hr_table">
+                        <tbody>
+                            <tr><th>급여 ID</th><td id="payroll_id">-</td><th>직원</th><td id="payroll_employee">-</td></tr>
+                            <tr><th>지급월</th><td id="payroll_month">-</td><th>실지급액</th><td class="amount" id="payroll_net">-</td></tr>
+                            <tr><th>기본급</th><td class="amount" id="payroll_base">-</td><th>수당 합계</th><td class="amount" id="payroll_allowance">-</td></tr>
+                            <tr><th>공제 합계</th><td class="amount" id="payroll_deduction">-</td><th></th><td></td></tr>
+                        </tbody>
+                    </table>
+                    <pre class="hr_result" id="payroll_trace" style="margin-top: 16px;">최근 계산 결과가 있으면 표시됩니다.</pre>
+                    <div class="hr_status" id="page_status" style="margin-top: 12px;"></div>
+                    <div class="hr_notice" style="margin-top: 12px;">급여 상세 조회 API는 아직 없어서, ID 직접 입력 또는 최근 계산 결과를 사용합니다.</div>
+                </article>
+            </section>
+        </main>
+    </div>
+
+    <script src="../../../services/common/session.js"></script>
+    <script src="../../../services/common/app-shell.js"></script>
+    <script src="../../../services/common/sidebar.js"></script>
+    <script type="module" src="../../../services/hr/hr-backend-pages.js"></script>
+</body>
+</html>

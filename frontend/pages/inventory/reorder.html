@@ -1,0 +1,97 @@
+<!doctype html>
+<html lang="ko">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>자동 발주 추천 | DDUK ERP</title>
+    <script src="https://cdn.tailwindcss.com/3.4.17"></script>
+    <script src="https://cdn.jsdelivr.net/npm/lucide@0.263.0/dist/umd/lucide.min.js"></script>
+    <link href="https://fonts.googleapis.com/css2?family=DM+Sans:wght@400;500;600;700&display=swap" rel="stylesheet">
+    <link rel="stylesheet" href="../../styles/common/dashboard.css">
+</head>
+<body class="bg-gray-50 min-h-screen">
+    <aside data-dduk-sidebar></aside>
+    <div class="main_wrap">
+        <header class="topbar px-6 py-4 bg-white border-b flex items-center justify-between">
+            <div class="flex items-center gap-4">
+                <button id="mobile_menu_btn" class="lg:hidden p-2 hover:bg-gray-100 rounded-lg"><i data-lucide="menu"></i></button>
+                <h1 class="text-xl font-bold text-gray-800">자동 발주 추천</h1>
+            </div>
+            <button onclick="location.reload()" class="p-2 hover:bg-gray-100 rounded-lg text-indigo-600"><i data-lucide="refresh-cw" class="w-5 h-5"></i></button>
+        </header>
+
+        <main class="content_area p-6">
+            <div class="bg-white rounded-2xl shadow-sm border border-gray-100 overflow-hidden">
+                <table class="w-full text-left">
+                    <thead class="bg-gray-50 border-b">
+                        <tr>
+                            <th class="p-4 text-xs font-bold text-gray-500 uppercase">품목 정보</th>
+                            <th class="p-4 text-xs font-bold text-gray-500 uppercase">창고</th>
+                            <th class="p-4 text-xs font-bold text-gray-500 uppercase text-center">현재고</th>
+                            <th class="p-4 text-xs font-bold text-gray-500 uppercase text-center">안전재고</th>
+                            <th class="p-4 text-xs font-bold text-gray-500 uppercase text-center text-red-600">추천발주수량</th>
+                            <th class="p-4 text-xs font-bold text-gray-500 uppercase">작업</th>
+                        </tr>
+                    </thead>
+                    <tbody id="recommendation-list">
+                        <!-- Data -->
+                    </tbody>
+                </table>
+                <div id="empty-state" class="hidden p-20 text-center">
+                    <div class="w-20 h-20 bg-green-50 text-green-500 rounded-full flex items-center justify-center mx-auto mb-4">
+                        <i data-lucide="check-circle" class="w-10 h-10"></i>
+                    </div>
+                    <p class="text-lg font-bold text-gray-800">모든 재고가 안정적입니다.</p>
+                    <p class="text-sm text-gray-500">현재 안전재고 하회 품목이 없습니다.</p>
+                </div>
+            </div>
+        </main>
+    </div>
+
+    <script src="../../services/inventory/inventory-service.js"></script>
+    <script src="../../services/common/sidebar.js"></script>
+    <script>
+        document.addEventListener('DOMContentLoaded', async () => {
+            lucide.createIcons();
+            await loadRecommendations();
+        });
+
+        async function loadRecommendations() {
+            try {
+                const response = await InventoryService.getReorderRecommendations();
+                const list = document.getElementById('recommendation-list');
+                const empty = document.getElementById('empty-state');
+                
+                if (response.status === 'success' && response.data.length > 0) {
+                    list.innerHTML = response.data.map(i => {
+                        const recommended = i.safetyStock - i.currentStock;
+                        return `
+                            <tr class="border-b hover:bg-gray-50 transition-colors">
+                                <td class="p-4">
+                                    <p class="font-bold text-gray-800">${i.item.name}</p>
+                                    <p class="text-xs text-gray-400">${i.item.itemCode}</p>
+                                </td>
+                                <td class="p-4 text-sm text-gray-600">${i.warehouse.warehouseName}</td>
+                                <td class="p-4 text-center font-bold text-red-500">${i.currentStock.toLocaleString()}</td>
+                                <td class="p-4 text-center text-gray-500">${i.safetyStock.toLocaleString()}</td>
+                                <td class="p-4 text-center font-black text-xl text-indigo-600">${recommended.toLocaleString()}</td>
+                                <td class="p-4">
+                                    <button class="px-4 py-2 bg-indigo-50 text-indigo-600 rounded-lg text-sm font-bold hover:bg-indigo-100 transition-colors">
+                                        발주 요청 생성
+                                    </button>
+                                </td>
+                            </tr>
+                        `;
+                    }).join('');
+                    empty.classList.add('hidden');
+                } else {
+                    list.innerHTML = '';
+                    empty.classList.remove('hidden');
+                }
+            } catch (error) {
+                console.error('Failed to load recommendations:', error);
+            }
+        }
+    </script>
+</body>
+</html>

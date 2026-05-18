@@ -1,12 +1,14 @@
 package com.dduk.controller.inventory;
 
 import com.dduk.config.PrincipalDetails;
+import com.dduk.service.inventory.PurchaseService;
 import com.dduk.dto.inventory.PurchaseOrderCreateDto;
 import com.dduk.dto.inventory.PurchaseOrderResponseDto;
 import com.dduk.dto.inventory.PurchaseOrderStatusUpdateDto;
-import com.dduk.service.inventory.PurchaseOrderService;
+import com.dduk.entity.inventory.PurchaseOrder;
 import lombok.RequiredArgsConstructor;
 import org.springframework.security.core.annotation.AuthenticationPrincipal;
+import org.springframework.web.bind.annotation.GetMapping;
 import org.springframework.web.bind.annotation.PatchMapping;
 import org.springframework.web.bind.annotation.PathVariable;
 import org.springframework.web.bind.annotation.PostMapping;
@@ -14,38 +16,41 @@ import org.springframework.web.bind.annotation.RequestBody;
 import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.RestController;
 
+import java.util.List;
 
-/**
- * com.dduk.controller.inventory
- ├─ InventoryController        // 재고 조회, 재고 조정
- ├─ InboundController          // 입고 등록/조회/취소
- ├─ OutboundController         // 출고 등록/조회/취소
- ├─ PurchaseController         // 구매 요청/승인/반려
- └─ PurchaseOrderController    // 발주 생성/조회/상태 변경
- */
 @RestController
 @RequestMapping("/api/v1/inventory/purchase-orders")
 @RequiredArgsConstructor
 public class PurchaseOrderController {
 
-    private final PurchaseOrderService purchaseOrderService;
+    private final PurchaseService purchaseService;
+
+    @GetMapping
+    public List<PurchaseOrder> getAll() {
+        return purchaseService.getAllOrders();
+    }
+
+    @GetMapping("/{id}")
+    public PurchaseOrder getOne(@PathVariable Long id) {
+        return purchaseService.getOrder(id);
+    }
 
     @PostMapping
     public PurchaseOrderResponseDto createPurchaseOrder(
             @RequestBody PurchaseOrderCreateDto requestDto,
             @AuthenticationPrincipal PrincipalDetails principalDetails
     ) {
-        Long requestedByMemberId = principalDetails == null ? null : principalDetails.getMember().getId();
-        return purchaseOrderService.createPurchaseOrder(requestDto, requestedByMemberId);
+        Long memberId = principalDetails != null ? principalDetails.getMember().getId() : null;
+        return purchaseService.createPurchaseOrder(requestDto, memberId);
     }
 
-    @PatchMapping("/{purchaseOrderId}/status")
+    @PatchMapping("/{id}/status")
     public PurchaseOrderResponseDto updatePurchaseOrderStatus(
-            @PathVariable Long purchaseOrderId,
+            @PathVariable Long id,
             @RequestBody PurchaseOrderStatusUpdateDto requestDto,
             @AuthenticationPrincipal PrincipalDetails principalDetails
     ) {
-        Long approvedByMemberId = principalDetails == null ? null : principalDetails.getMember().getId();
-        return purchaseOrderService.updatePurchaseOrderStatus(purchaseOrderId, requestDto, approvedByMemberId);
+        Long memberId = principalDetails != null ? principalDetails.getMember().getId() : null;
+        return purchaseService.updatePurchaseOrderStatus(id, requestDto, memberId);
     }
 }

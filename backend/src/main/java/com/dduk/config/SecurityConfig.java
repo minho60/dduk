@@ -38,16 +38,12 @@ public class SecurityConfig {
             .csrf(AbstractHttpConfigurer::disable)
             .sessionManagement(session -> session.sessionCreationPolicy(SessionCreationPolicy.STATELESS))
             .authorizeHttpRequests(authorize -> authorize
+                .requestMatchers("/", "/index.html", "/dashboard.html", "/pages/**", "/styles/**", "/services/**", "/assets/**").permitAll()
                 .requestMatchers("/api/v1/auth/login").permitAll()
                 .requestMatchers(
                         "/",
                         "/index.html",
                         "/dashboard.html",
-                        "/purchase-order-request.html",
-                        "/vendor-create.html",
-                        "/vendor-list.html",
-                        "/vendor-detail.html",
-                        "/vendor-edit.html",
                         "/assets/**",
                         "/pages/**",
                         "/services/**",

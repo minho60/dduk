@@ -4,21 +4,23 @@ spring:
     username: ${DB_USERNAME}
     password: ${DB_PASSWORD}
     driver-class-name: com.mysql.cj.jdbc.Driver
+
   jpa:
     hibernate:
-      ddl-auto: update
+      ddl-auto: ${JPA_DDL_AUTO:update}
     show-sql: true
     properties:
       hibernate:
         format_sql: true
+
   sql:
     init:
       mode: always
-      schema-locations: classpath:db/mysql/dduk_bootstrap_schema.sql
-      data-locations: classpath:db/mysql/dduk_bootstrap_data.sql
+      schema-locations:
+        - classpath:db/mysql/dduk_bootstrap_schema.sql
+      data-locations:
+        - classpath:db/mysql/dduk_bootstrap_data.sql
 
-# JWT 설정
 jwt:
-  # 512bit 이상 길이의 시크릿을 환경변수로 주입
   secret: ${JWT_SECRET}
   expiration: ${JWT_EXPIRATION:86400000}
