@@ -34,21 +34,72 @@ async function request(path, options = {}) {
 }
 
 export const hrBackendApi = {
+    // ── 재무제표 ─────────────────────────────────────────────────
     getBalanceSheet() {
-        return request('/api/v1/accounting/report/balance-sheet');
+        return request('/api/v1/accounting/reports/balance-sheet');
     },
 
     getProfitLoss() {
-        return request('/api/v1/accounting/report/profit-loss');
+        return request('/api/v1/accounting/reports/profit-loss');
+    },
+
+    getTrialBalance(fiscalYear, fiscalMonth) {
+        const params = new URLSearchParams();
+        if (fiscalYear)  params.set('fiscalYear',  fiscalYear);
+        if (fiscalMonth) params.set('fiscalMonth', fiscalMonth);
+        const qs = params.toString();
+        return request(`/api/v1/accounting/reports/trial-balance${qs ? '?' + qs : ''}`);
+    },
+
+    // ── 전표 ─────────────────────────────────────────────────────
+    getJournals(params = {}) {
+        const qs = new URLSearchParams(params).toString();
+        return request(`/api/v1/accounting/journals${qs ? '?' + qs : ''}`);
     },
 
     createJournal(payload) {
-        return request('/api/v1/accounting/journal', {
+        return request('/api/v1/accounting/journals', {
             method: 'POST',
             body: payload
         });
     },
 
+    approveJournal(id) {
+        return request(`/api/v1/accounting/journals/${id}/approve`, { method: 'POST' });
+    },
+
+    postJournal(id) {
+        return request(`/api/v1/accounting/journals/${id}/post`, { method: 'POST' });
+    },
+
+    reverseJournal(id) {
+        return request(`/api/v1/accounting/journals/${id}/reverse`, { method: 'POST' });
+    },
+
+    deleteJournal(id) {
+        return request(`/api/v1/accounting/journals/${id}`, { method: 'DELETE' });
+    },
+
+    // ── 회계기간 ──────────────────────────────────────────────────
+    getPeriods() {
+        return request('/api/v1/accounting/periods');
+    },
+
+    closePeriod(yearMonth, closedBy) {
+        return request(`/api/v1/accounting/periods/${yearMonth}/close`, {
+            method: 'POST',
+            body: { closedBy: closedBy || 'SYSTEM' }
+        });
+    },
+
+    reopenPeriod(yearMonth, reopenedBy) {
+        return request(`/api/v1/accounting/periods/${yearMonth}/reopen`, {
+            method: 'POST',
+            body: { reopenedBy: reopenedBy || 'SYSTEM' }
+        });
+    },
+
+    // ── 급여 ─────────────────────────────────────────────────────
     calculatePayroll(payload) {
         return request('/api/v1/hr/payroll/calculate', {
             method: 'POST',

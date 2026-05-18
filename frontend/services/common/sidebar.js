@@ -18,24 +18,25 @@
             id: 'inventory',
             label: '재고관리',
             items: [
-                { label: '재고관리 대시보드', icon: 'bar-chart-3', href: '#' },
-                { label: '재고 조회', icon: 'search', href: '#' },
-                { label: '입출고 이력', icon: 'history', href: '#' },
-                { label: '창고 이동', icon: 'truck', href: '#' },
-                { label: '자동 발주 추천', icon: 'zap', href: '#' }
+                { label: '재고관리 대시보드', icon: 'bar-chart-3', href: 'pages/inventory/dashboard.html' },
+                { label: '재고 조회', icon: 'search', href: 'pages/inventory/list.html' },
+                { label: '입출고 이력', icon: 'history', href: 'pages/inventory/movements.html' },
+                { label: '창고 이동', icon: 'truck', href: 'pages/inventory/transfers.html' },
+                { label: '자동 발주 추천', icon: 'zap', href: 'pages/inventory/reorder.html' }
             ]
         },
         {
             id: 'accounting',
             label: '회계관리',
             items: [
-                { label: '회계 대시보드', icon: 'bar-chart-3', href: 'pages/hr/accounting/dashboard.html' },
-                { label: '세금계산서', icon: 'receipt', href: 'pages/hr/accounting/transactions.html' },
-                { label: '비용 처리', icon: 'credit-card', href: '#' },
-                { label: '매입/매출', icon: 'trending-up', href: 'pages/hr/accounting/trial-balance.html' },
-                { label: '월별 정산', icon: 'calendar', href: 'pages/hr/accounting/settlement.html' },
-                { label: '급여 계산', icon: 'wallet', href: 'pages/hr/payroll/list.html', match: 'pages/hr/payroll/' },
-                { label: '회계 리포트', icon: 'file-bar-chart', href: 'pages/hr/accounting/reports.html' }
+                { label: '회계 대시보드',    icon: 'bar-chart-3',   href: 'pages/hr/accounting/dashboard.html' },
+                { label: '거래 내역 등록',   icon: 'file-plus',     href: 'pages/hr/accounting/transactions.html' },
+                { label: '합계잔액시산표',   icon: 'trending-up',   href: 'pages/hr/accounting/trial-balance.html' },
+                { label: '월 마감',          icon: 'calendar-check', href: 'pages/hr/accounting/settlement.html' },
+                { label: '급여 계산',        icon: 'wallet',        href: 'pages/hr/payroll/list.html', match: 'pages/hr/payroll/' },
+                { label: '회계 리포트',      icon: 'file-bar-chart', href: 'pages/hr/accounting/reports.html' },
+                { label: '세금계산서',       icon: 'receipt',       href: 'pages/hr/accounting/wip.html', disabled: true },
+                { label: '비용 처리',        icon: 'credit-card',   href: 'pages/hr/accounting/wip.html', disabled: true }
             ]
         },
         {
@@ -100,6 +101,15 @@
 
     function renderMenuItem(item, extraClass) {
         const currentClass = isCurrentPage(item) ? ' active' : '';
+        if (item.disabled) {
+            return `
+                <span class="menu_item menu_item_disabled${extraClass ? ` ${extraClass}` : ''}" title="${item.label}" aria-disabled="true">
+                    <i class="dduk-inline-012" data-lucide="${item.icon}"></i>
+                    <span class="menu_label">${item.label}</span>
+                    <span class="menu_badge_wip">준비중</span>
+                </span>
+            `;
+        }
         return `
             <a class="menu_item${extraClass ? ` ${extraClass}` : ''}${currentClass}" href="${resolveHref(item.href)}" data-label="${item.label}" title="${item.label}">
                 <i class="dduk-inline-012" data-lucide="${item.icon}"></i>
@@ -167,6 +177,12 @@
                         <span class="status_dot dduk-inline-026"></span>
                         <span class="dduk-inline-024 sidebar_status_text">서버 정상 · 99.9% uptime</span>
                     </div>
+                    <div style="margin-top: 1rem; border-top: 1px solid rgba(0,0,0,0.05); padding-top: 0.75rem;">
+                        <button onclick="handleLogout()" style="display: flex; align-items: center; gap: 0.5rem; font-size: 0.875rem; color: #6b7280; width: 100%; padding: 0.25rem 0; background: none; border: none; cursor: pointer;">
+                            <i data-lucide="log-out" style="width: 1rem; height: 1rem;"></i>
+                            <span>로그아웃</span>
+                        </button>
+                    </div>
                 </div>
             </aside>
         `;
@@ -206,6 +222,13 @@
         icon.setAttribute('data-lucide', isCollapsed ? 'chevron-down' : 'chevron-up');
         if (header) header.setAttribute('aria-expanded', String(!isCollapsed));
         if (window.lucide) lucide.createIcons();
+    };
+
+    window.handleLogout = function() {
+        localStorage.clear();
+        sessionStorage.clear();
+        const root = getRootPath();
+        window.location.href = root + 'index.html'; 
     };
 
     window.toggleSidebar = function () {

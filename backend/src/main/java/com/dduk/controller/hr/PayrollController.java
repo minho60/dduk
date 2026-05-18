@@ -3,10 +3,10 @@ package com.dduk.controller.hr;
 import com.dduk.domain.hr.payroll.Payroll;
 import com.dduk.domain.hr.payroll.PayrollService;
 import com.dduk.domain.hr.payroll.PayrollStatusService;
+import com.dduk.domain.hr.payroll.dto.PayrollCalculationRequestDto;
+import com.dduk.domain.hr.payroll.dto.PayrollStatusTransitionRequestDto;
 import lombok.RequiredArgsConstructor;
 import org.springframework.web.bind.annotation.*;
-
-import java.util.Map;
 
 @RestController
 @RequestMapping("/api/v1/hr/payroll")
@@ -17,18 +17,24 @@ public class PayrollController {
     private final PayrollStatusService statusService;
 
     @PostMapping("/calculate")
-    public Payroll calculate(@RequestBody Map<String, Object> request) {
-        Long employeeId = Long.valueOf(request.get("employeeId").toString());
-        String payMonth = (String) request.get("payMonth");
-        Map<String, Object> inputs = (Map<String, Object>) request.get("inputs");
-        return payrollService.calculatePayroll(employeeId, payMonth, inputs);
+    public Payroll calculate(@RequestBody PayrollCalculationRequestDto request) {
+        return payrollService.calculatePayroll(
+                request.getEmployeeId(),
+                request.getPayMonth(),
+                request.getInputs()
+        );
     }
 
     @PostMapping("/{id}/transition")
-    public Payroll transition(@PathVariable Long id, @RequestBody Map<String, String> request) {
-        String nextStatus = request.get("nextStatus");
-        String userId = request.get("userId");
-        String reason = request.get("reason");
-        return statusService.transition(id, nextStatus, userId, reason);
+    public Payroll transition(
+            @PathVariable Long id,
+            @RequestBody PayrollStatusTransitionRequestDto request
+    ) {
+        return statusService.transition(
+                id,
+                request.getNextStatus(),
+                request.getUserId(),
+                request.getReason()
+        );
     }
 }

@@ -16,7 +16,6 @@ spring:
   sql:
     init:
       mode: always
-      schema-locations: classpath:db/mysql/dduk_bootstrap_schema.sql
       data-locations: classpath:db/mysql/dduk_bootstrap_data.sql
 
 jwt:
