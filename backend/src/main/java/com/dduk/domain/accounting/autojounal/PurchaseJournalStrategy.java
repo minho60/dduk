@@ -2,7 +2,7 @@ package com.dduk.domain.accounting.autojounal;
 
 import com.dduk.domain.accounting.journal.JournalLineRequest;
 import com.dduk.domain.accounting.AccountingConstants;
-import com.dduk.domain.inventory.purchase.PurchaseOrder;
+import com.dduk.entity.inventory.PurchaseOrder;
 import org.springframework.stereotype.Component;
 
 import java.math.BigDecimal;

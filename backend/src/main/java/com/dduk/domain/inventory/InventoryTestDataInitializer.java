@@ -1,8 +1,9 @@
 package com.dduk.domain.inventory;
 
-import com.dduk.domain.inventory.item.*;
-import com.dduk.domain.inventory.stock.*;
-import com.dduk.domain.inventory.warehouse.*;
+import com.dduk.entity.inventory.Item;
+import com.dduk.entity.inventory.Warehouse;
+import com.dduk.repository.inventory.ItemRepository;
+import com.dduk.repository.inventory.WarehouseRepository;
 import lombok.RequiredArgsConstructor;
 import org.springframework.boot.CommandLineRunner;
 import org.springframework.stereotype.Component;

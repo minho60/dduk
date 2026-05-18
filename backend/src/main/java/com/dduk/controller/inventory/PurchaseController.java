@@ -1,9 +1,9 @@
 package com.dduk.controller.inventory;
 
 import com.dduk.config.PrincipalDetails;
-import com.dduk.domain.inventory.purchase.PurchaseService;
-import com.dduk.domain.inventory.purchase.dto.PurchaseRequestCreateDto;
-import com.dduk.domain.inventory.purchase.dto.PurchaseRequestResponseDto;
+import com.dduk.domain.inventory.PurchaseService;
+import com.dduk.dto.inventory.PurchaseRequestCreateDto;
+import com.dduk.dto.inventory.PurchaseRequestResponseDto;
 import lombok.RequiredArgsConstructor;
 import org.springframework.security.core.annotation.AuthenticationPrincipal;
 import org.springframework.web.bind.annotation.PostMapping;
