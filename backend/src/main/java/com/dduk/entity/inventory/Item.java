@@ -32,7 +32,20 @@ public class Item {
     private ItemType itemType;
 
     @Column(nullable = false)
+    private String category;
+
+    @Column(nullable = false)
+    private String spec;
+
+    @Column(unique = true)
+    private String barcode;
+
+    @Column(nullable = false)
     private String unit; // EA, KG, BOX, etc.
+
+    @ManyToOne(fetch = FetchType.LAZY)
+    @JoinColumn(name = "default_vendor_id")
+    private Vendor defaultVendor;
 
     @Column(name = "standard_cost")
     private BigDecimal standardCost;

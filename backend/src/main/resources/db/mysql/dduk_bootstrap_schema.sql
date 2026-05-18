@@ -99,8 +99,8 @@ CREATE TABLE IF NOT EXISTS items (
     item_code VARCHAR(50) NOT NULL,
     name VARCHAR(100) NOT NULL,
     item_type VARCHAR(30) NOT NULL DEFAULT 'FINISHED_GOOD',
-    category VARCHAR(100) NULL,
-    spec VARCHAR(100) NULL,
+    category VARCHAR(100) NOT NULL,
+    spec VARCHAR(100) NOT NULL,
     barcode VARCHAR(100) NULL,
     unit VARCHAR(30) NOT NULL,
     default_vendor_id BIGINT NULL,
@@ -112,6 +112,7 @@ CREATE TABLE IF NOT EXISTS items (
     updated_at DATETIME NOT NULL DEFAULT CURRENT_TIMESTAMP ON UPDATE CURRENT_TIMESTAMP,
     PRIMARY KEY (id),
     UNIQUE KEY uk_items_item_code (item_code),
+    UNIQUE KEY uk_items_name (name),
     UNIQUE KEY uk_items_barcode (barcode),
     KEY idx_items_default_vendor_id (default_vendor_id),
     CONSTRAINT fk_items_default_vendor
@@ -372,10 +373,10 @@ CREATE TABLE IF NOT EXISTS journal_items (
 
 -- Default Chart of Accounts Seeds
 INSERT INTO accounts (code, name, type, level, is_active) VALUES
-('1001', 'Çö±Ý', 'ASSET', 1, 1),
-('2001', '¿¹¼ö±Ý', 'LIABILITY', 1, 1),
-('2002', '¹ÌÁö±Þ±Ý(±Þ¿©)', 'LIABILITY', 1, 1),
-('5001', '±Þ¿©ºñ¿ë', 'EXPENSE', 1, 1)
+('1001', 'ï¿½ï¿½ï¿½ï¿½', 'ASSET', 1, 1),
+('2001', 'ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½', 'LIABILITY', 1, 1),
+('2002', 'ï¿½ï¿½ï¿½ï¿½ï¿½Þ±ï¿½(ï¿½Þ¿ï¿½)', 'LIABILITY', 1, 1),
+('5001', 'ï¿½Þ¿ï¿½ï¿½ï¿½ï¿½', 'EXPENSE', 1, 1)
 ON DUPLICATE KEY UPDATE
     name = VALUES(name),
     type = VALUES(type),
