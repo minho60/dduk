@@ -11,7 +11,9 @@ const API_BASE_URL = (() => {
 })();
 
 async function request(path, options = {}) {
-    const headers = window.ddukSession?.getAuthHeaders?.({ 'Content-Type': 'application/json' }) || { 'Content-Type': 'application/json' };
+    const headers = window.ddukSession?.getAuthHeaders?.({ 'Content-Type': 'application/json' })
+        || { 'Content-Type': 'application/json' };
+
     const response = await fetch(`${API_BASE_URL}${path}`, {
         method: options.method || 'GET',
         headers,
@@ -33,28 +35,37 @@ async function request(path, options = {}) {
     return data;
 }
 
+function buildPeriodBody(value, field) {
+    if (typeof value === 'string') {
+        return { [field]: value || 'SYSTEM' };
+    }
+    return value || {};
+}
+
+function buildReportQuery(fiscalYear, fiscalMonth) {
+    const params = new URLSearchParams();
+    if (fiscalYear) params.set('fiscalYear', fiscalYear);
+    if (fiscalMonth) params.set('fiscalMonth', fiscalMonth);
+    const query = params.toString();
+    return query ? `?${query}` : '';
+}
+
 export const hrBackendApi = {
-    // ── 재무제표 ─────────────────────────────────────────────────
-    getBalanceSheet() {
-        return request('/api/v1/accounting/reports/balance-sheet');
+    getBalanceSheet(fiscalYear, fiscalMonth) {
+        return request(`/api/v1/accounting/reports/balance-sheet${buildReportQuery(fiscalYear, fiscalMonth)}`);
     },
 
-    getProfitLoss() {
-        return request('/api/v1/accounting/reports/profit-loss');
+    getProfitLoss(fiscalYear, fiscalMonth) {
+        return request(`/api/v1/accounting/reports/profit-loss${buildReportQuery(fiscalYear, fiscalMonth)}`);
     },
 
     getTrialBalance(fiscalYear, fiscalMonth) {
-        const params = new URLSearchParams();
-        if (fiscalYear)  params.set('fiscalYear',  fiscalYear);
-        if (fiscalMonth) params.set('fiscalMonth', fiscalMonth);
-        const qs = params.toString();
-        return request(`/api/v1/accounting/reports/trial-balance${qs ? '?' + qs : ''}`);
+        return request(`/api/v1/accounting/reports/trial-balance${buildReportQuery(fiscalYear, fiscalMonth)}`);
     },
 
-    // ── 전표 ─────────────────────────────────────────────────────
     getJournals(params = {}) {
-        const qs = new URLSearchParams(params).toString();
-        return request(`/api/v1/accounting/journals${qs ? '?' + qs : ''}`);
+        const query = new URLSearchParams(params).toString();
+        return request(`/api/v1/accounting/journals${query ? `?${query}` : ''}`);
     },
 
     createJournal(payload) {
@@ -64,42 +75,36 @@ export const hrBackendApi = {
         });
     },
 
-    approveJournal(id) {
-        return request(`/api/v1/accounting/journals/${id}/approve`, { method: 'POST' });
-    },
-
     postJournal(id) {
         return request(`/api/v1/accounting/journals/${id}/post`, { method: 'POST' });
     },
 
-    reverseJournal(id) {
-        return request(`/api/v1/accounting/journals/${id}/reverse`, { method: 'POST' });
+    cancelJournal(id) {
+        return request(`/api/v1/accounting/journals/${id}/cancel`, { method: 'POST' });
     },
 
     deleteJournal(id) {
         return request(`/api/v1/accounting/journals/${id}`, { method: 'DELETE' });
     },
 
-    // ── 회계기간 ──────────────────────────────────────────────────
     getPeriods() {
         return request('/api/v1/accounting/periods');
     },
 
-    closePeriod(yearMonth, closedBy) {
+    closePeriod(yearMonth, closedByOrBody) {
         return request(`/api/v1/accounting/periods/${yearMonth}/close`, {
             method: 'POST',
-            body: { closedBy: closedBy || 'SYSTEM' }
+            body: buildPeriodBody(closedByOrBody, 'closedBy')
         });
     },
 
-    reopenPeriod(yearMonth, reopenedBy) {
+    reopenPeriod(yearMonth, reopenedByOrBody) {
         return request(`/api/v1/accounting/periods/${yearMonth}/reopen`, {
             method: 'POST',
-            body: { reopenedBy: reopenedBy || 'SYSTEM' }
+            body: buildPeriodBody(reopenedByOrBody, 'reopenedBy')
         });
     },
 
-    // ── 급여 ─────────────────────────────────────────────────────
     calculatePayroll(payload) {
         return request('/api/v1/hr/payroll/calculate', {
             method: 'POST',

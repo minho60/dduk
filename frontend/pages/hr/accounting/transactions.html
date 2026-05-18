@@ -8,6 +8,31 @@
     <link rel="stylesheet" href="../../../styles/common/app-shell.css">
     <link rel="stylesheet" href="../../../styles/common/dashboard.css">
     <link rel="stylesheet" href="../../../styles/hr/hr-backend-pages.css">
+    <style>
+        .status-draft { background: #ffc107; color: #000; }
+        .status-posted { background: #28a745; color: #fff; }
+        .status-cancelled { background: #dc3545; color: #fff; }
+        .toast-container {
+            position: fixed;
+            top: 20px;
+            right: 20px;
+            z-index: 9999;
+        }
+        .toast {
+            padding: 12px 20px;
+            margin-bottom: 10px;
+            border-radius: 4px;
+            color: white;
+            animation: slideIn 0.3s ease-out;
+        }
+        .toast-success { background: #28a745; }
+        .toast-error { background: #dc3545; }
+        .toast-info { background: #17a2b8; }
+        @keyframes slideIn {
+            from { transform: translateX(100%); opacity: 0; }
+            to { transform: translateX(0); opacity: 1; }
+        }
+    </style>
 </head>
 <body data-hr-page="accounting-transactions">
     <aside data-dduk-sidebar></aside>
@@ -19,7 +44,7 @@
                 </button>
                 <div class="hr_title">
                     <h2>전표 등록</h2>
-                    <p>POST /api/v1/accounting/journal API로 차변과 대변이 일치하는 전표를 생성합니다.</p>
+                    <p>POST /api/v1/accounting/journals API로 복식부기 전표를 생성한다.</p>
                 </div>
                 <div class="hr_actions">
                     <button class="hr_button" id="btn_add_journal_row" type="button"><i data-lucide="plus"></i>항목 추가</button>
@@ -43,11 +68,12 @@
                         </div>
                     </div>
                     <div class="journal_items" id="journal_items" style="margin-top: 16px;"></div>
-                    
+
                     <div class="hr_summary_bar" style="margin-top: 16px; padding: 12px; background: #f8f9fa; border-radius: 4px; display: flex; justify-content: space-between; align-items: center;">
                         <div>
                             <span>차변 합계: <strong id="sum_debit">0</strong></span>
                             <span style="margin-left: 20px;">대변 합계: <strong id="sum_credit">0</strong></span>
+                            <span style="margin-left: 20px;" id="diff_display"></span>
                         </div>
                         <div id="validation_msg" class="hr_text_error" style="font-weight: bold;">차대 금액이 일치하지 않습니다.</div>
                     </div>
@@ -59,23 +85,30 @@
 
                 <article class="hr_card span_4">
                     <div class="hr_card_header">
-                        <h3>도움말</h3>
+                        <h3>입력 규칙</h3>
                     </div>
                     <div class="hr_help_content">
                         <ul style="padding-left: 20px; color: #666; font-size: 0.9em;">
-                            <li>차변과 대변의 합계가 반드시 일치해야 합니다.</li>
-                            <li>계정 코드는 백엔드에 등록된 유효한 코드여야 합니다.</li>
-                            <li>기표(POSTED)된 전표는 수정/삭제가 불가능하며 역분개만 가능합니다.</li>
+                            <li>전표 라인은 최소 2개 이상이어야 한다.</li>
+                            <li>차변과 대변 합계가 반드시 일치해야 한다.</li>
+                            <li>DRAFT 상태만 삭제 가능하다.</li>
+                            <li>POSTED 상태는 취소만 가능하다.</li>
+                            <li>CANCELLED 상태는 조회만 가능하다.</li>
                         </ul>
                     </div>
                 </article>
 
-                <!-- 전표 목록 섹션 추가 -->
                 <article class="hr_card span_12">
                     <div class="hr_card_header">
-                        <h3>최근 전표 목록</h3>
+                        <h3>전표 목록</h3>
                         <div class="hr_card_actions">
-                            <button class="hr_button" id="btn_refresh_journals"><i data-lucide="refresh-cw"></i></button>
+                            <select class="hr_input" id="status_filter" style="width: auto; margin-right: 10px;">
+                                <option value="">전체 상태</option>
+                                <option value="DRAFT">DRAFT</option>
+                                <option value="POSTED">POSTED</option>
+                                <option value="CANCELLED">CANCELLED</option>
+                            </select>
+                            <button class="hr_button" id="btn_refresh_journals" type="button"><i data-lucide="refresh-cw"></i></button>
                         </div>
                     </div>
                     <table class="hr_table">
@@ -97,7 +130,8 @@
         </main>
     </div>
 
-    <!-- 전표 상세 Modal -->
+    <div class="toast-container" id="toast_container"></div>
+
     <div id="journal_detail_modal" class="hr_modal" style="display: none;">
         <div class="hr_modal_content">
             <div class="hr_modal_header">

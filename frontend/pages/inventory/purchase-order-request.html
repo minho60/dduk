@@ -35,7 +35,7 @@
                     <p class="text-xs font-semibold uppercase tracking-[0.18em] text-brand-500">DDUK ERP</p>
                     <h1 class="mt-1 text-2xl font-black tracking-tight text-slate-950">Inventory</h1>
                 </div>
-                <a href="/purchase-order-request.html" class="grid h-10 w-10 place-items-center rounded-xl bg-slate-100 text-sm font-bold text-slate-600" title="Home">⌂</a>
+                <a href="dashboard.html" class="grid h-10 w-10 place-items-center rounded-xl bg-slate-100 text-sm font-bold text-slate-600" title="Home">&#8962;</a>
             </div>
 
             <nav class="space-y-5" data-nav></nav>
@@ -265,7 +265,7 @@
     </tr>
 </template>
 
-<script src="/services/common/app-shell.js"></script>
+<script src="../../services/common/app-shell.js"></script>
 <script>
     window.ddukAppShell.hydratePage({
         title: "발주 생성",
@@ -274,7 +274,7 @@
             {
                 label: "발주 관리",
                 children: [
-                    { href: "/purchase-order-request.html", label: "발주 생성", current: true },
+                    { href: "pages/inventory/purchase-order-request.html", label: "발주 생성", current: true },
                     { href: "#", label: "발주 상태 변경" },
                     { href: "#", label: "발주서 조회" }
                 ]
