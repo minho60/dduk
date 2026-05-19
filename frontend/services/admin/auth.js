@@ -123,7 +123,7 @@ if (loginForm && loginButton && passwordInput) {
             const data = await parseResponseBody(response);
 
             if (!response.ok || !data) {
-                setMessage(data?.message || "로그인에 실패했어.", "error");
+                setMessage(data?.message || "로그인에 실패했습니다.", "error");
                 return;
             }
 
@@ -144,7 +144,7 @@ if (loginForm && loginButton && passwordInput) {
             }
 
             loginSucceeded = true;
-            setMessage("로그인 성공. 대시보드로 이동할게.", "success");
+            setMessage("로그인 성공. 대시보드로 이동합니다.", "success");
             setLoginButtonText("접속 중...");
 
             const redirectPath = roleRedirectMap[data.role] || "dashboard.html";
@@ -153,7 +153,7 @@ if (loginForm && loginButton && passwordInput) {
             }, 300);
         } catch (error) {
             console.error("로그인 중 오류 발생:", error);
-            setMessage("서버와 통신할 수 없어.", "error");
+            setMessage("서버와 통신할 수 없습니다.", "error");
         } finally {
             if (loginSucceeded) {
                 loginButton.classList.remove("is-loading");
