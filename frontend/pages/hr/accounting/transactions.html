@@ -1,180 +1,322 @@
 <!DOCTYPE html>
 <html lang="ko">
+
 <head>
-    <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>DDUK ERP - 전표 등록</title>
-    <script src="https://cdn.jsdelivr.net/npm/lucide@0.263.0/dist/umd/lucide.min.js"></script>
-    <link rel="stylesheet" href="../../../styles/common/app-shell.css">
-    <link rel="stylesheet" href="../../../styles/common/dashboard.css">
-    <link rel="stylesheet" href="../../../styles/hr/hr-backend-pages.css">
-    <style>
-        .status-draft { background: #ffc107; color: #000; }
-        .status-posted { background: #28a745; color: #fff; }
-        .status-cancelled { background: #dc3545; color: #fff; }
-        .toast-container {
-            position: fixed;
-            top: 20px;
-            right: 20px;
-            z-index: 9999;
-        }
-        .toast {
-            padding: 12px 20px;
-            margin-bottom: 10px;
-            border-radius: 4px;
-            color: white;
-            animation: slideIn 0.3s ease-out;
-        }
-        .toast-success { background: #28a745; }
-        .toast-error { background: #dc3545; }
-        .toast-info { background: #17a2b8; }
-        @keyframes slideIn {
-            from { transform: translateX(100%); opacity: 0; }
-            to { transform: translateX(0); opacity: 1; }
-        }
-    </style>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>DDUK ERP - 거래 내역 등록</title>
+  <script src="https://cdn.jsdelivr.net/npm/lucide@0.263.0/dist/umd/lucide.min.js"></script>
+  <link rel="stylesheet" href="../../../styles/common/app-shell.css">
+  <link rel="stylesheet" href="../../../styles/common/dashboard.css">
+  <link rel="stylesheet" href="../../../styles/hr/hr-backend-pages.css">
+  <link rel="stylesheet" href="../../../styles/hr/transactions.css">
 </head>
+
 <body data-hr-page="accounting-transactions">
-    <aside data-dduk-sidebar></aside>
-    <div class="main_wrap">
-        <main class="app-main hr_page">
-            <header class="hr_topbar">
-                <button class="sidebar_icon_btn dduk-inline-027" onclick="toggleSidebar()" id="mobile_menu_btn" aria-label="메뉴">
-                    <i class="dduk-inline-028" data-lucide="menu"></i>
-                </button>
-                <div class="hr_title">
-                    <h2>전표 등록</h2>
-                    <p>POST /api/v1/accounting/journals API로 복식부기 전표를 생성한다.</p>
-                </div>
-                <div class="hr_actions">
-                    <button class="hr_button" id="btn_add_journal_row" type="button"><i data-lucide="plus"></i>항목 추가</button>
-                </div>
-            </header>
-
-            <section class="hr_grid">
-                <form class="hr_card span_8" id="journal_form">
-                    <div class="hr_card_header">
-                        <h3>전표 등록</h3>
-                        <span class="hr_badge warn" id="balance_badge">차대 불일치</span>
-                    </div>
-                    <div class="hr_form_grid">
-                        <div class="hr_field">
-                            <label for="journal_date">거래일</label>
-                            <input class="hr_input" id="journal_date" type="date" required>
-                        </div>
-                        <div class="hr_field">
-                            <label for="journal_description">설명</label>
-                            <input class="hr_input" id="journal_description" placeholder="예: 급여 지급 전표" required>
-                        </div>
-                    </div>
-                    <div class="journal_items" id="journal_items" style="margin-top: 16px;"></div>
-
-                    <div class="hr_summary_bar" style="margin-top: 16px; padding: 12px; background: #f8f9fa; border-radius: 4px; display: flex; justify-content: space-between; align-items: center;">
-                        <div>
-                            <span>차변 합계: <strong id="sum_debit">0</strong></span>
-                            <span style="margin-left: 20px;">대변 합계: <strong id="sum_credit">0</strong></span>
-                            <span style="margin-left: 20px;" id="diff_display"></span>
-                        </div>
-                        <div id="validation_msg" class="hr_text_error" style="font-weight: bold;">차대 금액이 일치하지 않습니다.</div>
-                    </div>
-
-                    <div class="hr_actions" style="margin-top: 16px;">
-                        <button class="hr_button primary" type="submit" id="btn_submit_journal" disabled><i data-lucide="send"></i>전표 생성</button>
-                    </div>
-                </form>
-
-                <article class="hr_card span_4">
-                    <div class="hr_card_header">
-                        <h3>입력 규칙</h3>
-                    </div>
-                    <div class="hr_help_content">
-                        <ul style="padding-left: 20px; color: #666; font-size: 0.9em;">
-                            <li>전표 라인은 최소 2개 이상이어야 한다.</li>
-                            <li>차변과 대변 합계가 반드시 일치해야 한다.</li>
-                            <li>DRAFT 상태만 삭제 가능하다.</li>
-                            <li>POSTED 상태는 취소만 가능하다.</li>
-                            <li>CANCELLED 상태는 조회만 가능하다.</li>
-                        </ul>
-                    </div>
-                </article>
-
-                <article class="hr_card span_12">
-                    <div class="hr_card_header">
-                        <h3>전표 목록</h3>
-                        <div class="hr_card_actions">
-                            <select class="hr_input" id="status_filter" style="width: auto; margin-right: 10px;">
-                                <option value="">전체 상태</option>
-                                <option value="DRAFT">DRAFT</option>
-                                <option value="POSTED">POSTED</option>
-                                <option value="CANCELLED">CANCELLED</option>
-                            </select>
-                            <button class="hr_button" id="btn_refresh_journals" type="button"><i data-lucide="refresh-cw"></i></button>
-                        </div>
-                    </div>
-                    <table class="hr_table">
-                        <thead>
-                            <tr>
-                                <th>일자</th>
-                                <th>전표번호</th>
-                                <th>설명</th>
-                                <th class="amount">차변 합계</th>
-                                <th class="amount">대변 합계</th>
-                                <th>상태</th>
-                                <th>작업</th>
-                            </tr>
-                        </thead>
-                        <tbody id="journal_list_rows"></tbody>
-                    </table>
-                </article>
-            </section>
-        </main>
-    </div>
-
-    <div class="toast-container" id="toast_container"></div>
-
-    <div id="journal_detail_modal" class="hr_modal" style="display: none;">
-        <div class="hr_modal_content">
-            <div class="hr_modal_header">
-                <h3>전표 상세 내역</h3>
-                <button class="hr_close_btn" onclick="closeJournalModal()">&times;</button>
-            </div>
-            <div class="hr_modal_body">
-                <div class="hr_detail_info">
-                    <p><strong>전표번호:</strong> <span id="detail_journal_no">-</span></p>
-                    <p><strong>거래일자:</strong> <span id="detail_date">-</span></p>
-                    <p><strong>설명:</strong> <span id="detail_desc">-</span></p>
-                    <p><strong>상태:</strong> <span id="detail_status" class="hr_badge">-</span></p>
-                </div>
-                <table class="hr_table" style="margin-top: 16px;">
-                    <thead>
-                        <tr>
-                            <th>계정코드</th>
-                            <th>계정명</th>
-                            <th class="amount">차변</th>
-                            <th class="amount">대변</th>
-                            <th>라인 설명</th>
-                        </tr>
-                    </thead>
-                    <tbody id="detail_line_rows"></tbody>
-                    <tfoot>
-                        <tr style="background: #f8f9fa; font-weight: bold;">
-                            <td colspan="2" style="text-align: center;">합계</td>
-                            <td class="amount" id="detail_sum_debit">0</td>
-                            <td class="amount" id="detail_sum_credit">0</td>
-                            <td></td>
-                        </tr>
-                    </tfoot>
-                </table>
-            </div>
-            <div class="hr_modal_footer">
-                <button class="hr_button" onclick="closeJournalModal()">닫기</button>
-            </div>
+  <aside data-dduk-sidebar></aside>
+  <div class="main_wrap">
+    <header class="topbar"><button class="sidebar_icon_btn dduk-inline-027" onclick="toggleSidebar()"
+        id="mobile_menu_btn" aria-label="메뉴"><i class="dduk-inline-028" data-lucide="menu"></i></button>
+      <div class="dduk-inline-029">
+        <div class="dduk-inline-030"><i class="dduk-inline-031" data-lucide="search"></i> <input class="dduk-inline-032"
+            type="text" placeholder="메뉴, 거래처, 문서 검색..." aria-label="검색">
         </div>
-    </div>
+      </div>
+      <div class="dduk-inline-033"><button class="sidebar_icon_btn" aria-label="알림"><i class="dduk-inline-034"
+            data-lucide="bell"></i></button> <button class="sidebar_icon_btn" aria-label="프로필"><i
+            class="dduk-inline-034" data-lucide="user"></i></button>
+      </div>
+    </header>
+    <main class="app-main hr_page">
+      <!-- 헤더 -->
+      <header class="hr_topbar">
+        <button class="sidebar_icon_btn dduk-inline-027" onclick="toggleSidebar()" id="mobile_menu_btn" aria-label="메뉴">
+          <i class="dduk-inline-028" data-lucide="menu"></i>
+        </button>
+        <div class="hr_title">
+          <h2>거래 내역 등록</h2>
+          <p>최자기일: 2026-05 - 오늘 등록 건</p>
+        </div>
+        <div class="header-actions">
+          <button class="btn-add" id="btn_toggle_form" onclick="toggleFormSection()" title="전표 등록">
+            <i data-lucide="plus"></i>
+          </button>
+          <button class="btn-download" title="다운로드">
+            <i data-lucide="download"></i>
+          </button>
+        </div>
+      </header>
 
-    <script src="../../../services/common/session.js"></script>
-    <script src="../../../services/common/app-shell.js"></script>
-    <script src="../../../services/common/sidebar.js"></script>
-    <script type="module" src="../../../services/hr/hr-backend-pages.js"></script>
+      <!-- KPI 카드 섹션 -->
+      <section class="kpi-grid">
+        <div class="kpi-card">
+          <div class="kpi-icon blue">
+            <i data-lucide="file-text"></i>
+          </div>
+          <div class="kpi-content">
+            <div class="kpi-label">입금 등록 전표</div>
+            <div class="kpi-value">3</div>
+          </div>
+        </div>
+
+        <div class="kpi-card">
+          <div class="kpi-icon green">
+            <i data-lucide="check-circle"></i>
+          </div>
+          <div class="kpi-content">
+            <div class="kpi-label">+POSTED 전표</div>
+            <div class="kpi-value">12</div>
+          </div>
+        </div>
+
+        <div class="kpi-card">
+          <div class="kpi-icon blue">
+            <i data-lucide="file-text"></i>
+          </div>
+          <div class="kpi-content">
+            <div class="kpi-label">DRAFT 전표</div>
+            <div class="kpi-value">5</div>
+          </div>
+        </div>
+
+        <div class="kpi-card">
+          <div class="kpi-icon orange">
+            <i data-lucide="bar-chart-3"></i>
+          </div>
+          <div class="kpi-content">
+            <div class="kpi-label">총 거래 금액</div>
+            <div class="kpi-value">₩48,250,000</div>
+          </div>
+        </div>
+      </section>
+
+      <!-- 전표 등록 폼 섹션 (기본적으로 숨김) -->
+      <section class="form-section" id="form_section">
+        <div class="hr_card">
+          <div class="hr_card_header">
+            <h3>전표 등록</h3>
+          </div>
+
+          <form id="transaction_form">
+            <div class="form-row">
+              <div class="form-group">
+                <label for="transaction_date">거래일자</label>
+                <input type="date" id="transaction_date" value="2026-05-18">
+              </div>
+              <div class="form-group">
+                <label for="transaction_vendor">거래처</label>
+                <input type="text" id="transaction_vendor" placeholder="거래처명 입력">
+              </div>
+            </div>
+
+            <div class="form-row">
+              <div class="form-group">
+                <label for="transaction_category">거래처 분류</label>
+                <select id="transaction_category">
+                  <option value="">변금</option>
+                  <option value="supplier">공급사</option>
+                  <option value="customer">고객사</option>
+                </select>
+              </div>
+            </div>
+
+            <div class="form-row">
+              <div class="form-group">
+                <label for="debit_amount">차변 (원)</label>
+                <input type="number" id="debit_amount" value="0">
+              </div>
+              <div class="form-group">
+                <label for="credit_amount">대변 (원)</label>
+                <input type="number" id="credit_amount" value="0">
+              </div>
+            </div>
+
+            <div class="form-row full">
+              <div class="form-group">
+                <label for="transaction_memo">메모</label>
+                <textarea id="transaction_memo" placeholder="메모 입력"></textarea>
+              </div>
+            </div>
+
+            <div class="summary-info">
+              차변 0 - 대변 0
+            </div>
+
+            <div class="form-actions">
+              <button type="button" class="btn-cancel" onclick="toggleFormSection()">취소</button>
+              <button type="submit" class="btn-submit">제출</button>
+            </div>
+          </form>
+        </div>
+      </section>
+
+      <!-- 거래 내역 섹션 -->
+      <section class="hr_card">
+        <div class="hr_card_header">
+          <h3>거래 내역</h3>
+          <div style="display: flex; gap: 12px; align-items: center;">
+            <select id="status_filter"
+              style="padding: 8px 12px; border: 1px solid var(--border); border-radius: 8px; font-size: 0.875rem;">
+              <option value="">전체 상태</option>
+              <option value="POSTED">POSTED</option>
+              <option value="DRAFT">DRAFT</option>
+              <option value="CANCELLED">CANCELLED</option>
+            </select>
+            <input type="text" id="search_input" placeholder="검색..."
+              style="padding: 8px 12px; border: 1px solid var(--border); border-radius: 8px; font-size: 0.875rem; width: 200px;">
+          </div>
+        </div>
+
+        <div style="overflow-x: auto;">
+          <table class="transactions-table">
+            <thead>
+              <tr>
+                <th>전표번호</th>
+                <th>거래일자</th>
+                <th>거래처</th>
+                <th>계정과목</th>
+                <th class="amount-cell">차변</th>
+                <th class="amount-cell">대변</th>
+                <th>상태</th>
+                <th>작업</th>
+              </tr>
+            </thead>
+            <tbody id="transaction_list">
+              <tr>
+                <td><a class="link-cell" href="#">TXN-2026-0518-001</a></td>
+                <td>2026-05-18</td>
+                <td>(주)삼성전자</td>
+                <td>예출</td>
+                <td class="amount-cell">₩15,000,000</td>
+                <td class="amount-cell">-</td>
+                <td><span class="status-badge status-posted">POSTED</span></td>
+                <td><button class="action-menu" title="더보기"><i data-lucide="more-vertical"></i></button>
+                </td>
+              </tr>
+              <tr>
+                <td><a class="link-cell" href="#">TXN-2026-0518-002</a></td>
+                <td>2026-05-18</td>
+                <td>LG화학</td>
+                <td>미수금</td>
+                <td class="amount-cell">-</td>
+                <td class="amount-cell">₩8,500,000</td>
+                <td><span class="status-badge status-draft">DRAFT</span></td>
+                <td><button class="action-menu" title="더보기"><i data-lucide="more-vertical"></i></button>
+                </td>
+              </tr>
+              <tr>
+                <td><a class="link-cell" href="#">TXN-2026-0517-003</a></td>
+                <td>2026-05-17</td>
+                <td>현대모비스</td>
+                <td>매입</td>
+                <td class="amount-cell">₩5,200,000</td>
+                <td class="amount-cell">-</td>
+                <td><span class="status-badge status-posted">POSTED</span></td>
+                <td><button class="action-menu" title="더보기"><i data-lucide="more-vertical"></i></button>
+                </td>
+              </tr>
+              <tr>
+                <td><a class="link-cell" href="#">TXN-2026-0517-004</a></td>
+                <td>2026-05-17</td>
+                <td>SK하이닉스</td>
+                <td>환금</td>
+                <td class="amount-cell">-</td>
+                <td class="amount-cell">₩12,000,000</td>
+                <td><span class="status-badge status-posted">POSTED</span></td>
+                <td><button class="action-menu" title="더보기"><i data-lucide="more-vertical"></i></button>
+                </td>
+              </tr>
+              <tr>
+                <td><a class="link-cell" href="#">TXN-2026-0516-005</a></td>
+                <td>2026-05-16</td>
+                <td>네이버</td>
+                <td>미지급금</td>
+                <td class="amount-cell">₩7,550,000</td>
+                <td class="amount-cell">-</td>
+                <td><span class="status-badge status-cancelled">CANCELLED</span></td>
+                <td><button class="action-menu" title="더보기"><i data-lucide="more-vertical"></i></button>
+                </td>
+              </tr>
+            </tbody>
+          </table>
+        </div>
+      </section>
+    </main>
+  </div>
+
+  <div class="toast-container" id="toast_container"></div>
+
+  <!-- 상세 정보 모달 -->
+  <div id="detail_modal" class="hr_modal">
+    <div class="hr_modal_content">
+      <div class="hr_modal_header">
+        <h3>거래 내역 상세</h3>
+        <button class="hr_close_btn" onclick="closeDetailModal()">&times;</button>
+      </div>
+      <div class="hr_modal_body">
+        <div class="hr_detail_info">
+          <p><strong>전표번호:</strong> <span id="detail_number">-</span></p>
+          <p><strong>거래일자:</strong> <span id="detail_date">-</span></p>
+          <p><strong>거래처:</strong> <span id="detail_vendor">-</span></p>
+          <p><strong>상태:</strong> <span id="detail_status">-</span></p>
+        </div>
+      </div>
+      <div class="hr_modal_footer">
+        <button class="btn-cancel" onclick="closeDetailModal()">닫기</button>
+      </div>
+    </div>
+  </div>
+
+  <script src="../../../services/common/session.js"></script>
+  <script src="../../../services/common/app-shell.js"></script>
+  <script src="../../../services/common/sidebar.js"></script>
+  <script>
+    // 폼 섹션 토글
+    function toggleFormSection() {
+      const formSection = document.getElementById('form_section');
+      formSection.classList.toggle('active');
+    }
+
+    // 모달 닫기
+    function closeDetailModal() {
+      document.getElementById('detail_modal').classList.remove('active');
+    }
+
+    // 폼 제출
+    document.getElementById('transaction_form').addEventListener('submit', function (e) {
+      e.preventDefault();
+      // 제출 로직 추가
+      console.log('Form submitted');
+      toggleFormSection();
+    });
+
+    // Lucide 아이콘 초기화
+    lucide.createIcons();
+
+    // 검색 기능
+    document.getElementById('search_input').addEventListener('input', function (e) {
+      const searchTerm = e.target.value.toLowerCase();
+      const rows = document.querySelectorAll('#transaction_list tr');
+      rows.forEach(row => {
+        const text = row.textContent.toLowerCase();
+        row.style.display = text.includes(searchTerm) ? '' : 'none';
+      });
+    });
+
+    // 상태 필터
+    document.getElementById('status_filter').addEventListener('change', function (e) {
+      const status = e.target.value;
+      const rows = document.querySelectorAll('#transaction_list tr');
+      rows.forEach(row => {
+        if (!status) {
+          row.style.display = '';
+        } else {
+          const statusCell = row.querySelector('.status-badge');
+          row.style.display = statusCell && statusCell.textContent.includes(status) ? '' : 'none';
+        }
+      });
+    });
+  </script>
 </body>
+
 </html>
