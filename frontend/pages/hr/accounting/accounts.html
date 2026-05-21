@@ -1,0 +1,276 @@
+<!DOCTYPE html>
+<html lang="ko">
+
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>DDUK ERP - 계정과목 관리</title>
+  <script src="https://cdn.jsdelivr.net/npm/lucide@0.263.0/dist/umd/lucide.min.js"></script>
+  <link rel="stylesheet" href="../../../styles/common/app-shell.css">
+  <link rel="stylesheet" href="../../../styles/common/dashboard.css">
+  <link rel="stylesheet" href="../../../styles/hr/hr-backend-pages.css">
+  <link rel="stylesheet" href="../../../styles/hr/accounts.css">
+</head>
+
+<body data-hr-page="accounting-accounts">
+  <aside data-dduk-sidebar></aside>
+  <div class="main_wrap">
+    
+    <!-- Topbar -->
+    <header class="topbar">
+      <button class="sidebar_icon_btn dduk-inline-027" onclick="toggleSidebar()" id="mobile_menu_btn" aria-label="메뉴">
+        <i class="dduk-inline-028" data-lucide="menu"></i>
+      </button>
+      <div class="dduk-inline-029">
+        <div class="dduk-inline-030">
+          <i class="dduk-inline-031" data-lucide="search"></i> 
+          <input class="dduk-inline-032" type="text" placeholder="메뉴, 거래처, 문서 검색..." aria-label="검색">
+        </div>
+      </div>
+      <div class="dduk-inline-033">
+        <button class="sidebar_icon_btn" aria-label="알림"><i class="dduk-inline-034" data-lucide="bell"></i></button> 
+        <button class="sidebar_icon_btn" aria-label="프로필"><i class="dduk-inline-034" data-lucide="user"></i></button>
+      </div>
+    </header>
+
+    <!-- Main Workspace -->
+    <main class="app-main hr_page">
+      
+      <!-- Page Header -->
+      <header class="hr_topbar">
+        <div class="hr_title">
+          <h2>계정과목 관리</h2>
+          <p>ERP 회계 엔진의 중심 마스터 데이터 기준 관리 체계</p>
+        </div>
+        <div class="header-actions" style="display: flex; gap: 8px;">
+          <button class="btn-seed-trigger" onclick="triggerCoaSeeding()" title="표준 계정 데이터로 전체 갱신/복원합니다.">
+            <i data-lucide="rotate-ccw"></i>
+            <span>표준 계정 초기화/복원</span>
+          </button>
+          <button class="btn-add" onclick="openCreateModal()" title="새 계정과목 등록">
+            <i data-lucide="plus"></i>
+            <span>계정과목 추가</span>
+          </button>
+        </div>
+      </header>
+
+      <!-- KPI Summary Cards -->
+      <section class="kpi-grid" style="margin-bottom: 24px;">
+        <div class="kpi-card">
+          <div class="kpi-icon blue">
+            <i data-lucide="list"></i>
+          </div>
+          <div class="kpi-content">
+            <div class="kpi-label">총 계정과목 수</div>
+            <div class="kpi-value" id="kpi_total_count">0</div>
+          </div>
+        </div>
+
+        <div class="kpi-card">
+          <div class="kpi-icon green">
+            <i data-lucide="file-check-2"></i>
+          </div>
+          <div class="kpi-content">
+            <div class="kpi-label">기표 가능 (말단) 계정</div>
+            <div class="kpi-value" id="kpi_posting_count">0</div>
+          </div>
+        </div>
+
+        <div class="kpi-card">
+          <div class="kpi-icon orange">
+            <i data-lucide="shield-check"></i>
+          </div>
+          <div class="kpi-content">
+            <div class="kpi-label">시스템 필수 보호 계정</div>
+            <div class="kpi-value" id="kpi_system_count">0</div>
+          </div>
+        </div>
+
+        <div class="kpi-card">
+          <div class="kpi-icon red">
+            <i data-lucide="slash"></i>
+          </div>
+          <div class="kpi-content">
+            <div class="kpi-label">비활성화 계정</div>
+            <div class="kpi-value" id="kpi_inactive_count">0</div>
+          </div>
+        </div>
+      </section>
+
+      <!-- Search & Filters -->
+      <div class="coa-tabs">
+        <button class="coa-tab active" onclick="filterByType('ALL')">전체 계정</button>
+        <button class="coa-tab" onclick="filterByType('ASSET')">자산 (Asset)</button>
+        <button class="coa-tab" onclick="filterByType('LIABILITY')">부채 (Liability)</button>
+        <button class="coa-tab" onclick="filterByType('EQUITY')">자본 (Equity)</button>
+        <button class="coa-tab" onclick="filterByType('REVENUE')">수익 (Revenue)</button>
+        <button class="coa-tab" onclick="filterByType('EXPENSE')">비용 (Expense)</button>
+      </div>
+
+      <!-- CoA Tree Table Card -->
+      <section class="hr_card">
+        <div class="hr_card_header">
+          <h3>계정과목 트리 테이블</h3>
+          <div style="display: flex; gap: 12px; align-items: center;">
+            <input type="text" id="coa_search_input" placeholder="코드 또는 계정과목명 검색..."
+              style="padding: 8px 12px; border: 1px solid var(--border); border-radius: 8px; font-size: 0.875rem; width: 260px;">
+          </div>
+        </div>
+
+        <div style="overflow-x: auto;">
+          <table class="coa-table">
+            <thead>
+              <tr>
+                <th style="width: 140px;">계정코드</th>
+                <th>계정과목명 (트리 계층)</th>
+                <th style="width: 180px;">영문 계정명</th>
+                <th style="width: 90px;">계정유형</th>
+                <th style="width: 90px;">차대방향</th>
+                <th style="width: 80px;">정렬순서</th>
+                <th style="width: 90px;">전표기표</th>
+                <th style="width: 100px;">시스템계정</th>
+                <th style="width: 80px;">상태</th>
+                <th style="width: 100px; text-align: center;">작업</th>
+              </tr>
+            </thead>
+            <tbody id="coa_tree_tbody">
+              <!-- Dynamically populated rows by accounts.js -->
+              <tr>
+                <td colspan="10" style="text-align: center; padding: 40px; color: var(--text-muted);">
+                  <div style="display: flex; flex-direction: column; align-items: center; gap: 8px;">
+                    <i data-lucide="loader-2" class="animate-spin" style="width: 24px; height: 24px;"></i>
+                    <span>계정과목 데이터를 로딩 중입니다...</span>
+                  </div>
+                </td>
+              </tr>
+            </tbody>
+          </table>
+        </div>
+      </section>
+    </main>
+  </div>
+
+  <!-- Create/Edit Modal Dialog -->
+  <div id="account_modal" class="coa-modal">
+    <div class="coa-modal-content">
+      <div class="coa-modal-header">
+        <h3 id="modal_title">계정과목 등록</h3>
+        <button class="coa-modal-close" onclick="closeAccountModal()">
+          <i data-lucide="x" style="width: 18px; height: 18px;"></i>
+        </button>
+      </div>
+      
+      <form id="account_form">
+        <input type="hidden" id="form_account_id">
+        <div class="coa-modal-body">
+          
+          <!-- System Account Warning Banner -->
+          <div class="form-alert coa-row-hidden" id="system_account_alert">
+            <i data-lucide="alert-triangle"></i>
+            <div>
+              <strong>시스템 보호 계정 제한 안내</strong>
+              <p style="margin-top: 2px; line-height: 1.4;">이 계정과목은 ERP 회계 엔진에 직결된 보호 계정입니다. 계정과목명, 영문명, 설명, 정렬순서 외의 핵심 통제 속성(코드, 부모 계정, 기표 여부, 상태)은 수정할 수 없습니다.</p>
+            </div>
+          </div>
+
+          <div class="form-grid">
+            
+            <!-- Account Code -->
+            <div class="coa-form-group">
+              <label for="form_code">계정코드 <span style="color: var(--danger)">*</span></label>
+              <input type="text" id="form_code" class="coa-form-input" required max="20" placeholder="예: 1111 (숫자/문자 20자 이내)">
+            </div>
+
+            <!-- Account Type -->
+            <div class="coa-form-group">
+              <label for="form_type">계정유형 <span style="color: var(--danger)">*</span></label>
+              <select id="form_type" class="coa-form-select" required onchange="handleTypeChange()">
+                <option value="ASSET">자산 (ASSET)</option>
+                <option value="LIABILITY">부채 (LIABILITY)</option>
+                <option value="EQUITY">자본 (EQUITY)</option>
+                <option value="REVENUE">수익 (REVENUE)</option>
+                <option value="EXPENSE">비용 (EXPENSE)</option>
+              </select>
+            </div>
+
+            <!-- Account Name -->
+            <div class="coa-form-group">
+              <label for="form_name">계정과목명 <span style="color: var(--danger)">*</span></label>
+              <input type="text" id="form_name" class="coa-form-input" required max="100" placeholder="예: 보통예금">
+            </div>
+
+            <!-- English Name -->
+            <div class="coa-form-group">
+              <label for="form_english_name">영문 계정명</label>
+              <input type="text" id="form_english_name" class="coa-form-input" max="100" placeholder="예: Ordinary Deposits">
+            </div>
+
+            <!-- Normal Balance Direction -->
+            <div class="coa-form-group">
+              <label for="form_balance">정상 차대방향 <span style="color: var(--danger)">*</span></label>
+              <select id="form_balance" class="coa-form-select" required>
+                <option value="DEBIT">차변 (DEBIT)</option>
+                <option value="CREDIT">대변 (CREDIT)</option>
+              </select>
+            </div>
+
+            <!-- Sort Order -->
+            <div class="coa-form-group">
+              <label for="form_sort_order">정렬 순서</label>
+              <input type="number" id="form_sort_order" class="coa-form-input" value="0" min="0">
+            </div>
+
+            <!-- Parent Account Select -->
+            <div class="coa-form-group form-full">
+              <label for="form_parent_id">상위 부모 계정</label>
+              <select id="form_parent_id" class="coa-form-select">
+                <option value="">(최상위 루트 계정으로 등록)</option>
+                <!-- Populated dynamically with indented option list -->
+              </select>
+            </div>
+
+            <!-- Description -->
+            <div class="coa-form-group form-full">
+              <label for="form_description">설명</label>
+              <input type="text" id="form_description" class="coa-form-input" placeholder="계정과목 용도 및 회계처리 기준 설명">
+            </div>
+
+            <!-- Controls (Allow Posting / Status ACTIVE-INACTIVE) -->
+            <div class="coa-form-group form-full" style="flex-direction: row; gap: 24px; margin-top: 8px;">
+              <label class="coa-form-checkbox-label">
+                <input type="checkbox" id="form_allow_posting" checked>
+                <span>전표 기표(Posting) 허용</span>
+              </label>
+
+              <div style="display: flex; align-items: center; gap: 8px;">
+                <label for="form_status" style="margin-bottom: 0;">상태:</label>
+                <select id="form_status" class="coa-form-select" style="padding: 6px 12px;">
+                  <option value="ACTIVE">활성 (ACTIVE)</option>
+                  <option value="INACTIVE">비활성 (INACTIVE)</option>
+                </select>
+              </div>
+            </div>
+
+          </div>
+        </div>
+        
+        <div class="coa-modal-footer">
+          <button type="button" class="btn-cancel" onclick="closeAccountModal()">취소</button>
+          <button type="submit" class="btn-submit" id="btn_modal_submit" style="background-color: var(--accent); color: #ffffff;">등록</button>
+        </div>
+      </form>
+    </div>
+  </div>
+
+  <div class="toast-container" id="toast_container"></div>
+
+  <!-- Common Scripts -->
+  <script src="../../../services/common/session.js"></script>
+  <script src="../../../services/common/app-shell.js"></script>
+  <script src="../../../services/common/sidebar.js"></script>
+  
+  <!-- Page Custom Scripts -->
+  <script type="module" src="accounts.js"></script>
+</body>
+
+</html>

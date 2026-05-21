@@ -52,8 +52,8 @@ public class ReportService {
             Map<String, Object> item = new LinkedHashMap<>();
             item.put("code",        code);
             item.put("name",        account.getName());
-            item.put("type",        account.getType());
-            item.put("normalBalance", account.getNormalBalance());
+            item.put("type",        account.getType().name());
+            item.put("normalBalance", account.getNormalBalance().name());
             item.put("totalDebit",  debit);
             item.put("totalCredit", credit);
             item.put("balance",     balance);
@@ -109,7 +109,7 @@ public class ReportService {
         Map<String, Object> result = new LinkedHashMap<>();
         result.put("accountCode",  account.getCode());
         result.put("accountName",  account.getName());
-        result.put("accountType",  account.getType());
+        result.put("accountType",  account.getType().name());
         result.put("fiscalYear",   fiscalYear);
         result.put("fiscalMonth",  fiscalMonth);
         result.put("entries",      entries);
@@ -198,7 +198,7 @@ public class ReportService {
                                                     Map<String, BigDecimal> balances,
                                                     String type) {
         return accounts.stream()
-                .filter(a -> type.equals(a.getType()))
+                .filter(a -> type.equals(a.getType().name()))
                 .map(a -> {
                     Map<String, Object> m = new LinkedHashMap<>();
                     m.put("code",    a.getCode());

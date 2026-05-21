@@ -40,6 +40,16 @@ public class JournalValidationService {
                         "비활성화된 계정입니다: " + req.getAccountCode() + " (" + account.getName() + ")");
             }
 
+            if (!Boolean.TRUE.equals(account.getAllowPosting())) {
+                throw new IllegalArgumentException(
+                        "기표(posting)가 차단된 계정입니다. 계정코드: " + req.getAccountCode() + " (" + account.getName() + ")");
+            }
+
+            if (!account.isLeaf()) {
+                throw new IllegalArgumentException(
+                        "말단(Leaf) 계정만 전표 기표가 가능합니다. 상위 계정코드: " + req.getAccountCode() + " (" + account.getName() + ")");
+            }
+
             if (req.getDebitAmount() == null) {
                 req.setDebitAmount(BigDecimal.ZERO);
             }

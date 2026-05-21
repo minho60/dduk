@@ -322,15 +322,24 @@ CREATE TABLE IF NOT EXISTS accounts (
     id BIGINT NOT NULL AUTO_INCREMENT,
     code VARCHAR(20) NOT NULL,
     name VARCHAR(100) NOT NULL,
+    english_name VARCHAR(100) NULL,
     type VARCHAR(30) NOT NULL,
     normal_balance VARCHAR(10) NOT NULL DEFAULT 'DEBIT',
     level INT NOT NULL DEFAULT 1,
+    sort_order INT NOT NULL DEFAULT 0,
+    description VARCHAR(255) NULL,
+    status VARCHAR(20) NOT NULL DEFAULT 'ACTIVE',
+    allow_posting TINYINT(1) NOT NULL DEFAULT 1,
+    system_account TINYINT(1) NOT NULL DEFAULT 0,
+    deleted TINYINT(1) NOT NULL DEFAULT 0,
     parent_code VARCHAR(20) NULL,
-    is_active TINYINT(1) NOT NULL DEFAULT 1,
+    parent_id BIGINT NULL,
     created_at DATETIME NOT NULL DEFAULT CURRENT_TIMESTAMP,
     updated_at DATETIME NOT NULL DEFAULT CURRENT_TIMESTAMP ON UPDATE CURRENT_TIMESTAMP,
     PRIMARY KEY (id),
-    UNIQUE KEY uk_accounts_code (code)
+    UNIQUE KEY uk_accounts_code (code),
+    KEY idx_accounts_parent_id (parent_id),
+    CONSTRAINT fk_accounts_parent FOREIGN KEY (parent_id) REFERENCES accounts (id) ON DELETE SET NULL
 ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci;
 
 CREATE TABLE IF NOT EXISTS journal_entries (
@@ -372,13 +381,21 @@ CREATE TABLE IF NOT EXISTS journal_items (
 ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci;
 
 -- Default Chart of Accounts Seeds
-INSERT INTO accounts (code, name, type, level, is_active) VALUES
-('1001', '����', 'ASSET', 1, 1),
-('2001', '������', 'LIABILITY', 1, 1),
-('2002', '�����ޱ�(�޿�)', 'LIABILITY', 1, 1),
-('5001', '�޿����', 'EXPENSE', 1, 1)
+INSERT INTO accounts (code, name, type, normal_balance, level, status, allow_posting, system_account, deleted, sort_order) VALUES
+('1001', '현금', 'ASSET', 'DEBIT', 1, 'ACTIVE', 1, 1, 0, 0),
+('1002', '보통예금', 'ASSET', 'DEBIT', 1, 'ACTIVE', 1, 1, 0, 0),
+('2001', '외상매입금', 'LIABILITY', 'CREDIT', 1, 'ACTIVE', 1, 1, 0, 0),
+('2002', '미지급금(급여)', 'LIABILITY', 'CREDIT', 1, 'ACTIVE', 1, 1, 0, 0),
+('4001', '제품매출', 'REVENUE', 'CREDIT', 1, 'ACTIVE', 1, 1, 0, 0),
+('5001', '매출원가', 'EXPENSE', 'DEBIT', 1, 'ACTIVE', 1, 1, 0, 0),
+('5002', '급여비용', 'EXPENSE', 'DEBIT', 1, 'ACTIVE', 1, 1, 0, 0)
 ON DUPLICATE KEY UPDATE
     name = VALUES(name),
     type = VALUES(type),
+    normal_balance = VALUES(normal_balance),
     level = VALUES(level),
-    is_active = VALUES(is_active);
+    status = VALUES(status),
+    allow_posting = VALUES(allow_posting),
+    system_account = VALUES(system_account),
+    deleted = VALUES(deleted),
+    sort_order = VALUES(sort_order);

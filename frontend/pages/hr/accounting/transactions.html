@@ -90,64 +90,9 @@
         </div>
       </section>
 
-      <!-- 전표 등록 폼 섹션 (기본적으로 숨김) -->
+      <!-- 전표 등록 폼 섹션 (동적 로드) -->
       <section class="form-section" id="form_section">
-        <div class="hr_card">
-          <div class="hr_card_header">
-            <h3>전표 등록</h3>
-          </div>
-
-          <form id="transaction_form">
-            <div class="form-row">
-              <div class="form-group">
-                <label for="transaction_date">거래일자</label>
-                <input type="date" id="transaction_date" value="2026-05-18">
-              </div>
-              <div class="form-group">
-                <label for="transaction_vendor">거래처</label>
-                <input type="text" id="transaction_vendor" placeholder="거래처명 입력">
-              </div>
-            </div>
-
-            <div class="form-row">
-              <div class="form-group">
-                <label for="transaction_category">거래처 분류</label>
-                <select id="transaction_category">
-                  <option value="">변금</option>
-                  <option value="supplier">공급사</option>
-                  <option value="customer">고객사</option>
-                </select>
-              </div>
-            </div>
-
-            <div class="form-row">
-              <div class="form-group">
-                <label for="debit_amount">차변 (원)</label>
-                <input type="number" id="debit_amount" value="0">
-              </div>
-              <div class="form-group">
-                <label for="credit_amount">대변 (원)</label>
-                <input type="number" id="credit_amount" value="0">
-              </div>
-            </div>
-
-            <div class="form-row full">
-              <div class="form-group">
-                <label for="transaction_memo">메모</label>
-                <textarea id="transaction_memo" placeholder="메모 입력"></textarea>
-              </div>
-            </div>
-
-            <div class="summary-info">
-              차변 0 - 대변 0
-            </div>
-
-            <div class="form-actions">
-              <button type="button" class="btn-cancel" onclick="toggleFormSection()">취소</button>
-              <button type="submit" class="btn-submit">제출</button>
-            </div>
-          </form>
-        </div>
+        <div id="voucher_form_container"></div>
       </section>
 
       <!-- 거래 내역 섹션 -->
@@ -270,53 +215,7 @@
   <script src="../../../services/common/session.js"></script>
   <script src="../../../services/common/app-shell.js"></script>
   <script src="../../../services/common/sidebar.js"></script>
-  <script>
-    // 폼 섹션 토글
-    function toggleFormSection() {
-      const formSection = document.getElementById('form_section');
-      formSection.classList.toggle('active');
-    }
-
-    // 모달 닫기
-    function closeDetailModal() {
-      document.getElementById('detail_modal').classList.remove('active');
-    }
-
-    // 폼 제출
-    document.getElementById('transaction_form').addEventListener('submit', function (e) {
-      e.preventDefault();
-      // 제출 로직 추가
-      console.log('Form submitted');
-      toggleFormSection();
-    });
-
-    // Lucide 아이콘 초기화
-    lucide.createIcons();
-
-    // 검색 기능
-    document.getElementById('search_input').addEventListener('input', function (e) {
-      const searchTerm = e.target.value.toLowerCase();
-      const rows = document.querySelectorAll('#transaction_list tr');
-      rows.forEach(row => {
-        const text = row.textContent.toLowerCase();
-        row.style.display = text.includes(searchTerm) ? '' : 'none';
-      });
-    });
-
-    // 상태 필터
-    document.getElementById('status_filter').addEventListener('change', function (e) {
-      const status = e.target.value;
-      const rows = document.querySelectorAll('#transaction_list tr');
-      rows.forEach(row => {
-        if (!status) {
-          row.style.display = '';
-        } else {
-          const statusCell = row.querySelector('.status-badge');
-          row.style.display = statusCell && statusCell.textContent.includes(status) ? '' : 'none';
-        }
-      });
-    });
-  </script>
+  <script type="module" src="../../../services/hr/hr-backend-pages.js"></script>
 </body>
 
 </html>
