@@ -615,8 +615,10 @@ body.sidebar-collapsed .dduk-inline-008,
 body.sidebar-collapsed .recent_group,
 body.sidebar-collapsed .menu_group_title,
 body.sidebar-collapsed .sidebar_user_text,
-body.sidebar-collapsed .sidebar_status_text {
-    display: none;
+body.sidebar-collapsed .sidebar_status_text,
+body.sidebar-collapsed .menu_badge_wip,
+body.sidebar-collapsed .submenu {
+    display: none !important;
 }
 
 body.sidebar-collapsed .dduk-inline-013 {

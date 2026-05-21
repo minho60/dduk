@@ -5,6 +5,7 @@ import com.dduk.entity.admin.Role;
 import org.springframework.data.jpa.repository.JpaRepository;
 import org.springframework.data.jpa.repository.JpaSpecificationExecutor;
 
+import java.time.LocalDateTime;
 import java.util.List;
 import java.util.Optional;
 
@@ -14,5 +15,9 @@ public interface MemberRepository extends JpaRepository<Member, Long>, JpaSpecif
 
     List<Member> findAllByOrderByIdDesc();
 
+    long countByActiveTrue();
+
     long countByRoleAndActiveTrue(Role role);
+
+    long countByLastLoginAtAfter(LocalDateTime lastLoginAt);
 }

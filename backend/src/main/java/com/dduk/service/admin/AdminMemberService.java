@@ -6,6 +6,7 @@ import com.dduk.dto.admin.MemberResponseDto;
 import com.dduk.entity.admin.Member;
 import com.dduk.entity.admin.Role;
 import com.dduk.repository.admin.MemberRepository;
+import com.dduk.repository.inventory.PurchaseOrderRepository;
 import lombok.RequiredArgsConstructor;
 import org.springframework.data.domain.Page;
 import org.springframework.data.domain.PageRequest;
@@ -24,7 +25,9 @@ import org.springframework.web.server.ResponseStatusException;
 public class AdminMemberService {
 
     private final MemberRepository memberRepository;
+    private final PurchaseOrderRepository purchaseOrderRepository;
     private final PasswordEncoder passwordEncoder;
+    private final AdminAuditLogService adminAuditLogService;
 
     public AdminMemberPageResponseDto getMembers(String keyword, Role role, Boolean active, int page, int size) {
         Pageable pageable = PageRequest.of(page, size, Sort.by(Sort.Direction.DESC, "id"));
@@ -41,7 +44,7 @@ public class AdminMemberService {
     }
 
     @Transactional
-    public MemberResponseDto createMember(MemberCreateRequestDto requestDto) {
+    public MemberResponseDto createMember(MemberCreateRequestDto requestDto, Long actorMemberId, String ipAddress, String userAgent) {
         validateCreateRequest(requestDto);
 
         if (memberRepository.findByLoginId(requestDto.getLoginId().trim()).isPresent()) {
@@ -56,28 +59,44 @@ public class AdminMemberService {
                 .active(true)
                 .build();
 
-        return MemberResponseDto.from(memberRepository.save(member));
+        Member savedMember = memberRepository.save(member);
+        adminAuditLogService.recordMemberCreated(actorMemberId, savedMember, ipAddress, userAgent);
+        return MemberResponseDto.from(savedMember);
     }
 
     @Transactional
-    public MemberResponseDto updateRole(Long memberId, Role role) {
+    public MemberResponseDto updateRole(Long memberId, Role role, Long actorMemberId, String ipAddress, String userAgent) {
         if (role == null) {
             throw new ResponseStatusException(HttpStatus.BAD_REQUEST, "변경할 권한이 필요합니다.");
         }
 
         Member member = getMember(memberId);
+        Role previousRole = member.getRole();
         validateLastAdminRoleChange(member, role);
         member.updateRole(role);
+        adminAuditLogService.recordMemberRoleUpdated(actorMemberId, member, previousRole, role, ipAddress, userAgent);
         return MemberResponseDto.from(member);
     }
 
     @Transactional
-    public MemberResponseDto updateStatus(Long memberId, boolean active, Long actorMemberId) {
+    public MemberResponseDto updateStatus(Long memberId, boolean active, Long actorMemberId, String ipAddress, String userAgent) {
         Member member = getMember(memberId);
+        boolean previousActive = member.isActive();
         validateSelfDeactivation(member, active, actorMemberId);
         validateLastAdminDeactivation(member, active);
         member.updateActive(active);
+        adminAuditLogService.recordMemberStatusUpdated(actorMemberId, member, previousActive, active, ipAddress, userAgent);
         return MemberResponseDto.from(member);
+    }
+
+    @Transactional
+    public void deleteMember(Long memberId, Long actorMemberId, String ipAddress, String userAgent) {
+        Member member = getMember(memberId);
+        validateSelfDeletion(member, actorMemberId);
+        validateLastAdminDeletion(member);
+        validatePurchaseOrderReference(member);
+        adminAuditLogService.recordMemberDeleted(actorMemberId, member, ipAddress, userAgent);
+        memberRepository.delete(member);
     }
 
     private Member getMember(Long memberId) {
@@ -150,6 +169,27 @@ public class AdminMemberService {
 
         if (memberRepository.countByRoleAndActiveTrue(Role.ADMIN) <= 1) {
             throw new ResponseStatusException(HttpStatus.BAD_REQUEST, "마지막 활성 관리자 계정은 비활성화할 수 없습니다.");
+        }
+    }
+    private void validateSelfDeletion(Member member, Long actorMemberId) {
+        if (actorMemberId != null && member.getId().equals(actorMemberId)) {
+            throw new ResponseStatusException(HttpStatus.BAD_REQUEST, "자기 자신의 계정은 삭제할 수 없습니다.");
+        }
+    }
+
+    private void validateLastAdminDeletion(Member member) {
+        if (member.getRole() != Role.ADMIN || !member.isActive()) {
+            return;
+        }
+
+        if (memberRepository.countByRoleAndActiveTrue(Role.ADMIN) <= 1) {
+            throw new ResponseStatusException(HttpStatus.BAD_REQUEST, "마지막 활성 관리자 계정은 삭제할 수 없습니다.");
+        }
+    }
+
+    private void validatePurchaseOrderReference(Member member) {
+        if (purchaseOrderRepository.existsByRequestedBy_Id(member.getId())) {
+            throw new ResponseStatusException(HttpStatus.CONFLICT, "발주 요청 이력이 있는 계정은 삭제할 수 없습니다.");
         }
     }
 }
