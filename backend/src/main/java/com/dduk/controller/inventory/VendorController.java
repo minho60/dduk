@@ -31,11 +31,15 @@ public class VendorController {
 
     @GetMapping("/search")
     public List<VendorResponseDto> searchVendors(
+            @RequestParam(required = false) String keyword,
             @RequestParam(required = false) String name,
             @RequestParam(required = false) String representativeName,
             @RequestParam(required = false) String contactPhone,
             @RequestParam(required = false) String businessRegistrationNo
     ) {
+        if (keyword != null) {
+            return vendorService.searchVendorsByKeyword(keyword);
+        }
         return vendorService.searchVendors(name, representativeName, contactPhone, businessRegistrationNo);
     }
 

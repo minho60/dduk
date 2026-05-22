@@ -36,12 +36,37 @@ public class VendorService {
             String contactPhone,
             String businessRegistrationNo
     ) {
+        if (trimToNull(name) == null
+                && trimToNull(representativeName) == null
+                && trimToNull(contactPhone) == null
+                && trimToNull(businessRegistrationNo) == null) {
+            return List.of();
+        }
+
         return vendorRepository.searchVendors(
                         trimToNull(name),
                         trimToNull(representativeName),
                         trimToNull(contactPhone),
                         trimToNull(businessRegistrationNo)
                 ).stream()
+                .map(VendorResponseDto::from)
+                .toList();
+    }
+
+    public List<VendorResponseDto> searchVendorsByKeyword(String keyword) {
+        String normalizedKeyword = trimToNull(keyword);
+        if (normalizedKeyword == null) {
+            return List.of();
+        }
+
+        String lowerKeyword = normalizedKeyword.toLowerCase();
+        String compactKeyword = compactKeyword(normalizedKeyword);
+
+        return vendorRepository.findAllByOrderByIdDesc().stream()
+                .filter(vendor -> containsIgnoreCase(vendor.getName(), lowerKeyword)
+                        || containsIgnoreCase(vendor.getRepresentativeName(), lowerKeyword)
+                        || containsCompact(vendor.getContactPhone(), compactKeyword)
+                        || containsCompact(vendor.getBusinessRegistrationNo(), compactKeyword))
                 .map(VendorResponseDto::from)
                 .toList();
     }
@@ -202,5 +227,17 @@ public class VendorService {
             return null;
         }
         return value.trim();
+    }
+
+    private String compactKeyword(String value) {
+        return value == null ? "" : value.replaceAll("[\\s-]", "");
+    }
+
+    private boolean containsIgnoreCase(String value, String lowerKeyword) {
+        return value != null && value.toLowerCase().contains(lowerKeyword);
+    }
+
+    private boolean containsCompact(String value, String compactKeyword) {
+        return !compactKeyword.isEmpty() && value != null && compactKeyword(value).contains(compactKeyword);
     }
 }

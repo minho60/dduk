@@ -7,143 +7,215 @@
   <title>DDUK ERP - 공지사항 관리</title>
   <script src="https://cdn.tailwindcss.com/3.4.17"></script>
   <script src="https://cdn.jsdelivr.net/npm/lucide@0.263.0/dist/umd/lucide.min.js"></script>
-  <link href="https://fonts.googleapis.com/css2?family=DM+Sans:wght@400;500;600;700&amp;display=swap" rel="stylesheet">
+  <link href="https://fonts.googleapis.com/css2?family=DM+Sans:wght@400;500;600;700&display=swap" rel="stylesheet">
   <link rel="stylesheet" href="../../styles/common/dashboard.css">
+  <link rel="stylesheet" href="../../styles/admin/admin-pages.css">
 </head>
 
-<body class="w-full">
+<body class="relative w-full bg-gray-50/50">
   <aside data-dduk-sidebar></aside>
-  
+
   <div class="main_wrap">
-    <!-- Topbar -->
-    <header class="topbar">
+    <header class="topbar border-b border-gray-100 bg-white">
       <button class="sidebar_icon_btn dduk-inline-027" onclick="toggleSidebar()" id="mobile_menu_btn" aria-label="메뉴">
         <i class="dduk-inline-028" data-lucide="menu"></i>
       </button>
       <div class="flex-1 px-4">
-        <h2 class="text-lg font-semibold text-gray-800">커뮤니케이션 관리</h2>
+        <h2 class="text-sm font-semibold uppercase tracking-wider text-gray-400">커뮤니케이션 관리</h2>
       </div>
     </header>
 
-    <!-- Content -->
-    <main class="content_area p-6 space-y-6">
-      <!-- Page Title -->
-      <div class="flex items-end justify-between mb-8">
+    <main class="content_area space-y-8 p-6">
+      <div class="flex items-end justify-between border-b border-gray-100 pb-6">
         <div>
-          <h2 class="text-2xl font-bold text-gray-900">공지사항 관리</h2>
-          <p class="text-gray-500 mt-1">전사 공지사항 및 긴급 안내 팝업을 관리합니다.</p>
+          <h2 class="text-2xl font-bold tracking-tight text-gray-900">공지사항 관리</h2>
+          <p class="mt-1 text-sm text-gray-500">전사 공지사항과 긴급 알림을 등록하고 게시 이력을 관리합니다.</p>
         </div>
-        <button class="bg-blue-600 text-white px-5 py-2.5 rounded-lg font-bold flex items-center gap-2 hover:bg-blue-700 transition-all shadow-md">
-          <i data-lucide="plus-circle" class="w-5 h-5"></i> 새 공지 작성
+        <button id="createNoticeBtn" class="flex items-center gap-2 rounded-xl bg-blue-600 px-5 py-2.5 text-xs font-bold text-white shadow-sm transition-all hover:bg-blue-700">
+          <i data-lucide="plus-circle" class="h-4 w-4"></i>
+          새 공지 작성
         </button>
       </div>
 
-      <!-- KPI Summary -->
-      <div class="kpi_grid mb-8">
-        <div class="kpi_card">
-          <p class="text-xs text-gray-500 font-bold uppercase tracking-widest">게시 중인 공지</p>
-          <p class="text-2xl font-bold text-gray-900 mt-2">8건</p>
-          <p class="text-xs text-blue-600 mt-2">일반 5 · 긴급 3</p>
+      <div id="noticeMessage" class="hidden"></div>
+
+      <div class="grid grid-cols-1 gap-6 md:grid-cols-3">
+        <div class="group flex items-center justify-between rounded-2xl border border-gray-100 bg-white p-6 shadow-sm transition-all duration-300 hover:shadow-md">
+          <div>
+            <p class="text-xs font-semibold uppercase tracking-wider text-gray-400">전체 공지</p>
+            <p class="mt-2 text-3xl font-bold tracking-tight text-gray-900" id="kpiTotal">-</p>
+            <span class="mt-2 flex items-center gap-1 text-[11px] font-medium text-blue-500">등록된 공지사항 수</span>
+          </div>
+          <div class="rounded-2xl bg-blue-50 p-3.5 text-blue-600 transition-transform duration-300 group-hover:scale-105">
+            <i data-lucide="radio" class="h-6 w-6"></i>
+          </div>
         </div>
-        <div class="kpi_card">
-          <p class="text-xs text-gray-500 font-bold uppercase tracking-widest">오늘 조회수</p>
-          <p class="text-2xl font-bold text-gray-900 mt-2">1,240회</p>
-          <p class="text-xs text-emerald-600 mt-2">▲ 12% 전일 대비</p>
+
+        <div class="group flex items-center justify-between rounded-2xl border border-gray-100 bg-white p-6 shadow-sm transition-all duration-300 hover:shadow-md">
+          <div>
+            <p class="text-xs font-semibold uppercase tracking-wider text-gray-400">긴급 공지</p>
+            <p class="mt-2 text-3xl font-bold tracking-tight text-gray-900" id="kpiUrgent">-</p>
+            <span class="mt-2 flex items-center gap-1 text-[11px] font-medium text-red-500">현재 페이지 기준 긴급 건수</span>
+          </div>
+          <div class="rounded-2xl bg-red-50 p-3.5 text-red-600 transition-transform duration-300 group-hover:scale-105">
+            <i data-lucide="alert-circle" class="h-6 w-6"></i>
+          </div>
         </div>
-        <div class="kpi_card">
-          <p class="text-xs text-gray-500 font-bold uppercase tracking-widest">미확인 사용자</p>
-          <p class="text-2xl font-bold text-gray-900 mt-2">42명</p>
-          <p class="text-xs text-amber-600 mt-2">긴급 공지 기준</p>
+
+        <div class="group flex items-center justify-between rounded-2xl border border-gray-100 bg-white p-6 shadow-sm transition-all duration-300 hover:shadow-md">
+          <div>
+            <p class="text-xs font-semibold uppercase tracking-wider text-gray-400">조회 최다</p>
+            <p class="mt-2 w-40 truncate text-2xl font-bold tracking-tight text-gray-900" id="kpiTopView">-</p>
+            <span class="mt-2 flex items-center gap-1 text-[11px] font-medium text-emerald-500">현재 페이지 기준 최다 조회 공지</span>
+          </div>
+          <div class="rounded-2xl bg-emerald-50 p-3.5 text-emerald-600 transition-transform duration-300 group-hover:scale-105">
+            <i data-lucide="eye" class="h-6 w-6"></i>
+          </div>
         </div>
       </div>
 
-      <!-- Notice List -->
-      <section class="section_card">
-        <div class="flex items-center justify-between mb-6">
+      <section class="rounded-2xl border border-gray-100 bg-white p-6 shadow-sm">
+        <form id="noticeFilterForm" class="mb-6 flex flex-col gap-5 border-b border-gray-100 pb-5 lg:flex-row lg:items-center lg:justify-between">
           <div class="flex items-center gap-2">
-            <i data-lucide="megaphone" class="text-blue-600"></i>
-            <h3 class="text-lg font-semibold text-gray-800">공지사항 리스트</h3>
+            <div class="rounded-lg bg-blue-50 p-1.5 text-blue-600">
+              <i data-lucide="megaphone" class="h-5 w-5"></i>
+            </div>
+            <h3 class="text-lg font-bold text-gray-800">공지사항 리스트</h3>
           </div>
-          <div class="flex items-center gap-2">
-            <select class="px-3 py-1.5 border border-gray-200 rounded-lg text-sm outline-none focus:ring-2 focus:ring-blue-500">
-              <option>전체 카테고리</option>
-              <option>일반공지</option>
-              <option>긴급안내</option>
-              <option>시스템점검</option>
+          <div class="flex flex-wrap items-center gap-2.5">
+            <select id="noticeTypeFilter" class="cursor-pointer rounded-xl border border-gray-200 bg-white px-3.5 py-2.5 text-xs font-medium text-gray-700 focus:border-blue-500 focus:outline-none focus:ring-2 focus:ring-blue-500/20">
+              <option value="">전체 카테고리</option>
+              <option value="NORMAL">일반</option>
+              <option value="URGENT">긴급</option>
+              <option value="MAINTENANCE">점검</option>
             </select>
-            <input type="text" placeholder="제목 검색..." class="px-3 py-1.5 border border-gray-200 rounded-lg text-sm outline-none focus:ring-2 focus:ring-blue-500">
+            <div class="relative flex items-center gap-2">
+              <div class="relative">
+                <i data-lucide="search" class="absolute left-3.5 top-1/2 h-4 w-4 -translate-y-1/2 text-gray-400"></i>
+                <input type="text" id="noticeKeyword" placeholder="제목 검색..." class="w-48 rounded-xl border border-gray-200 py-2.5 pl-10 pr-4 text-xs font-medium placeholder-gray-400 transition-all duration-200 focus:border-blue-500 focus:outline-none focus:ring-2 focus:ring-blue-500/20">
+              </div>
+              <button type="submit" class="rounded-xl bg-gray-900 px-4 py-2.5 text-xs font-bold text-white shadow-sm transition-all hover:bg-gray-800">검색</button>
+            </div>
           </div>
-        </div>
+        </form>
 
-        <div class="overflow-x-auto">
-          <table class="w-full text-left text-sm">
-            <thead class="bg-gray-50 text-gray-500 uppercase text-[10px] tracking-widest">
+        <div class="overflow-x-auto rounded-xl border border-gray-100">
+          <table class="w-full border-collapse text-left">
+            <thead class="border-b border-gray-100 bg-gray-50/70 text-[10px] font-bold uppercase tracking-wider text-gray-400">
               <tr>
-                <th class="px-4 py-3">유형</th>
-                <th class="px-4 py-3">제목</th>
-                <th class="px-4 py-3">작성일</th>
-                <th class="px-4 py-3">게시 기간</th>
-                <th class="px-4 py-3 text-center">조회</th>
-                <th class="px-4 py-3 text-center">작업</th>
+                <th class="w-20 px-5 py-3.5 font-bold">유형</th>
+                <th class="min-w-[300px] px-5 py-3.5 font-bold">제목</th>
+                <th class="w-32 px-5 py-3.5 font-bold">작성일</th>
+                <th class="w-40 px-5 py-3.5 font-bold">게시 기간</th>
+                <th class="w-24 px-5 py-3.5 text-center font-bold">조회</th>
+                <th class="w-24 px-5 py-3.5 text-center font-bold">작업</th>
               </tr>
             </thead>
-            <tbody class="divide-y divide-gray-100">
-              <tr class="hover:bg-gray-50 transition-colors">
-                <td class="px-4 py-4"><span class="px-2 py-1 bg-red-50 text-red-700 rounded text-[10px] font-bold">긴급</span></td>
-                <td class="px-4 py-4 font-semibold text-gray-900">[긴급] 05/16 시스템 정기 점검 안내 (02:00 ~ 06:00)</td>
-                <td class="px-4 py-4 text-gray-500 font-mono">2026.05.15</td>
-                <td class="px-4 py-4 text-gray-500 font-mono">05.15 ~ 05.17</td>
-                <td class="px-4 py-4 text-center font-bold text-gray-700">842</td>
-                <td class="px-4 py-4 text-center space-x-2">
-                  <button class="text-blue-600 hover:text-blue-800"><i data-lucide="edit" class="w-4 h-4 inline"></i></button>
-                  <button class="text-red-600 hover:text-red-800"><i data-lucide="trash-2" class="w-4 h-4 inline"></i></button>
-                </td>
-              </tr>
-              <tr class="hover:bg-gray-50 transition-colors">
-                <td class="px-4 py-4"><span class="px-2 py-1 bg-blue-50 text-blue-700 rounded text-[10px] font-bold">일반</span></td>
-                <td class="px-4 py-4 font-semibold text-gray-900">2026년 하반기 복지 포인트 지급 안내</td>
-                <td class="px-4 py-4 text-gray-500 font-mono">2026.05.14</td>
-                <td class="px-4 py-4 text-gray-500 font-mono">상시게시</td>
-                <td class="px-4 py-4 text-center font-bold text-gray-700">1,105</td>
-                <td class="px-4 py-4 text-center space-x-2">
-                  <button class="text-blue-600 hover:text-blue-800"><i data-lucide="edit" class="w-4 h-4 inline"></i></button>
-                  <button class="text-red-600 hover:text-red-800"><i data-lucide="trash-2" class="w-4 h-4 inline"></i></button>
-                </td>
-              </tr>
-              <tr class="hover:bg-gray-50 transition-colors">
-                <td class="px-4 py-4"><span class="px-2 py-1 bg-gray-100 text-gray-600 rounded text-[10px] font-bold">점검</span></td>
-                <td class="px-4 py-4 font-semibold text-gray-900">회계 결산 시스템 안정화 작업 완료 공지</td>
-                <td class="px-4 py-4 text-gray-500 font-mono">2026.05.10</td>
-                <td class="px-4 py-4 text-gray-500 font-mono">상시게시</td>
-                <td class="px-4 py-4 text-center font-bold text-gray-700">420</td>
-                <td class="px-4 py-4 text-center space-x-2">
-                  <button class="text-blue-600 hover:text-blue-800"><i data-lucide="edit" class="w-4 h-4 inline"></i></button>
-                  <button class="text-red-600 hover:text-red-800"><i data-lucide="trash-2" class="w-4 h-4 inline"></i></button>
-                </td>
+            <tbody id="noticeTableBody" class="divide-y divide-gray-100 text-xs text-gray-600">
+              <tr>
+                <td colspan="6" class="px-5 py-12 text-center font-medium text-gray-400">데이터를 불러오는 중입니다...</td>
               </tr>
             </tbody>
           </table>
         </div>
-        <div class="mt-6 flex justify-center gap-2">
-          <button class="w-8 h-8 flex items-center justify-center rounded border border-gray-200 text-gray-400 hover:bg-gray-50 disabled:opacity-50" disabled><i data-lucide="chevron-left" class="w-4 h-4"></i></button>
-          <button class="w-8 h-8 flex items-center justify-center rounded bg-blue-600 text-white font-bold">1</button>
-          <button class="w-8 h-8 flex items-center justify-center rounded border border-gray-200 text-gray-600 hover:bg-gray-50">2</button>
-          <button class="w-8 h-8 flex items-center justify-center rounded border border-gray-200 text-gray-600 hover:bg-gray-50">3</button>
-          <button class="w-8 h-8 flex items-center justify-center rounded border border-gray-200 text-gray-600 hover:bg-gray-50"><i data-lucide="chevron-right" class="w-4 h-4"></i></button>
-        </div>
+
+        <div id="noticePagination" class="mt-5 flex items-center justify-center gap-2"></div>
       </section>
     </main>
+  </div>
+
+  <div id="noticeModal" class="fixed inset-0 z-50 hidden bg-gray-900/40 p-4">
+    <div class="flex min-h-full items-center justify-center">
+      <div class="flex max-h-[90vh] w-full max-w-2xl flex-col overflow-hidden rounded-2xl bg-white shadow-xl">
+        <div class="flex items-center justify-between border-b border-gray-100 px-6 py-4">
+          <h3 class="text-lg font-bold text-gray-900" id="noticeModalTitle">공지사항 작성</h3>
+          <button type="button" id="closeNoticeModal" class="text-gray-400 hover:text-gray-600">
+            <i data-lucide="x" class="h-5 w-5"></i>
+          </button>
+        </div>
+        <div class="flex-1 overflow-y-auto p-6">
+          <form id="noticeForm" class="space-y-5">
+            <input type="hidden" id="noticeId">
+            <div>
+              <label class="mb-1.5 block text-xs font-bold uppercase text-gray-500">공지 유형</label>
+              <select id="noticeType" required class="w-full rounded-xl border border-gray-200 bg-white px-3.5 py-2.5 text-xs font-medium text-gray-700 focus:border-blue-500 focus:outline-none focus:ring-2 focus:ring-blue-500/20">
+                <option value="NORMAL">일반</option>
+                <option value="URGENT">긴급</option>
+                <option value="MAINTENANCE">점검</option>
+              </select>
+            </div>
+            <div>
+              <label class="mb-1.5 block text-xs font-bold uppercase text-gray-500">제목</label>
+              <input type="text" id="noticeTitle" required class="w-full rounded-xl border border-gray-200 px-3.5 py-2.5 text-xs font-medium focus:border-blue-500 focus:outline-none focus:ring-2 focus:ring-blue-500/20">
+            </div>
+            <div class="grid grid-cols-2 gap-4">
+              <div>
+                <label class="mb-1.5 block text-xs font-bold uppercase text-gray-500">게시 시작일</label>
+                <input type="date" id="noticeStartDate" class="w-full rounded-xl border border-gray-200 px-3.5 py-2.5 text-xs font-medium focus:border-blue-500 focus:outline-none focus:ring-2 focus:ring-blue-500/20">
+              </div>
+              <div>
+                <label class="mb-1.5 block text-xs font-bold uppercase text-gray-500">게시 종료일</label>
+                <input type="date" id="noticeEndDate" class="w-full rounded-xl border border-gray-200 px-3.5 py-2.5 text-xs font-medium focus:border-blue-500 focus:outline-none focus:ring-2 focus:ring-blue-500/20">
+              </div>
+            </div>
+            <div>
+              <label class="mb-1.5 block text-xs font-bold uppercase text-gray-500">내용</label>
+              <textarea id="noticeContent" required class="h-48 w-full resize-none rounded-xl border border-gray-200 px-3.5 py-2.5 text-xs font-medium focus:border-blue-500 focus:outline-none focus:ring-2 focus:ring-blue-500/20"></textarea>
+            </div>
+          </form>
+        </div>
+        <div class="flex items-center justify-end gap-2 border-t border-gray-100 bg-gray-50 px-6 py-4">
+          <button type="button" id="cancelNoticeModal" class="rounded-xl border border-gray-200 bg-white px-4 py-2 text-xs font-bold text-gray-600 hover:bg-gray-50">취소</button>
+          <button type="submit" id="saveNoticeBtn" form="noticeForm" class="rounded-xl bg-blue-600 px-4 py-2 text-xs font-bold text-white hover:bg-blue-700">저장</button>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <div id="noticeDetailModal" class="fixed inset-0 z-50 hidden bg-gray-900/40 p-4">
+    <div class="flex min-h-full items-center justify-center">
+      <div class="w-full max-w-3xl overflow-hidden rounded-2xl bg-white shadow-xl">
+        <div class="flex items-center justify-between border-b border-gray-100 px-6 py-4">
+          <h3 class="text-lg font-bold text-gray-900">공지사항 상세</h3>
+          <button type="button" id="closeNoticeDetail" class="text-gray-400 hover:text-gray-600">
+            <i data-lucide="x" class="h-5 w-5"></i>
+          </button>
+        </div>
+        <div class="space-y-5 p-6">
+          <div class="space-y-3">
+            <div class="flex items-center gap-3">
+              <div id="detailNoticeType"></div>
+              <h4 id="detailNoticeTitle" class="text-xl font-bold text-gray-900"></h4>
+            </div>
+            <div class="grid grid-cols-1 gap-2 text-sm text-gray-500 md:grid-cols-3">
+              <div>작성자: <span id="detailNoticeAuthor" class="font-medium text-gray-700"></span></div>
+              <div>게시 기간: <span id="detailNoticePeriod" class="font-medium text-gray-700"></span></div>
+              <div>조회수: <span id="detailNoticeViews" class="font-medium text-gray-700"></span></div>
+            </div>
+          </div>
+          <div class="rounded-2xl border border-gray-100 bg-gray-50 p-5">
+            <pre id="detailNoticeContent" class="whitespace-pre-wrap break-words font-sans text-sm leading-6 text-gray-700"></pre>
+          </div>
+        </div>
+        <div class="flex justify-end border-t border-gray-100 bg-gray-50 px-6 py-4">
+          <button type="button" id="closeNoticeDetailFooter" class="rounded-xl border border-gray-200 bg-white px-4 py-2 text-xs font-bold text-gray-600 hover:bg-gray-50">닫기</button>
+        </div>
+      </div>
+    </div>
   </div>
 
   <script src="../../services/common/session.js"></script>
   <script src="../../services/common/app-shell.js"></script>
   <script src="../../services/common/sidebar.js"></script>
+  <script src="../../services/admin/notice-admin.js"></script>
   <script>
-    document.addEventListener('DOMContentLoaded', function() {
-      if (window.lucide) lucide.createIcons();
+    document.addEventListener("DOMContentLoaded", function () {
+      if (window.lucide) {
+        window.lucide.createIcons();
+      }
       window.ddukAppShell.hydratePage({
         title: "공지사항 관리",
-        description: "전사 공지사항 및 긴급 알림을 게시하고 조회 현황을 모니터링합니다."
+        description: "전사 공지사항과 긴급 알림을 등록하고 게시 이력을 관리합니다."
       });
     });
   </script>

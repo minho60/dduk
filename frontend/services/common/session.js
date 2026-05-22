@@ -48,13 +48,15 @@
         }
 
         if (allowedRoles.length > 0 && !allowedRoles.includes(session.role)) {
-            const fallbackPath = rolePathMap[session.role];
+            alert("해당 페이지에 접근할 권한이 없습니다.");
 
-            if (fallbackPath) {
-                window.location.href = fallbackPath;
-            } else {
-                redirectToLogin();
+            const path = window.location.pathname.replace(/\\/g, '/');
+            let rootRedirect = 'dashboard.html';
+            if (path.includes('/pages/')) {
+                const depth = path.split('/pages/')[1].split('/').length;
+                rootRedirect = '../'.repeat(depth) + 'dashboard.html';
             }
+            window.location.href = rootRedirect;
 
             return null;
         }

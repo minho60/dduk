@@ -1,0 +1,346 @@
+<!doctype html>
+<html lang="ko">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>발주 상세 | DDUK ERP</title>
+    <script src="https://cdn.tailwindcss.com/3.4.17"></script>
+    <script src="https://cdn.jsdelivr.net/npm/lucide@0.263.0/dist/umd/lucide.min.js"></script>
+    <link rel="stylesheet" href="../../styles/common/dashboard.css">
+    <style>
+        .form-label{display:block;margin-bottom:.5rem;font-size:.875rem;font-weight:700;color:#374151}
+        .form-input,.form-select,.form-textarea{width:100%;border:1px solid #d1d5db;border-radius:.5rem;padding:.75rem 1rem;font-size:.875rem;color:#111827;background:#fff}
+        .form-input:focus,.form-select:focus,.form-textarea:focus{outline:none;border-color:#6366f1;box-shadow:0 0 0 3px rgba(99,102,241,.12)}
+        .form-input[readonly]{background:#f9fafb;color:#6b7280}
+        .form-textarea{min-height:96px;resize:vertical}
+        .data-table{width:100%;border-collapse:separate;border-spacing:0}
+        .data-table th{background:#f9fafb;padding:.75rem;text-align:left;font-size:.75rem;font-weight:800;color:#6b7280;border-bottom:1px solid #e5e7eb;white-space:nowrap}
+        .data-table td{padding:.75rem;font-size:.875rem;color:#374151;border-bottom:1px solid #f3f4f6;vertical-align:top}
+    </style>
+</head>
+<body class="bg-gray-50 min-h-screen">
+    <aside data-dduk-sidebar></aside>
+    <div class="main_wrap">
+        <header class="topbar px-6 py-4 flex justify-between items-center bg-white border-b sticky top-0 z-10">
+            <div class="flex items-center gap-4">
+                <button id="mobile_menu_btn" class="lg:hidden p-2 hover:bg-gray-100 rounded-lg"><i data-lucide="menu"></i></button>
+                <div>
+                    <h1 class="text-xl font-bold text-gray-800">발주 상세</h1>
+                    <p id="message" class="text-sm text-gray-500 mt-1">발주 정보를 불러오는 중입니다.</p>
+                </div>
+            </div>
+            <div class="flex items-center gap-2">
+                <button type="button" id="btn-back" class="px-4 py-2 text-sm font-bold rounded-lg border border-gray-200 bg-white text-gray-700 hover:bg-gray-50">목록</button>
+                <button type="button" id="btn-approve" class="px-4 py-2 text-sm font-bold rounded-lg bg-emerald-600 text-white hover:bg-emerald-700 disabled:bg-gray-200 disabled:text-gray-400 disabled:cursor-not-allowed flex items-center gap-2" disabled>
+                    <i data-lucide="check-circle" class="w-4 h-4"></i> 승인
+                </button>
+                <button type="button" id="btn-save" class="px-4 py-2 text-sm font-bold rounded-lg bg-indigo-600 text-white hover:bg-indigo-700 flex items-center gap-2">
+                    <i data-lucide="save" class="w-4 h-4"></i> 저장
+                </button>
+            </div>
+        </header>
+        <main class="content_area p-6 max-w-7xl mx-auto">
+            <section class="bg-white rounded-lg shadow-sm border border-gray-100 overflow-hidden mb-6">
+                <div class="p-5 border-b border-gray-100">
+                    <h2 class="text-base font-bold text-gray-800">기본 정보</h2>
+                </div>
+                <div class="p-5 grid grid-cols-1 md:grid-cols-2 xl:grid-cols-4 gap-5">
+                    <label><span class="form-label">발주번호</span><input id="purchase-order-no" class="form-input" readonly></label>
+                    <label><span class="form-label">거래처</span><input id="vendor-name" class="form-input" readonly></label>
+                    <label><span class="form-label">요청자</span><input id="requested-by" class="form-input" readonly></label>
+                    <label><span class="form-label">상태</span><input id="status" class="form-input" readonly></label>
+                    <label><span class="form-label">발주일</span><input id="order-date" class="form-input" readonly></label>
+                    <label><span class="form-label">희망 납기일</span><input id="expected-date" type="date" class="form-input"></label>
+                    <label><span class="form-label">승인자</span><select id="approved-by-member-id" class="form-select"></select></label>
+                    <label><span class="form-label">총 금액</span><input id="total-amount" class="form-input" readonly></label>
+                    <label class="md:col-span-2 xl:col-span-4"><span class="form-label">메모</span><textarea id="note" class="form-textarea"></textarea></label>
+                </div>
+            </section>
+
+            <section class="bg-white rounded-lg shadow-sm border border-gray-100 overflow-hidden">
+                <div class="p-5 border-b border-gray-100">
+                    <h2 class="text-base font-bold text-gray-800">발주 품목</h2>
+                </div>
+                <div class="overflow-x-auto">
+                    <table class="data-table">
+                        <thead>
+                            <tr>
+                                <th>품목</th>
+                                <th>수량</th>
+                                <th>단가</th>
+                                <th>품목 납기일</th>
+                                <th>메모</th>
+                                <th>합계</th>
+                            </tr>
+                        </thead>
+                        <tbody id="items-body">
+                            <tr><td colspan="6" class="text-center text-gray-400 font-semibold py-8">발주 품목을 불러오는 중입니다.</td></tr>
+                        </tbody>
+                    </table>
+                </div>
+            </section>
+        </main>
+    </div>
+    <script src="../../services/common/session.js"></script>
+    <script src="../../services/common/sidebar.js"></script>
+    <script>
+        document.addEventListener('DOMContentLoaded', () => {
+            const session = window.ddukSession?.requireRole?.(['ADMIN', 'INVENTORY', 'HR'], { redirectToLogin: true });
+            if (!session) return;
+            if (window.lucide) lucide.createIcons();
+
+            const params = new URLSearchParams(location.search);
+            const orderId = params.get('id');
+            const apiOrigin = location.protocol === 'file:' ? 'http://localhost:8080' : location.origin;
+            const message = document.getElementById('message');
+            const saveButton = document.getElementById('btn-save');
+            const approveButton = document.getElementById('btn-approve');
+            const itemsBody = document.getElementById('items-body');
+            let order = null;
+            saveButton.innerHTML = '<i data-lucide="edit-3" class="w-4 h-4"></i> 수정';
+
+            const memberProfiles = {
+                1: { loginId: 'admin', label: '최고관리자' },
+                2: { loginId: 'inventory', label: '구매/발주 담당' },
+                3: { loginId: 'hr', label: '회계/직원 관리 담당' }
+            };
+
+            function resolveCurrentMemberId() {
+                const stored = localStorage.getItem('memberId') || localStorage.getItem('userId');
+                if (stored) return Number(stored);
+                const loginId = (localStorage.getItem('loginId') || '').toLowerCase();
+                const role = (localStorage.getItem('role') || '').toUpperCase();
+                if (loginId === 'admin' || role === 'ADMIN') return 1;
+                if (loginId === 'inventory' || role === 'INVENTORY') return 2;
+                if (loginId === 'hr' || role === 'HR') return 3;
+                return null;
+            }
+
+            const currentMemberId = resolveCurrentMemberId();
+
+            function headers(json) {
+                const token = localStorage.getItem('token');
+                const result = json ? { 'Content-Type': 'application/json' } : {};
+                if (token) result.Authorization = `Bearer ${token}`;
+                return result;
+            }
+
+            function setMessage(text, type) {
+                const color = type === 'error' ? 'text-red-600' : type === 'ok' ? 'text-emerald-600' : 'text-gray-500';
+                message.className = `text-sm mt-1 font-semibold ${color}`;
+                message.textContent = text;
+            }
+
+            async function readError(response) {
+                const text = await response.text();
+                if (!text) return `HTTP ${response.status}`;
+                try {
+                    const parsed = JSON.parse(text);
+                    return parsed.message || parsed.error || text;
+                } catch {
+                    return text;
+                }
+            }
+
+            function escapeHtml(value) {
+                return String(value ?? '').replace(/[&<>"']/g, char => ({ '&': '&amp;', '<': '&lt;', '>': '&gt;', '"': '&quot;', "'": '&#039;' }[char]));
+            }
+
+            function dateText(value) {
+                return value ? String(value).slice(0, 10) : '';
+            }
+
+            function money(value) {
+                return Number(value || 0).toLocaleString('ko-KR', { style: 'currency', currency: 'KRW', maximumFractionDigits: 0 });
+            }
+
+            function memberText(id, name) {
+                const profile = memberProfiles[Number(id)];
+                if (!profile) return name || `ID ${id || '-'}`;
+                return `${profile.label} (${profile.loginId}/${id})`;
+            }
+
+            function statusText(status) {
+                return {
+                    DRAFT: '초안',
+                    ORDERED: '발주요청',
+                    PENDING: '발주요청',
+                    REQUESTED: '발주요청',
+                    APPROVED: '승인 완료',
+                    SENT_TO_VENDOR: '거래처 발송',
+                    INBOUND_DELAY: '입고지연',
+                    RECEIVING: '입고중',
+                    RECEIVED: '입고 완료',
+                    COMPLETED: '발주완료',
+                    CANCELLED: '취소'
+                }[status] || status || '-';
+            }
+
+            function canApprove() {
+                return order
+                    && ['DRAFT', 'ORDERED', 'PENDING', 'REQUESTED'].includes(order.status)
+                    && Number(order.approvedByMemberId) === Number(currentMemberId);
+            }
+
+            function updateApproveButton() {
+                const enabled = canApprove();
+                approveButton.disabled = !enabled;
+                if (!order) {
+                    approveButton.title = '발주 정보를 먼저 조회해야 합니다.';
+                } else if (order.status === 'APPROVED') {
+                    approveButton.title = '이미 승인된 발주입니다.';
+                } else if (!['DRAFT', 'ORDERED', 'PENDING', 'REQUESTED'].includes(order.status)) {
+                    approveButton.title = '현재 상태에서는 승인할 수 없습니다.';
+                } else if (Number(order.approvedByMemberId) !== Number(currentMemberId)) {
+                    approveButton.title = '요청된 승인자만 승인할 수 있습니다.';
+                } else {
+                    approveButton.title = '승인 처리';
+                }
+            }
+
+            function fillApproverSelect(selectedId) {
+                const select = document.getElementById('approved-by-member-id');
+                select.innerHTML = Object.entries(memberProfiles).map(([id, profile]) => (
+                    `<option value="${id}" ${Number(id) === Number(selectedId) ? 'selected' : ''}>${profile.label} (${profile.loginId}/${id})</option>`
+                )).join('');
+            }
+
+            function renderItems() {
+                const items = order.items || [];
+                if (items.length === 0) {
+                    itemsBody.innerHTML = '<tr><td colspan="6" class="text-center text-gray-400 font-semibold py-8">등록된 발주 품목이 없습니다.</td></tr>';
+                    return;
+                }
+
+                itemsBody.innerHTML = items.map(item => `
+                    <tr data-item-id="${escapeHtml(item.purchaseOrderItemId)}">
+                        <td>
+                            <p class="font-bold text-gray-900">${escapeHtml(item.itemName || '-')}</p>
+                            <p class="text-xs text-gray-400 mt-1">품목 ID ${escapeHtml(item.itemId || '-')} / ${escapeHtml(item.unit || '-')}</p>
+                        </td>
+                        <td><input class="form-input item-quantity" type="number" min="1" step="1" value="${escapeHtml(item.quantity || 1)}"></td>
+                        <td><input class="form-input item-unit-price" type="number" min="0" step="0.01" value="${escapeHtml(item.unitPrice || 0)}"></td>
+                        <td><input class="form-input item-expected-date" type="date" value="${escapeHtml(dateText(item.expectedDate))}"></td>
+                        <td><input class="form-input item-note" value="${escapeHtml(item.note || '')}"></td>
+                        <td class="font-bold text-gray-900">${money(item.lineAmount)}</td>
+                    </tr>
+                `).join('');
+            }
+
+            function fillForm() {
+                document.getElementById('purchase-order-no').value = order.purchaseOrderNo || '';
+                document.getElementById('vendor-name').value = order.vendorName || '';
+                document.getElementById('requested-by').value = memberText(order.requestedByMemberId, order.requestedByMemberName);
+                document.getElementById('status').value = statusText(order.status);
+                document.getElementById('order-date').value = dateText(order.orderDate);
+                document.getElementById('expected-date').value = dateText(order.expectedDate);
+                document.getElementById('total-amount').value = money(order.totalAmount);
+                document.getElementById('note').value = order.note || '';
+                fillApproverSelect(order.approvedByMemberId);
+                renderItems();
+                updateApproveButton();
+            }
+
+            function collectPayload() {
+                const itemPayload = Array.from(itemsBody.querySelectorAll('tr[data-item-id]')).map(row => ({
+                    purchaseOrderItemId: Number(row.dataset.itemId),
+                    quantity: Number(row.querySelector('.item-quantity').value),
+                    unitPrice: Number(row.querySelector('.item-unit-price').value),
+                    expectedDate: row.querySelector('.item-expected-date').value || null,
+                    note: row.querySelector('.item-note').value.trim()
+                }));
+
+                return {
+                    approvedByMemberId: Number(document.getElementById('approved-by-member-id').value),
+                    expectedDate: document.getElementById('expected-date').value || null,
+                    note: document.getElementById('note').value.trim(),
+                    items: itemPayload
+                };
+            }
+
+            async function loadOrder() {
+                if (!orderId) {
+                    setMessage('발주 ID가 없습니다.', 'error');
+                    return;
+                }
+                setMessage('발주 정보를 불러오는 중입니다.');
+                try {
+                    const response = await fetch(`${apiOrigin}/api/v1/inventory/purchase-orders/${orderId}`, { headers: headers(false) });
+                    if (!response.ok) throw new Error(await readError(response));
+                    order = await response.json();
+                    fillForm();
+                    setMessage(`${order.purchaseOrderNo || ''} 발주 정보를 조회했습니다.`, 'ok');
+                } catch (error) {
+                    setMessage(`발주 상세 조회 실패: ${error.message}`, 'error');
+                    itemsBody.innerHTML = `<tr><td colspan="6" class="text-center text-red-600 font-semibold py-8">${escapeHtml(error.message)}</td></tr>`;
+                }
+            }
+
+            async function saveOrder() {
+                if (!order) return;
+                const payload = collectPayload();
+                if (payload.items.some(item => !item.quantity || item.quantity < 1 || item.unitPrice < 0)) {
+                    setMessage('품목 수량과 단가를 확인해 주세요.', 'error');
+                    return;
+                }
+
+                const original = saveButton.innerHTML;
+                saveButton.disabled = true;
+                saveButton.innerHTML = '저장 중...';
+                setMessage('발주 정보를 저장하는 중입니다.');
+                try {
+                    const response = await fetch(`${apiOrigin}/api/v1/inventory/purchase-orders/${order.purchaseOrderId}`, {
+                        method: 'PUT',
+                        headers: headers(true),
+                        body: JSON.stringify(payload)
+                    });
+                    if (!response.ok) throw new Error(await readError(response));
+                    order = await response.json();
+                    fillForm();
+                    setMessage('발주 정보가 저장되었습니다.', 'ok');
+                } catch (error) {
+                    setMessage(`발주 저장 실패: ${error.message}`, 'error');
+                } finally {
+                    saveButton.disabled = false;
+                    saveButton.innerHTML = original;
+                    if (window.lucide) lucide.createIcons();
+                }
+            }
+
+            async function approveOrder() {
+                if (!canApprove()) return;
+
+                const original = approveButton.innerHTML;
+                approveButton.disabled = true;
+                approveButton.innerHTML = '승인 중...';
+                setMessage(`${order.purchaseOrderNo || ''} 승인 처리 중입니다.`);
+                try {
+                    const response = await fetch(`${apiOrigin}/api/v1/inventory/purchase-orders/${order.purchaseOrderId}/status`, {
+                        method: 'PATCH',
+                        headers: headers(true),
+                        body: JSON.stringify({ status: 'APPROVED' })
+                    });
+                    if (!response.ok) throw new Error(await readError(response));
+                    order = await response.json();
+                    fillForm();
+                    setMessage('발주가 승인되었습니다.', 'ok');
+                } catch (error) {
+                    setMessage(`승인 실패: ${error.message}`, 'error');
+                    updateApproveButton();
+                } finally {
+                    approveButton.innerHTML = original;
+                    updateApproveButton();
+                    if (window.lucide) lucide.createIcons();
+                }
+            }
+
+            document.getElementById('btn-back').addEventListener('click', () => {
+                location.href = 'purchase-orders.html';
+            });
+            approveButton.addEventListener('click', approveOrder);
+            saveButton.addEventListener('click', saveOrder);
+            loadOrder();
+        });
+    </script>
+</body>
+</html>

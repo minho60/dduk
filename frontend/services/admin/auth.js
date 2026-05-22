@@ -122,12 +122,12 @@ if (loginForm && loginButton && passwordInput) {
 
             const data = await parseResponseBody(response);
 
-            if (!response.ok || !data) {
+            if (!response.ok || !data || data.status !== "success" || !data.data) {
                 setMessage(data?.message || "로그인에 실패했습니다.", "error");
                 return;
             }
 
-            storeSession(data);
+            storeSession(data.data);
 
             const saveCompanyCodeCheckbox = document.querySelector('[name="saveCompanyCode"]');
             if (saveCompanyCodeCheckbox && saveCompanyCodeCheckbox.checked) {
@@ -147,7 +147,7 @@ if (loginForm && loginButton && passwordInput) {
             setMessage("로그인 성공. 대시보드로 이동합니다.", "success");
             setLoginButtonText("접속 중...");
 
-            const redirectPath = roleRedirectMap[data.role] || "dashboard.html";
+            const redirectPath = roleRedirectMap[data.data.role] || "dashboard.html";
             window.setTimeout(() => {
                 window.location.href = redirectPath;
             }, 300);

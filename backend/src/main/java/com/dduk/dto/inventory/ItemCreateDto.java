@@ -13,4 +13,5 @@ public class ItemCreateDto {
     private String unit;
     private BigDecimal unitPrice;
     private Long vendorId;
+    private Long registeredById;
 }

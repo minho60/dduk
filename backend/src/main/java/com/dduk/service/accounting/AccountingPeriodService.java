@@ -1,8 +1,8 @@
 package com.dduk.service.accounting;
 
-import com.dduk.domain.accounting.period.entity.AccountingPeriod;
-import com.dduk.domain.accounting.period.entity.AccountingPeriodStatus;
-import com.dduk.domain.accounting.period.repository.AccountingPeriodRepository;
+import com.dduk.entity.accounting.period.AccountingPeriod;
+import com.dduk.entity.accounting.period.AccountingPeriodStatus;
+import com.dduk.repository.accounting.period.AccountingPeriodRepository;
 import com.dduk.repository.accounting.JournalEntryRepository;
 import lombok.RequiredArgsConstructor;
 import org.springframework.stereotype.Service;

@@ -2,6 +2,7 @@ package com.dduk.entity.inventory;
 
 import com.fasterxml.jackson.annotation.JsonIgnoreProperties;
 
+import com.dduk.entity.admin.Member;
 import com.dduk.entity.inventory.ItemType;
 import jakarta.persistence.*;
 import lombok.*;
@@ -46,6 +47,10 @@ public class Item {
     @ManyToOne(fetch = FetchType.LAZY)
     @JoinColumn(name = "default_vendor_id")
     private Vendor defaultVendor;
+
+    @ManyToOne(fetch = FetchType.LAZY)
+    @JoinColumn(name = "registered_by_id")
+    private Member registeredBy;
 
     @Column(name = "standard_cost")
     private BigDecimal standardCost;

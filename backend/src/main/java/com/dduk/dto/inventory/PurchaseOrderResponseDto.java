@@ -7,6 +7,7 @@ import lombok.Getter;
 
 import java.math.BigDecimal;
 import java.time.LocalDate;
+import java.time.LocalDateTime;
 import java.util.List;
 
 @Getter
@@ -24,6 +25,7 @@ public class PurchaseOrderResponseDto {
     private String approvedByMemberName;
     private LocalDate orderDate;
     private LocalDate expectedDate;
+    private LocalDateTime createdAt;
     private BigDecimal totalAmount;
     private String note;
     private List<PurchaseOrderItemResponseDto> items;
@@ -41,6 +43,7 @@ public class PurchaseOrderResponseDto {
                 .approvedByMemberName(purchaseOrder.getApprovedBy() == null ? null : purchaseOrder.getApprovedBy().getName())
                 .orderDate(purchaseOrder.getOrderDate())
                 .expectedDate(purchaseOrder.getExpectedDate())
+                .createdAt(purchaseOrder.getCreatedAt())
                 .totalAmount(purchaseOrder.getTotalAmount())
                 .note(purchaseOrder.getNote())
                 .items(purchaseOrderItems.stream()

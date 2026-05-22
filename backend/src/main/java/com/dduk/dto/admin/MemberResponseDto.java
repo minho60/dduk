@@ -14,6 +14,7 @@ public class MemberResponseDto {
     private String name;
     private String role;
     private boolean active;
+    private LocalDateTime lastLoginAt;
     private LocalDateTime createdAt;
 
     public static MemberResponseDto from(Member member) {
@@ -23,6 +24,7 @@ public class MemberResponseDto {
                 .name(member.getName())
                 .role(member.getRole().name())
                 .active(member.isActive())
+                .lastLoginAt(member.getLastLoginAt())
                 .createdAt(member.getCreatedAt())
                 .build();
     }

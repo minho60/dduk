@@ -7,65 +7,68 @@
             id: 'purchase',
             label: '구매/발주',
             items: [
-                { label: '구매/발주 대시보드', icon: 'bar-chart-3', href: 'pages/inventory/dashboard.html' },
-                { label: '발주 요청', icon: 'file-plus', href: 'pages/inventory/purchase-order-request.html' },
-                { label: '발주 관리', icon: 'clipboard-list', href: 'pages/inventory/purchase-order-request.html' },
-                { label: '입고 등록', icon: 'package-check', href: 'pages/inventory/movements.html' },
-                { label: '거래처 관리', icon: 'building', href: 'pages/inventory/purchase-order-request.html' }
+                { label: '구매/발주 대시보드', icon: 'bar-chart-3', href: 'pages/inventory/purchase-dashboard.html', roles: ['ADMIN', 'INVENTORY'] },
+                { label: '구매 요청', icon: 'file-plus', href: 'pages/inventory/purchase-request.html', roles: ['ADMIN', 'INVENTORY'] },
+                { label: '발주 관리', icon: 'clipboard-list', href: 'pages/inventory/purchase-orders.html', roles: ['ADMIN', 'INVENTORY'] },
+                { label: '발주 현황', icon: 'trending-up', href: 'pages/inventory/purchase-status.html', roles: ['ADMIN', 'INVENTORY'] },
+                { label: '입고 등록', icon: 'package-check', href: 'pages/inventory/receiving.html', roles: ['ADMIN', 'INVENTORY'] },
+                { label: '거래처 관리', icon: 'building', href: 'pages/inventory/vendors.html', roles: ['ADMIN', 'INVENTORY'] }
             ]
         },
         {
             id: 'inventory',
             label: '재고관리',
             items: [
-                { label: '재고관리 대시보드', icon: 'bar-chart-3', href: 'pages/inventory/dashboard.html' },
-                { label: '재고 조회', icon: 'search', href: 'pages/inventory/list.html' },
-                { label: '입출고 이력', icon: 'history', href: 'pages/inventory/movements.html' },
-                { label: '창고 이동', icon: 'truck', href: 'pages/inventory/transfers.html' },
-                { label: '자동 발주 추천', icon: 'zap', href: 'pages/inventory/reorder.html' }
+                { label: '재고관리 대시보드', icon: 'bar-chart-3', href: 'pages/inventory/dashboard.html', roles: ['ADMIN', 'INVENTORY'] },
+                { label: '재고 조회', icon: 'search', href: 'pages/inventory/list.html', roles: ['ADMIN', 'INVENTORY'] },
+                { label: '입출고 이력', icon: 'history', href: 'pages/inventory/movements.html', roles: ['ADMIN', 'INVENTORY'] },
+                { label: '창고 이동', icon: 'truck', href: 'pages/inventory/transfers.html', roles: ['ADMIN', 'INVENTORY'] },
+                { label: '자동 발주 추천', icon: 'zap', href: 'pages/inventory/reorder.html', roles: ['ADMIN', 'INVENTORY'] }
             ]
         },
         {
             id: 'accounting',
             label: '회계관리',
             items: [
-                { label: '회계 대시보드',    icon: 'bar-chart-3',   href: 'pages/hr/accounting/accounting_dashboard.html' },
-                { label: '계정과목 관리',    icon: 'folder-tree',   href: 'pages/hr/accounting/accounts.html' },
-                { label: '거래내역 등록',   icon: 'file-plus',     href: 'pages/hr/accounting/transactions.html' },
-                { label: '합계잔액시산표',   icon: 'trending-up',   href: 'pages/hr/accounting/trial_balance.html' },
-                { label: '월 마감',          icon: 'calendar-check', href: 'pages/hr/accounting/monthly_closing.html' },
-                { label: '급여 계산/대장',        icon: 'wallet',        href: 'pages/hr/accounting/payroll_management.html', match: 'pages/hr/accounting/payroll_management.html' },
-                { label: '회계 리포트',      icon: 'file-bar-chart', href: 'pages/hr/accounting/accounting_reports.html' },
-                { label: '세금계산서',       icon: 'receipt',       href: 'pages/hr/accounting/wip.html', disabled: true },
-                { label: '비용 처리',        icon: 'credit-card',   href: 'pages/hr/accounting/wip.html', disabled: true }
+                { label: '회계 대시보드',    icon: 'bar-chart-3',   href: 'pages/accounting/accounting_dashboard.html', roles: ['ADMIN'] },
+                { label: '계정과목 관리',    icon: 'folder-tree',   href: 'pages/hr/accounting/accounts.html', roles: ['ADMIN'] },
+                { label: '거래내역 등록',   icon: 'file-plus',     href: 'pages/hr/accounting/transactions.html', roles: ['ADMIN'] },
+                { label: '합계잔액시산표',   icon: 'trending-up',   href: 'pages/accounting/trial_balance.html', roles: ['ADMIN'] },
+                { label: '월 마감',          icon: 'calendar-check', href: 'pages/accounting/monthly_closing.html', roles: ['ADMIN'] },
+                { label: '급여 계산/대장',   icon: 'wallet',        href: 'pages/accounting/payroll_management.html', match: 'pages/accounting/payroll_management.html', roles: ['ADMIN', 'HR'] },
+                { label: '회계 리포트',      icon: 'file-bar-chart', href: 'pages/accounting/accounting_reports.html', roles: ['ADMIN'] },
+                { label: '세금계산서',       icon: 'receipt',       href: 'pages/hr/accounting/wip.html', disabled: true, roles: ['ADMIN'] },
+                { label: '비용 처리',        icon: 'credit-card',   href: 'pages/hr/accounting/wip.html', disabled: true, roles: ['ADMIN'] }
             ]
         },
         {
             id: 'docs',
             label: '문서/증빙',
             items: [
-                { label: '증빙 업로드', icon: 'upload', href: '#' },
-                { label: 'OCR 문서함', icon: 'scan', href: '#' },
-                { label: '계약 문서', icon: 'file-signature', href: '#' }
+                { label: '증빙 업로드', icon: 'upload', href: '#', roles: ['ADMIN', 'HR', 'INVENTORY'] },
+                { label: 'OCR 문서함', icon: 'scan', href: '#', roles: ['ADMIN'] },
+                { label: '계약 문서', icon: 'file-signature', href: '#', roles: ['ADMIN'] }
             ]
         },
         {
             id: 'ai',
             label: 'AI 업무지원',
             items: [
-                { label: 'AI 챗봇', icon: 'bot', href: '#' },
-                { label: '이상 탐지', icon: 'alert-triangle', href: '#' },
-                { label: '예측 분석', icon: 'brain', href: '#' }
+                { label: 'AI 챗봇', icon: 'bot', href: '#', roles: ['ADMIN', 'HR', 'INVENTORY'] },
+                { label: '이상 탐지', icon: 'alert-triangle', href: '#', roles: ['ADMIN'] },
+                { label: '예측 분석', icon: 'brain', href: '#', roles: ['ADMIN'] }
             ]
         },
         {
             id: 'admin',
             label: '관리자',
             items: [
-                { label: '계정 및 권한 관리', icon: 'shield-check', href: 'pages/admin/account-security.html' },
-                { label: '시스템 운영 관리', icon: 'settings-2', href: 'pages/admin/system-admin.html' },
-                { label: '공지사항 관리', icon: 'megaphone', href: 'pages/admin/notice-admin.html' },
-                { label: '조직 및 부서 관리', icon: 'network', href: 'pages/admin/org-admin.html' }
+                { label: '계정 및 권한 관리', icon: 'shield-check', href: 'pages/admin/account-security.html', roles: ['ADMIN'] },
+                { label: '시스템 운영 관리', icon: 'settings-2', href: 'pages/admin/system-admin.html', roles: ['ADMIN'] },
+                { label: '공지사항 관리', icon: 'megaphone', href: 'pages/admin/notice-admin.html', roles: ['ADMIN'] },
+                { label: '조직 및 부서 관리', icon: 'network', href: 'pages/admin/org-admin.html', roles: ['ADMIN'] },
+                { label: 'AI 챗봇 테스트', icon: 'bot', href: 'pages/admin/chatbot-test.html', roles: ['ADMIN'] },
+                { label: 'AI/RPA 작업 이력', icon: 'history', href: 'pages/admin/task-history.html', roles: ['ADMIN'] }
             ]
         }
     ];
@@ -102,6 +105,7 @@
 
     function renderMenuItem(item, extraClass) {
         const currentClass = isCurrentPage(item) ? ' active' : '';
+        const rolesAttr = item.roles ? ` data-roles="${item.roles.join(',')}"` : '';
         if (item.disabled) {
             return `
                 <span class="menu_item menu_item_disabled${extraClass ? ` ${extraClass}` : ''}" title="${item.label}" aria-disabled="true">
@@ -112,7 +116,7 @@
             `;
         }
         return `
-            <a class="menu_item${extraClass ? ` ${extraClass}` : ''}${currentClass}" href="${resolveHref(item.href)}" data-label="${item.label}" title="${item.label}">
+            <a class="menu_item${extraClass ? ` ${extraClass}` : ''}${currentClass}" href="${resolveHref(item.href)}"${rolesAttr} data-label="${item.label}" title="${item.label}">
                 <i class="dduk-inline-012" data-lucide="${item.icon}"></i>
                 <span class="menu_label">${item.label}</span>
             </a>
@@ -132,6 +136,15 @@
 
     function renderSidebar() {
         const root = getRootPath();
+        const userName = localStorage.getItem('userName') || '게스트';
+        const rawRole = localStorage.getItem('role') || '';
+        const roleMap = {
+            ADMIN: '시스템 관리자',
+            HR: '인사 관리자',
+            INVENTORY: '재고 관리자'
+        };
+        const displayRole = roleMap[rawRole] || '사용자';
+
         return `
             <aside class="sidebar" id="sidebar">
                 <div class="dduk-inline-001">
@@ -163,15 +176,15 @@
                     </div>
                 </div>
                 <nav class="dduk-inline-013">
-                    ${renderMenuItem({ label: '대시보드', icon: 'layout-dashboard', href: 'dashboard.html' })}
+                    ${renderMenuItem({ label: '대시보드', icon: 'layout-dashboard', href: 'dashboard.html', roles: ['ADMIN', 'HR', 'INVENTORY'] })}
                     ${renderGroups()}
                 </nav>
                 <div class="dduk-inline-019">
                     <div class="dduk-inline-020">
                         <div class="dduk-inline-021"><i class="dduk-inline-022" data-lucide="user"></i></div>
                         <div class="sidebar_user_text">
-                            <p class="dduk-inline-023">김도연</p>
-                            <p class="dduk-inline-024">관리자</p>
+                            <p class="dduk-inline-023">${userName}</p>
+                            <p class="dduk-inline-024">${displayRole}</p>
                         </div>
                     </div>
                     <div class="dduk-inline-025">
@@ -333,8 +346,23 @@
 
         host.outerHTML = renderSidebar();
         document.querySelectorAll('.submenu').forEach(submenu => updateMenuIcon(submenu.id, !submenu.classList.contains('collapsed')));
+        
+        const currentUserRole = localStorage.getItem('role') || '';
+
         document.querySelectorAll('.menu_item').forEach(menuItem => {
-            menuItem.addEventListener('click', () => addRecentMenu(menuItem));
+            menuItem.addEventListener('click', (e) => {
+                const rolesData = menuItem.getAttribute('data-roles');
+                if (rolesData) {
+                    const allowedRoles = rolesData.split(',');
+                    if (!allowedRoles.includes(currentUserRole)) {
+                        e.preventDefault();
+                        e.stopPropagation();
+                        alert('해당 메뉴에 접근할 권한이 없습니다.');
+                        return;
+                    }
+                }
+                addRecentMenu(menuItem);
+            });
         });
         renderRecentMenus();
         openCurrentMenuGroup();
