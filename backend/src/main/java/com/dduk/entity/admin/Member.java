@@ -43,6 +43,9 @@ public class Member {
     @Column(nullable = false, columnDefinition = "TINYINT(1) DEFAULT 1")
     private boolean active;
 
+    @Column(name = "last_login_at")
+    private LocalDateTime lastLoginAt;
+
     @CreationTimestamp
     @Column(nullable = false, updatable = false)
     private LocalDateTime createdAt;
@@ -66,5 +69,9 @@ public class Member {
 
     public void updateActive(boolean active) {
         this.active = active;
+    }
+
+    public void updateLastLoginAt(LocalDateTime lastLoginAt) {
+        this.lastLoginAt = lastLoginAt;
     }
 }

@@ -18,9 +18,18 @@ spring:
       mode: always
       schema-locations:
         - classpath:db/mysql/dduk_bootstrap_schema.sql
+        - classpath:db/mysql/task_history_schema.sql
+        - classpath:db/mysql/notice_schema.sql
       data-locations:
         - classpath:db/mysql/dduk_bootstrap_data.sql
 
 jwt:
   secret: ${JWT_SECRET}
   expiration: ${JWT_EXPIRATION:86400000}
+
+ai-server:
+  url: ${AI_SERVER_URL:http://localhost:5000}
+
+rpa-server:
+  url: ${RPA_SERVER_URL:http://localhost:5500}
+  callback-token: ${RPA_CALLBACK_TOKEN}

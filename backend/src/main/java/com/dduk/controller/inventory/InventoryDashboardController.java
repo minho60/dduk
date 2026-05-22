@@ -27,7 +27,7 @@ public class InventoryDashboardController {
         Map<String, Object> response = new HashMap<>();
         response.put("status", "success");
         response.put("data", data);
-        response.put("message", "?붿껌???꾨즺?섏뿀?듬땲??");
+        response.put("message", "요청이 완료되었습니다.");
         return ResponseEntity.ok(response);
     }
 }

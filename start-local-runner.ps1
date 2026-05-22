@@ -1,6 +1,6 @@
 $ErrorActionPreference = "Stop"
 
-$workspaceRoot = Split-Path -Parent $MyInvocation.MyCommand.Path
+$workspaceRoot = $PSScriptRoot
 $backendDir = Join-Path $workspaceRoot "backend"
 $frontendDir = Join-Path $workspaceRoot "frontend"
 $tmpRootDir = Join-Path $workspaceRoot ".local-run"
@@ -11,7 +11,7 @@ $backendErrLog = Join-Path $tmpDir "backend.err.log"
 $frontendLog = Join-Path $tmpDir "frontend.out.log"
 $frontendErrLog = Join-Path $tmpDir "frontend.err.log"
 $backendUrl = "http://localhost:8080/"
-$frontendUrl = "http://localhost:5500/"
+$frontendUrl = "http://localhost:5500/index.html"
 
 function Test-PortListening {
     param([int]$Port)
@@ -104,6 +104,12 @@ try {
 
     $pythonCommand = Get-PythonCommand
 
+    if (Test-PortListening -Port 5500) {
+        if (Test-HttpReady -Url "http://localhost:5500/frontend/index.html") {
+            $frontendUrl = "http://localhost:5500/frontend/index.html"
+        }
+    }
+
     $backendAlreadyRunning = (Test-PortListening -Port 8080) -and (Test-HttpReady -Url $backendUrl)
     $frontendAlreadyRunning = (Test-PortListening -Port 5500) -and (Test-HttpReady -Url $frontendUrl)
 
@@ -166,7 +172,7 @@ try {
     exit 0
 } catch {
     Write-Host ""
-    Write-Host "start-local failed" -ForegroundColor Red
+    Write-Host "start-local-runner failed" -ForegroundColor Red
     Write-Host $_.Exception.Message -ForegroundColor Red
     Write-Host ""
     Write-Host "Log folder: $tmpDir"
