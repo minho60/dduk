@@ -1,0 +1,382 @@
+<!doctype html>
+<html lang="ko">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>구매/발주 대시보드 | DDUK ERP</title>
+    <script src="https://cdn.tailwindcss.com/3.4.17"></script>
+    <script src="https://cdn.jsdelivr.net/npm/lucide@0.263.0/dist/umd/lucide.min.js"></script>
+    <link rel="stylesheet" href="../../styles/common/dashboard.css">
+    <style>
+        .metric-card{background:#fff;border:1px solid #e5e7eb;border-radius:.5rem;padding:1.25rem;box-shadow:0 1px 2px rgba(15,23,42,.04)}
+        .metric-label{font-size:.8125rem;font-weight:800;color:#64748b}
+        .metric-value{margin-top:.625rem;font-size:1.75rem;font-weight:900;color:#111827;line-height:1}
+        .metric-sub{margin-top:.5rem;font-size:.8125rem;font-weight:700;color:#64748b}
+        .panel{background:#fff;border:1px solid #e5e7eb;border-radius:.5rem;box-shadow:0 1px 2px rgba(15,23,42,.04)}
+        .status-pill{display:inline-flex;align-items:center;border-radius:999px;padding:.25rem .625rem;font-size:.75rem;font-weight:800;background:#f1f5f9;color:#334155;white-space:nowrap}
+        .chart-bar{border-radius:.375rem .375rem 0 0;min-height:.25rem}
+        .progress-track{height:.5rem;border-radius:999px;background:#e5e7eb;overflow:hidden}
+        .progress-fill{height:100%;border-radius:999px}
+        .progress-gauge-list{display:grid;gap:1rem}
+        .progress-gauge-row{display:grid;grid-template-columns:4.25rem minmax(0,1fr);align-items:center;gap:1rem;padding-bottom:1rem;border-bottom:1px solid #f1f5f9}
+        .progress-gauge-row:last-child{padding-bottom:0;border-bottom:0}
+        .progress-gauge{width:4.25rem;height:4.25rem;border-radius:999px;display:grid;place-items:center;background:conic-gradient(var(--gauge-color) var(--gauge-stop), #e5e7eb 0);position:relative;box-shadow:inset 0 0 0 1px rgba(15,23,42,.06)}
+        .progress-gauge::after{content:"";position:absolute;inset:.55rem;border-radius:999px;background:#fff;box-shadow:0 1px 2px rgba(15,23,42,.06)}
+        .progress-gauge strong{position:relative;z-index:1;font-size:.9rem;font-weight:900;color:#0f172a}
+        .progress-caption{font-size:.75rem;font-weight:800;color:#64748b}
+        .progress-title{margin-top:.125rem;font-size:.95rem;font-weight:900;color:#111827}
+        .progress-note{margin-top:.35rem;font-size:.78rem;font-weight:700;color:#64748b}
+        .status-stack{display:flex;height:1.05rem;border-radius:999px;overflow:hidden;background:#e5e7eb;box-shadow:inset 0 0 0 1px rgba(15,23,42,.05)}
+        .status-stack-segment{height:100%;min-width:.25rem}
+        .status-legend{display:grid;gap:.75rem;margin-top:1rem}
+        .status-legend-row{display:grid;grid-template-columns:1rem minmax(0,1fr) auto;align-items:center;gap:.65rem}
+        .status-dot-chip{width:.75rem;height:.75rem;border-radius:999px;box-shadow:0 0 0 3px var(--status-bg)}
+        .status-label-text{font-size:.86rem;font-weight:900;color:#1f2937}
+        .status-count-text{font-size:.8rem;font-weight:900;color:#475569;white-space:nowrap}
+        .status-mini-track{height:.35rem;border-radius:999px;background:#eef2f7;overflow:hidden;margin-top:.3rem}
+        .status-mini-fill{height:100%;border-radius:999px}
+    </style>
+</head>
+<body class="bg-slate-50 min-h-screen">
+    <aside data-dduk-sidebar></aside>
+    <div class="main_wrap">
+        <header class="topbar px-6 py-4 flex justify-between items-center bg-white border-b sticky top-0 z-10">
+            <div class="flex items-center gap-4">
+                <button id="mobile_menu_btn" class="lg:hidden p-2 hover:bg-gray-100 rounded-lg"><i data-lucide="menu"></i></button>
+                <div>
+                    <h1 class="text-xl font-bold text-gray-900">구매/발주 대시보드</h1>
+                    <p id="message" class="text-sm text-gray-500 mt-1">발주, 입고, 외상 흐름을 집계 중입니다.</p>
+                </div>
+            </div>
+            <div id="base-date" class="text-sm font-bold text-slate-500"></div>
+        </header>
+
+        <main class="content_area p-6 max-w-7xl mx-auto">
+            <section class="grid grid-cols-1 sm:grid-cols-2 xl:grid-cols-5 gap-4 mb-6">
+                <article class="metric-card">
+                    <div class="flex items-center justify-between">
+                        <p class="metric-label">발주건수</p>
+                        <i data-lucide="clipboard-list" class="w-5 h-5 text-indigo-500"></i>
+                    </div>
+                    <p id="order-count" class="metric-value">-</p>
+                    <p class="metric-sub">전체 발주서</p>
+                </article>
+                <article class="metric-card">
+                    <div class="flex items-center justify-between">
+                        <p class="metric-label">발주완료</p>
+                        <i data-lucide="send" class="w-5 h-5 text-emerald-500"></i>
+                    </div>
+                    <p id="completed-order-count" class="metric-value">-</p>
+                    <p id="order-rate" class="metric-sub">-</p>
+                </article>
+                <article class="metric-card">
+                    <div class="flex items-center justify-between">
+                        <p class="metric-label">입고중</p>
+                        <i data-lucide="package-plus" class="w-5 h-5 text-sky-500"></i>
+                    </div>
+                    <p id="receiving-count" class="metric-value">-</p>
+                    <p class="metric-sub">입고중 상태 기준</p>
+                </article>
+                <article class="metric-card">
+                    <div class="flex items-center justify-between">
+                        <p class="metric-label">입고지연</p>
+                        <i data-lucide="clock-alert" class="w-5 h-5 text-rose-500"></i>
+                    </div>
+                    <p id="delay-count" class="metric-value text-rose-600">-</p>
+                    <p id="delay-rate" class="metric-sub">-</p>
+                </article>
+                <article class="metric-card">
+                    <div class="flex items-center justify-between">
+                        <p class="metric-label">입고완료</p>
+                        <i data-lucide="package-check" class="w-5 h-5 text-teal-500"></i>
+                    </div>
+                    <p id="received-count" class="metric-value">-</p>
+                    <p id="received-rate" class="metric-sub">-</p>
+                </article>
+            </section>
+
+            <section class="grid grid-cols-1 xl:grid-cols-[minmax(0,1.45fr)_minmax(340px,.55fr)] gap-6 mb-6">
+                <article class="panel p-5">
+                    <div class="flex items-center justify-between mb-5">
+                        <div>
+                            <h2 class="text-base font-extrabold text-gray-900">월별 발주 추이</h2>
+                            <p class="text-sm text-gray-500 mt-1">최근 6개월 발주 건수와 금액 흐름입니다.</p>
+                        </div>
+                        <i data-lucide="bar-chart-3" class="w-5 h-5 text-indigo-500"></i>
+                    </div>
+                    <div id="monthly-chart" class="h-72 flex items-end gap-4 border-b border-slate-200 px-2"></div>
+                </article>
+
+                <article class="panel p-5">
+                    <div class="flex items-center justify-between mb-5">
+                        <div>
+                            <h2 class="text-base font-extrabold text-gray-900">진행률</h2>
+                            <p class="text-sm text-gray-500 mt-1">완료와 지연 비율을 빠르게 확인합니다.</p>
+                        </div>
+                        <i data-lucide="gauge" class="w-5 h-5 text-emerald-500"></i>
+                    </div>
+                    <div id="progress-list" class="space-y-5"></div>
+                </article>
+            </section>
+
+            <section class="grid grid-cols-1 xl:grid-cols-[minmax(340px,.55fr)_minmax(0,1.45fr)] gap-6">
+                <article class="panel p-5">
+                    <h2 class="text-base font-extrabold text-gray-900 mb-4">상태별 발주</h2>
+                    <div id="status-list" class="space-y-3"></div>
+                </article>
+
+                <article class="panel overflow-hidden">
+                    <div class="p-5 border-b border-slate-100 flex items-start justify-between gap-3">
+                        <div>
+                            <h2 class="text-base font-extrabold text-gray-900">최근 발주</h2>
+                            <p class="text-sm text-gray-500 mt-1">최근 등록된 발주서 6건입니다.</p>
+                        </div>
+                        <button type="button" onclick="location.href='purchase-orders.html'" class="inline-flex items-center gap-2 rounded-lg border border-slate-200 bg-white px-3 py-2 text-sm font-extrabold text-slate-700 hover:bg-slate-50 whitespace-nowrap">
+                            <i data-lucide="list-plus" class="w-4 h-4"></i>
+                            더보기
+                        </button>
+                    </div>
+                    <div class="overflow-x-auto">
+                        <table class="w-full">
+                            <thead>
+                                <tr class="bg-slate-50 text-xs font-extrabold text-slate-500">
+                                    <th class="text-left p-3">발주번호</th>
+                                    <th class="text-left p-3">거래처</th>
+                                    <th class="text-left p-3">상태</th>
+                                    <th class="text-left p-3">납기</th>
+                                    <th class="text-right p-3">금액</th>
+                                </tr>
+                            </thead>
+                            <tbody id="recent-orders"></tbody>
+                        </table>
+                    </div>
+                </article>
+            </section>
+        </main>
+    </div>
+
+    <script src="../../services/common/session.js"></script>
+    <script src="../../services/common/sidebar.js"></script>
+    <script>
+        document.addEventListener('DOMContentLoaded', () => {
+            const session = window.ddukSession?.requireRole?.(['ADMIN', 'INVENTORY', 'HR'], { redirectToLogin: true });
+            if (!session) return;
+            if (window.lucide) lucide.createIcons();
+            loadDashboard();
+            setInterval(loadDashboard, 10000);
+            document.addEventListener('visibilitychange', () => {
+                if (!document.hidden) loadDashboard();
+            });
+        });
+
+        const apiOrigin = location.protocol === 'file:' ? 'http://localhost:8080' : location.origin;
+
+        function headers() {
+            const token = localStorage.getItem('token');
+            return token ? { Authorization: `Bearer ${token}` } : {};
+        }
+
+        function money(value) {
+            return Number(value || 0).toLocaleString('ko-KR', { style: 'currency', currency: 'KRW', maximumFractionDigits: 0 });
+        }
+
+        function number(value) {
+            return Number(value || 0).toLocaleString('ko-KR');
+        }
+
+        function statusText(status) {
+            return {
+                DRAFT: '초안',
+                ORDERED: '발주요청',
+                PENDING: '발주요청',
+                REQUESTED: '발주요청',
+                APPROVED: '승인 완료',
+                SENT_TO_VENDOR: '거래처 발송',
+                INBOUND_DELAY: '입고지연',
+                RECEIVING: '입고중',
+                RECEIVED: '입고 완료',
+                COMPLETED: '발주완료',
+                CANCELLED: '취소'
+            }[status] || status || '-';
+        }
+
+        function escapeHtml(value) {
+            return String(value ?? '').replace(/[&<>"']/g, char => ({ '&': '&amp;', '<': '&lt;', '>': '&gt;', '"': '&quot;', "'": '&#039;' }[char]));
+        }
+
+        function setMetric(id, value) {
+            document.getElementById(id).textContent = value;
+        }
+
+        function clampPercent(value) {
+            return Math.max(0, Math.min(100, Number(value || 0)));
+        }
+
+        function statusVisual(status) {
+            return {
+                DRAFT: { color: '#64748b', bg: '#f1f5f9' },
+                ORDERED: { color: '#4f46e5', bg: '#eef2ff' },
+                PENDING: { color: '#4f46e5', bg: '#eef2ff' },
+                REQUESTED: { color: '#4f46e5', bg: '#eef2ff' },
+                APPROVED: { color: '#059669', bg: '#ecfdf5' },
+                SENT_TO_VENDOR: { color: '#0d9488', bg: '#f0fdfa' },
+                INBOUND_DELAY: { color: '#e11d48', bg: '#fff1f2' },
+                RECEIVING: { color: '#ea580c', bg: '#fff7ed' },
+                RECEIVED: { color: '#0284c7', bg: '#eff6ff' },
+                COMPLETED: { color: '#16a34a', bg: '#f0fdf4' },
+                CANCELLED: { color: '#b91c1c', bg: '#fef2f2' }
+            }[status] || { color: '#475569', bg: '#f1f5f9' };
+        }
+
+        function renderProgress(stats) {
+            const items = [
+                ['발주 완료율', stats.orderCompletionRate || 0, '#16a34a', `${number(stats.completedOrderCount)}건 완료`],
+                ['입고 완료율', stats.receivingCompletionRate || 0, '#0284c7', `${number(stats.receivedCount)}건 완료`],
+                ['입고 지연율', stats.delayRate || 0, '#e11d48', `${number(stats.delayedReceivingCount)}건 지연`]
+            ];
+            document.getElementById('progress-list').innerHTML = items.map(([label, value, color, note]) => {
+                const percent = clampPercent(value);
+                return `
+                <div class="progress-gauge-row">
+                    <div class="progress-gauge" style="--gauge-color:${color};--gauge-stop:${percent}%">
+                        <strong>${percent}%</strong>
+                    </div>
+                    <div>
+                        <div class="progress-title">${label}</div>
+                        <div class="progress-note">${note}</div>
+                    </div>
+                </div>
+            `;
+            }).join('');
+        }
+
+        function renderMonthlyChart(rows) {
+            rows = buildDisplayMonths(rows);
+            const chart = document.getElementById('monthly-chart');
+            if (!rows || rows.length === 0) {
+                chart.innerHTML = '<div class="self-center w-full text-center text-sm font-bold text-slate-400">표시할 발주 데이터가 없습니다.</div>';
+                return;
+            }
+            const max = Math.max(...rows.map(row => Number(row.count || 0)), 1);
+            chart.innerHTML = rows.map(row => {
+                const height = Math.max(8, Number(row.count || 0) / max * 210);
+                return `
+                    <div class="flex-1 h-full flex flex-col justify-end items-center gap-2 min-w-[4rem]">
+                        <div class="text-xs font-bold text-slate-500">${number(row.count)}건</div>
+                        <div class="chart-bar w-full bg-indigo-500" style="height:${height}px"></div>
+                        <div class="text-xs font-extrabold text-slate-600">${escapeHtml(row.month)}</div>
+                        <div class="text-[11px] font-bold text-slate-400">${money(row.amount)}${row.demo ? ' · 예시' : ''}</div>
+                    </div>
+                `;
+            }).join('');
+        }
+
+        function buildDisplayMonths(rows) {
+            const realRows = Array.isArray(rows) ? rows : [];
+            const rowMap = new Map(realRows.map(row => [row.month, { ...row, demo: false }]));
+            const today = new Date();
+            const currentCount = Math.max(...realRows.map(row => Number(row.count || 0)), 6);
+            const currentAmount = Math.max(...realRows.map(row => Number(row.amount || 0)), 12000000);
+
+            return Array.from({ length: 6 }, (_, index) => {
+                const date = new Date(today.getFullYear(), today.getMonth() - 5 + index, 1);
+                const month = `${date.getFullYear()}-${String(date.getMonth() + 1).padStart(2, '0')}`;
+                if (rowMap.has(month)) return rowMap.get(month);
+
+                const wave = [0.58, 0.72, 0.65, 0.84, 0.76, 0.92][index];
+                return {
+                    month,
+                    count: Math.max(1, Math.round(currentCount * wave)),
+                    amount: Math.round(currentAmount * wave),
+                    demo: true
+                };
+            });
+        }
+
+        function renderStatusList(statusCounts, total) {
+            const entries = Object.entries(statusCounts || {});
+            if (entries.length === 0) {
+                document.getElementById('status-list').innerHTML = '<p class="text-sm font-bold text-slate-400">상태 데이터가 없습니다.</p>';
+                return;
+            }
+
+            const stack = entries.map(([status, count]) => {
+                const rate = total ? Math.round(count * 1000 / total) / 10 : 0;
+                const visual = statusVisual(status);
+                return `<div class="status-stack-segment" title="${escapeHtml(statusText(status))} ${rate}%" style="width:${Math.max(rate, 1)}%;background:${visual.color}"></div>`;
+            }).join('');
+
+            const legend = entries.map(([status, count]) => {
+                const rate = total ? Math.round(count * 1000 / total) / 10 : 0;
+                const visual = statusVisual(status);
+                return `
+                    <div class="status-legend-row">
+                        <span class="status-dot-chip" style="background:${visual.color};--status-bg:${visual.bg}"></span>
+                        <div>
+                            <div class="status-label-text">${escapeHtml(statusText(status))}</div>
+                            <div class="status-mini-track"><div class="status-mini-fill" style="width:${Math.min(100, rate)}%;background:${visual.color}"></div></div>
+                        </div>
+                        <div class="status-count-text">${number(count)}건 · ${rate}%</div>
+                    </div>
+                `;
+            }).join('');
+
+            document.getElementById('status-list').innerHTML = `
+                <div class="status-stack">${stack}</div>
+                <div class="status-legend">${legend}</div>
+            `;
+        }
+
+        function renderRecentOrders(rows) {
+            const target = document.getElementById('recent-orders');
+            if (!rows || rows.length === 0) {
+                target.innerHTML = '<tr><td colspan="5" class="p-6 text-center text-sm font-bold text-slate-400">최근 발주가 없습니다.</td></tr>';
+                return;
+            }
+            target.innerHTML = rows.map(order => `
+                <tr class="border-t border-slate-100">
+                    <td class="p-3 font-extrabold text-indigo-700">${escapeHtml(order.purchaseOrderNo)}</td>
+                    <td class="p-3 font-bold text-slate-700">${escapeHtml(order.vendorName)}</td>
+                    <td class="p-3"><span class="status-pill">${escapeHtml(statusText(order.status))}</span></td>
+                    <td class="p-3 text-sm text-slate-500">${escapeHtml(order.expectedDate || '-')}</td>
+                    <td class="p-3 text-right font-extrabold text-slate-900">${money(order.totalAmount)}</td>
+                </tr>
+            `).join('');
+        }
+
+        async function loadDashboard() {
+            const message = document.getElementById('message');
+            try {
+                const url = new URL(`${apiOrigin}/api/v1/inventory/purchase-dashboard/stats`);
+                url.searchParams.set('_', Date.now());
+                const response = await fetch(url, { headers: headers(), cache: 'no-store' });
+                if (!response.ok) throw new Error(`HTTP ${response.status}`);
+                const payload = await response.json();
+                const stats = payload.data || {};
+
+                setMetric('order-count', number(stats.orderCount));
+                setMetric('completed-order-count', number(stats.completedOrderCount));
+                setMetric('receiving-count', number(stats.receivingCount));
+                setMetric('delay-count', number(stats.delayedReceivingCount));
+                setMetric('received-count', number(stats.receivedCount));
+                setMetric('order-rate', `완료율 ${stats.orderCompletionRate || 0}%`);
+                setMetric('delay-rate', `지연율 ${stats.delayRate || 0}%`);
+                setMetric('received-rate', `완료율 ${stats.receivingCompletionRate || 0}%`);
+                document.getElementById('base-date').textContent = `기준일 ${stats.baseDate || '-'}`;
+
+                renderProgress(stats);
+                renderMonthlyChart(stats.monthlyOrders);
+                renderStatusList(stats.statusCounts, Number(stats.orderCount || 0));
+                renderRecentOrders(stats.recentOrders);
+                message.textContent = '구매/발주 지표가 최신 데이터로 갱신되었습니다.';
+                message.className = 'text-sm text-emerald-600 mt-1 font-semibold';
+            } catch (error) {
+                message.textContent = `대시보드 조회 실패: ${error.message}`;
+                message.className = 'text-sm text-red-600 mt-1 font-semibold';
+            } finally {
+                if (window.lucide) lucide.createIcons();
+            }
+        }
+    </script>
+</body>
+</html>

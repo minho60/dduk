@@ -36,4 +36,5 @@ public interface VendorRepository extends JpaRepository<Vendor, Long> {
             @Param("contactPhone") String contactPhone,
             @Param("businessRegistrationNo") String businessRegistrationNo
     );
+
 }

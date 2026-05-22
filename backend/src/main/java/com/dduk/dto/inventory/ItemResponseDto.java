@@ -20,6 +20,8 @@ public class ItemResponseDto {
     private BigDecimal unitPrice;
     private Long defaultVendorId;
     private String defaultVendorName;
+    private Long registeredById;
+    private String registeredByName;
 
     public static ItemResponseDto from(Item item) {
         return ItemResponseDto.builder()
@@ -33,6 +35,8 @@ public class ItemResponseDto {
                 .unitPrice(item.getUnitPrice())
                 .defaultVendorId(item.getDefaultVendor() == null ? null : item.getDefaultVendor().getId())
                 .defaultVendorName(item.getDefaultVendor() == null ? null : item.getDefaultVendor().getName())
+                .registeredById(item.getRegisteredBy() == null ? null : item.getRegisteredBy().getId())
+                .registeredByName(item.getRegisteredBy() == null ? null : item.getRegisteredBy().getName())
                 .build();
     }
 }

@@ -1,0 +1,357 @@
+<!doctype html>
+<html lang="ko">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>입고 등록 | DDUK ERP</title>
+    <script src="https://cdn.tailwindcss.com/3.4.17"></script>
+    <script src="https://cdn.jsdelivr.net/npm/lucide@0.263.0/dist/umd/lucide.min.js"></script>
+    <link rel="stylesheet" href="../../styles/common/dashboard.css">
+    <style>
+        .form-label{display:block;margin-bottom:.5rem;font-size:.875rem;font-weight:700;color:#374151}
+        .form-input{width:100%;border:1px solid #d1d5db;border-radius:.5rem;padding:.75rem 1rem;font-size:.875rem;color:#111827;background:#fff}
+        .form-input:focus{outline:none;border-color:#6366f1;box-shadow:0 0 0 3px rgba(99,102,241,.12)}
+        .data-table{width:100%;border-collapse:separate;border-spacing:0}
+        .data-table th{background:#f9fafb;padding:.75rem;text-align:left;font-size:.75rem;font-weight:800;color:#6b7280;border-bottom:1px solid #e5e7eb;white-space:nowrap}
+        .data-table td{padding:.875rem .75rem;font-size:.875rem;color:#374151;border-bottom:1px solid #f3f4f6;vertical-align:top}
+        .status-badge{display:inline-flex;align-items:center;border-radius:999px;padding:.25rem .625rem;font-size:.75rem;font-weight:800;background:#eef2ff;color:#4338ca}
+        .action-cell{white-space:nowrap}
+        .select-order{display:inline-flex;align-items:center;justify-content:center;min-width:3.25rem;white-space:nowrap}
+        .select-order:disabled{cursor:not-allowed;background:#f3f4f6;color:#9ca3af}
+    </style>
+</head>
+<body class="bg-gray-50 min-h-screen">
+    <aside data-dduk-sidebar></aside>
+    <div class="main_wrap">
+        <header class="topbar px-6 py-4 flex justify-between items-center bg-white border-b sticky top-0 z-10">
+            <div class="flex items-center gap-4">
+                <button id="mobile_menu_btn" class="lg:hidden p-2 hover:bg-gray-100 rounded-lg"><i data-lucide="menu"></i></button>
+                <div>
+                    <h1 class="text-xl font-bold text-gray-800">입고 등록</h1>
+                    <p id="message" class="text-sm text-gray-500 mt-1">검색어를 입력하거나 전체 조회로 입고 전 발주서를 확인하세요.</p>
+                </div>
+            </div>
+            <button type="button" id="btn-load-all" class="px-4 py-2 text-sm font-bold rounded-lg bg-gray-900 text-white hover:bg-gray-800 flex items-center gap-2">
+                <i data-lucide="list" class="w-4 h-4"></i> 입고 전 전체 조회
+            </button>
+        </header>
+
+        <main class="content_area p-6 max-w-7xl mx-auto">
+            <section class="bg-white rounded-lg shadow-sm border border-gray-100 overflow-hidden mb-6">
+                <form id="search-form" class="p-5 grid grid-cols-1 lg:grid-cols-[minmax(0,1fr)_auto] gap-3 items-end">
+                    <label>
+                        <span class="form-label">발주 검색</span>
+                        <input id="keyword" class="form-input" placeholder="발주번호, 거래처명, 요청자명 또는 요청자 ID를 입력하세요" autocomplete="off">
+                    </label>
+                    <button type="submit" class="h-11 px-5 text-sm font-bold text-white bg-indigo-600 rounded-lg hover:bg-indigo-700 flex items-center justify-center gap-2">
+                        <i data-lucide="search" class="w-4 h-4"></i> 검색
+                    </button>
+                </form>
+            </section>
+
+            <div class="grid grid-cols-1 xl:grid-cols-[minmax(0,1.1fr)_minmax(360px,.9fr)] gap-6">
+                <section class="bg-white rounded-lg shadow-sm border border-gray-100 overflow-hidden">
+                    <div class="p-5 border-b border-gray-100">
+                        <h2 class="text-base font-bold text-gray-800">입고 전 발주</h2>
+                        <p class="text-sm text-gray-500 mt-1">이미 입고 완료, 발주완료, 취소된 발주는 제외됩니다.</p>
+                    </div>
+                    <div class="overflow-x-auto">
+                        <table class="data-table">
+                            <thead>
+                                <tr>
+                                    <th>발주번호</th>
+                                    <th>거래처</th>
+                                    <th>요청자 / 승인자</th>
+                                    <th>금액</th>
+                                    <th>선택</th>
+                                </tr>
+                            </thead>
+                            <tbody id="orders-body">
+                                <tr><td colspan="5" class="text-center text-gray-400 font-semibold py-8">검색어를 입력해 조회하거나 전체 조회를 클릭하세요.</td></tr>
+                            </tbody>
+                        </table>
+                    </div>
+                </section>
+
+                <section class="bg-white rounded-lg shadow-sm border border-gray-100 overflow-hidden">
+                    <div class="p-5 border-b border-gray-100 flex items-start justify-between gap-3">
+                        <div>
+                            <h2 class="text-base font-bold text-gray-800">입고 품목</h2>
+                            <p id="selected-order" class="text-sm text-gray-500 mt-1">선택된 발주서가 없습니다.</p>
+                        </div>
+                        <div class="flex flex-wrap justify-end gap-2">
+                            <button type="button" id="btn-cancel" class="px-4 py-2 text-sm font-bold rounded-lg border border-red-200 bg-white text-red-700 hover:bg-red-50 disabled:bg-gray-100 disabled:text-gray-400 disabled:border-gray-200 disabled:cursor-not-allowed flex items-center gap-2" disabled>
+                                <i data-lucide="ban" class="w-4 h-4"></i> 취소
+                            </button>
+                            <button type="button" id="btn-receive" class="px-4 py-2 text-sm font-bold rounded-lg bg-emerald-600 text-white hover:bg-emerald-700 disabled:bg-gray-200 disabled:text-gray-400 disabled:cursor-not-allowed flex items-center gap-2" disabled>
+                                <i data-lucide="package-check" class="w-4 h-4"></i> 입고 등록
+                            </button>
+                        </div>
+                    </div>
+                    <div class="overflow-x-auto">
+                        <table class="data-table">
+                            <thead>
+                                <tr>
+                                    <th>품목</th>
+                                    <th>수량</th>
+                                    <th>단가</th>
+                                    <th>금액</th>
+                                </tr>
+                            </thead>
+                            <tbody id="items-body">
+                                <tr><td colspan="4" class="text-center text-gray-400 font-semibold py-8">발주서를 선택하세요.</td></tr>
+                            </tbody>
+                        </table>
+                    </div>
+                </section>
+            </div>
+        </main>
+    </div>
+
+    <script src="../../services/common/session.js"></script>
+    <script src="../../services/common/sidebar.js"></script>
+    <script>
+        document.addEventListener('DOMContentLoaded', () => {
+            const session = window.ddukSession?.requireRole?.(['ADMIN', 'INVENTORY', 'HR'], { redirectToLogin: true });
+            if (!session) return;
+            if (window.lucide) lucide.createIcons();
+
+            const apiOrigin = location.protocol === 'file:' ? 'http://localhost:8080' : location.origin;
+            const ordersBody = document.getElementById('orders-body');
+            const itemsBody = document.getElementById('items-body');
+            const message = document.getElementById('message');
+            const selectedOrderText = document.getElementById('selected-order');
+            const receiveButton = document.getElementById('btn-receive');
+            const cancelButton = document.getElementById('btn-cancel');
+            const keywordInput = document.getElementById('keyword');
+            let orders = [];
+            let selectedOrder = null;
+
+            function headers(json) {
+                const token = localStorage.getItem('token');
+                const result = json ? { 'Content-Type': 'application/json' } : {};
+                if (token) result.Authorization = `Bearer ${token}`;
+                return result;
+            }
+
+            function setMessage(text, type) {
+                const color = type === 'error' ? 'text-red-600' : type === 'ok' ? 'text-emerald-600' : 'text-gray-500';
+                message.className = `text-sm mt-1 font-semibold ${color}`;
+                message.textContent = text;
+            }
+
+            async function readError(response) {
+                const text = await response.text();
+                if (!text) return `HTTP ${response.status}`;
+                try {
+                    const parsed = JSON.parse(text);
+                    return parsed.message || parsed.error || text;
+                } catch {
+                    return text;
+                }
+            }
+
+            function escapeHtml(value) {
+                return String(value ?? '').replace(/[&<>"']/g, char => ({ '&': '&amp;', '<': '&lt;', '>': '&gt;', '"': '&quot;', "'": '&#039;' }[char]));
+            }
+
+            function money(value) {
+                return Number(value || 0).toLocaleString('ko-KR', { style: 'currency', currency: 'KRW', maximumFractionDigits: 0 });
+            }
+
+            function memberText(id, name) {
+                if (Number(id) === 1) return `최고관리자 (${name || 'admin'}/1)`;
+                if (Number(id) === 2) return `구매/발주 담당 (${name || 'inventory'}/2)`;
+                if (Number(id) === 3) return `회계/직원 관리 담당 (${name || 'hr'}/3)`;
+                return name || `ID ${id || '-'}`;
+            }
+
+            function statusText(status) {
+                return {
+                    DRAFT: '초안',
+                    ORDERED: '발주요청',
+                    PENDING: '발주요청',
+                    REQUESTED: '발주요청',
+                    APPROVED: '승인 완료',
+                    SENT_TO_VENDOR: '거래처 발송',
+                    INBOUND_DELAY: '입고지연',
+                    RECEIVING: '입고중',
+                    RECEIVED: '입고 완료',
+                    COMPLETED: '발주완료',
+                    CANCELLED: '취소'
+                }[status] || status || '-';
+            }
+
+            function canSelectOrder(order) {
+                return order.status === 'APPROVED' || order.status === 'SENT_TO_VENDOR';
+            }
+
+            function clearSelection() {
+                selectedOrder = null;
+                renderItems();
+            }
+
+            function renderOrders() {
+                if (orders.length === 0) {
+                    ordersBody.innerHTML = '<tr><td colspan="5" class="text-center text-gray-400 font-semibold py-8">조회된 발주서가 없습니다.</td></tr>';
+                    return;
+                }
+                ordersBody.innerHTML = orders.map(order => `
+                    <tr>
+                        <td>
+                            <p class="font-extrabold text-gray-900">${escapeHtml(order.purchaseOrderNo)}</p>
+                            <span class="status-badge mt-2">${escapeHtml(statusText(order.status))}</span>
+                        </td>
+                        <td>
+                            <p class="font-bold text-gray-800">${escapeHtml(order.vendorName || '-')}</p>
+                            <p class="text-xs text-gray-500 mt-1">납기 ${escapeHtml((order.expectedDate || '').slice(0, 10) || '-')}</p>
+                        </td>
+                        <td>
+                            <p class="text-xs text-gray-500">요청 ${escapeHtml(memberText(order.requestedByMemberId, order.requestedByMemberName))}</p>
+                            <p class="text-xs text-gray-500 mt-1">승인 ${escapeHtml(memberText(order.approvedByMemberId, order.approvedByMemberName))}</p>
+                        </td>
+                        <td class="font-bold text-gray-900">${money(order.totalAmount)}</td>
+                        <td class="action-cell">
+                            <button type="button" class="select-order px-3 py-2 text-xs font-bold rounded-lg bg-indigo-50 text-indigo-700 hover:bg-indigo-100 disabled:hover:bg-gray-100" data-id="${escapeHtml(order.purchaseOrderId)}" ${canSelectOrder(order) ? '' : 'disabled'} title="${canSelectOrder(order) ? '입고 품목 선택' : '승인 완료 또는 거래처 발송 상태의 발주서만 입고 등록할 수 있습니다.'}">선택</button>
+                        </td>
+                    </tr>
+                `).join('');
+                ordersBody.querySelectorAll('.select-order:not(:disabled)').forEach(button => {
+                    button.addEventListener('click', () => selectOrder(Number(button.dataset.id)));
+                });
+            }
+
+            function renderItems() {
+                if (!selectedOrder) {
+                    selectedOrderText.textContent = '선택된 발주서가 없습니다.';
+                    itemsBody.innerHTML = '<tr><td colspan="4" class="text-center text-gray-400 font-semibold py-8">발주서를 선택하세요.</td></tr>';
+                    receiveButton.disabled = true;
+                    cancelButton.disabled = true;
+                    return;
+                }
+
+                selectedOrderText.textContent = `${selectedOrder.purchaseOrderNo} / ${selectedOrder.vendorName}`;
+                receiveButton.disabled = false;
+                cancelButton.disabled = false;
+                itemsBody.innerHTML = (selectedOrder.items || []).map(item => `
+                    <tr>
+                        <td>
+                            <p class="font-bold text-gray-900">${escapeHtml(item.itemName || '-')}</p>
+                            <p class="text-xs text-gray-400 mt-1">품목 ID ${escapeHtml(item.itemId)} / ${escapeHtml(item.unit || '-')}</p>
+                        </td>
+                        <td class="font-bold text-emerald-700">${Number(item.quantity || 0).toLocaleString()}</td>
+                        <td>${money(item.unitPrice)}</td>
+                        <td class="font-bold text-gray-900">${money(item.lineAmount)}</td>
+                    </tr>
+                `).join('');
+            }
+
+            function selectOrder(orderId) {
+                selectedOrder = orders.find(order => Number(order.purchaseOrderId) === Number(orderId)) || null;
+                renderItems();
+            }
+
+            async function loadOrders(keyword) {
+                clearSelection();
+                ordersBody.innerHTML = '<tr><td colspan="5" class="text-center text-gray-400 font-semibold py-8">입고 전 발주서를 조회 중입니다.</td></tr>';
+                setMessage('입고 전 발주서를 조회 중입니다.');
+                try {
+                    const url = new URL(`${apiOrigin}/api/v1/inventory/purchase-orders/receivable`);
+                    if (keyword) url.searchParams.set('keyword', keyword);
+                    const response = await fetch(url, { headers: headers(false) });
+                    if (!response.ok) throw new Error(await readError(response));
+                    orders = await response.json();
+                    setMessage(`입고 전 발주 ${orders.length}건을 조회했습니다.`, 'ok');
+                    renderOrders();
+                } catch (error) {
+                    orders = [];
+                    ordersBody.innerHTML = `<tr><td colspan="5" class="text-center text-red-600 font-semibold py-8">입고 전 발주 조회 실패: ${escapeHtml(error.message)}</td></tr>`;
+                    setMessage(`입고 전 발주 조회 실패: ${error.message}`, 'error');
+                }
+            }
+
+            async function receiveOrder() {
+                if (!selectedOrder) return;
+                const confirmed = window.confirm(`${selectedOrder.purchaseOrderNo} 발주를 입고 등록할까요?`);
+                if (!confirmed) return;
+
+                const originalReceive = receiveButton.innerHTML;
+                receiveButton.disabled = true;
+                cancelButton.disabled = true;
+                receiveButton.innerHTML = '입고 처리 중...';
+                setMessage(`${selectedOrder.purchaseOrderNo} 입고 처리 중입니다.`);
+                try {
+                    const response = await fetch(`${apiOrigin}/api/v1/inventory/purchase-orders/${selectedOrder.purchaseOrderId}/receive`, {
+                        method: 'POST',
+                        headers: headers(true)
+                    });
+                    if (!response.ok) throw new Error(await readError(response));
+                    const received = await response.json();
+                    orders = orders.filter(order => Number(order.purchaseOrderId) !== Number(received.purchaseOrderId));
+                    clearSelection();
+                    renderOrders();
+                    setMessage(`${received.purchaseOrderNo} 입고 등록이 완료되었습니다.`, 'ok');
+                } catch (error) {
+                    setMessage(`입고 등록 실패: ${error.message}`, 'error');
+                    receiveButton.disabled = false;
+                    cancelButton.disabled = false;
+                } finally {
+                    receiveButton.innerHTML = originalReceive;
+                    if (window.lucide) lucide.createIcons();
+                }
+            }
+
+            async function cancelOrder() {
+                if (!selectedOrder) return;
+                const confirmed = window.confirm(`${selectedOrder.purchaseOrderNo} 발주를 입고 전에 취소할까요?`);
+                if (!confirmed) return;
+
+                const originalCancel = cancelButton.innerHTML;
+                receiveButton.disabled = true;
+                cancelButton.disabled = true;
+                cancelButton.innerHTML = '취소 중...';
+                setMessage(`${selectedOrder.purchaseOrderNo} 취소 처리 중입니다.`);
+                try {
+                    const response = await fetch(`${apiOrigin}/api/v1/inventory/purchase-orders/${selectedOrder.purchaseOrderId}/cancel`, {
+                        method: 'POST',
+                        headers: headers(true)
+                    });
+                    if (!response.ok) throw new Error(await readError(response));
+                    const cancelled = await response.json();
+                    orders = orders.filter(order => Number(order.purchaseOrderId) !== Number(cancelled.purchaseOrderId));
+                    clearSelection();
+                    renderOrders();
+                    setMessage(`${cancelled.purchaseOrderNo} 발주가 취소되었습니다.`, 'ok');
+                } catch (error) {
+                    setMessage(`발주 취소 실패: ${error.message}`, 'error');
+                    receiveButton.disabled = false;
+                    cancelButton.disabled = false;
+                } finally {
+                    cancelButton.innerHTML = originalCancel;
+                    if (window.lucide) lucide.createIcons();
+                }
+            }
+
+            document.getElementById('search-form').addEventListener('submit', event => {
+                event.preventDefault();
+                const keyword = keywordInput.value.trim();
+                if (!keyword) {
+                    orders = [];
+                    clearSelection();
+                    renderOrders();
+                    setMessage('검색어를 입력해야 조회할 수 있습니다. 전체 목록은 입고 전 전체 조회 버튼을 사용하세요.', 'error');
+                    keywordInput.focus();
+                    return;
+                }
+                loadOrders(keyword);
+            });
+            document.getElementById('btn-load-all').addEventListener('click', () => {
+                keywordInput.value = '';
+                loadOrders('');
+            });
+            receiveButton.addEventListener('click', receiveOrder);
+            cancelButton.addEventListener('click', cancelOrder);
+        });
+    </script>
+</body>
+</html>

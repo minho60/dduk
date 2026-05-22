@@ -1,18 +1,14 @@
 package com.dduk.dto.inventory;
 
-import com.fasterxml.jackson.annotation.JsonAlias;
 import lombok.Getter;
 
 import java.math.BigDecimal;
 import java.time.LocalDate;
 
 @Getter
-public class PurchaseRequestCreateDto {
+public class PurchaseOrderItemUpdateDto {
 
-    private Long itemId;
-    private Long vendorId;
-    @JsonAlias("requested_by_member_id")
-    private Long requestedByMemberId;
+    private Long purchaseOrderItemId;
     private Integer quantity;
     private BigDecimal unitPrice;
     private LocalDate expectedDate;

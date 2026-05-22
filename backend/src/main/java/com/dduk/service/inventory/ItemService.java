@@ -2,9 +2,11 @@ package com.dduk.service.inventory;
 
 import com.dduk.dto.inventory.ItemCreateDto;
 import com.dduk.dto.inventory.ItemResponseDto;
+import com.dduk.entity.admin.Member;
 import com.dduk.entity.inventory.Item;
 import com.dduk.entity.inventory.ItemType;
 import com.dduk.entity.inventory.Vendor;
+import com.dduk.repository.admin.MemberRepository;
 import com.dduk.repository.inventory.ItemRepository;
 import com.dduk.repository.inventory.VendorRepository;
 import lombok.RequiredArgsConstructor;
@@ -27,14 +29,12 @@ public class ItemService {
 
     private final ItemRepository itemRepository;
     private final VendorRepository vendorRepository;
+    private final MemberRepository memberRepository;
 
     public List<ItemResponseDto> searchItems(String name) {
         String keyword = normalizeName(name);
         if (keyword.isEmpty()) {
-            return itemRepository.findAllByOrderByIdDesc().stream()
-                    .limit(10)
-                    .map(ItemResponseDto::from)
-                    .toList();
+            return List.of();
         }
 
         return itemRepository.findTop10ByNameContainingIgnoreCaseOrderByIdAsc(keyword).stream()
@@ -43,7 +43,7 @@ public class ItemService {
     }
 
     @Transactional
-    public ItemResponseDto createItem(ItemCreateDto requestDto) {
+    public ItemResponseDto createItem(ItemCreateDto requestDto, Long authenticatedMemberId) {
         if (requestDto == null) {
             throw new ResponseStatusException(HttpStatus.BAD_REQUEST, "품목 정보가 필요합니다.");
         }
@@ -59,6 +59,7 @@ public class ItemService {
         BigDecimal unitPrice = requireUnitPrice(requestDto.getUnitPrice());
 
         Vendor defaultVendor = findDefaultVendor(requestDto.getVendorId());
+        Member registeredBy = findRegisteredBy(authenticatedMemberId != null ? authenticatedMemberId : requestDto.getRegisteredById());
 
         List<Item> existingItems = itemRepository.findByNameIgnoreCaseOrderByIdAsc(name);
         if (!existingItems.isEmpty()) {
@@ -74,6 +75,7 @@ public class ItemService {
                 .spec(spec)
                 .unit(unit)
                 .defaultVendor(defaultVendor)
+                .registeredBy(registeredBy)
                 .unitPrice(unitPrice)
                 .active(true)
                 .build();
@@ -109,6 +111,14 @@ public class ItemService {
         }
         return vendorRepository.findById(vendorId)
                 .orElseThrow(() -> new ResponseStatusException(HttpStatus.NOT_FOUND, "거래처를 찾을 수 없습니다."));
+    }
+
+    private Member findRegisteredBy(Long memberId) {
+        if (memberId == null) {
+            throw new ResponseStatusException(HttpStatus.BAD_REQUEST, "등록자 ID가 필요합니다.");
+        }
+        return memberRepository.findById(memberId)
+                .orElseThrow(() -> new ResponseStatusException(HttpStatus.NOT_FOUND, "등록자를 찾을 수 없습니다."));
     }
 
     private String generateItemCode() {

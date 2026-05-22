@@ -265,8 +265,14 @@
     </tr>
 </template>
 
+<script src="../../services/common/session.js"></script>
 <script src="../../services/common/app-shell.js"></script>
 <script>
+    const inventorySession = window.ddukSession?.requireRole?.(['ADMIN', 'INVENTORY', 'HR'], { redirectToLogin: true });
+    if (!inventorySession) {
+        throw new Error('Inventory login required');
+    }
+
     window.ddukAppShell.hydratePage({
         title: "발주 생성",
         description: "거래처와 품목을 입력하고 발주 요청 API로 전송합니다.",
@@ -297,15 +303,25 @@
     });
 
     const previewSession = {
-        userName: localStorage.getItem("userName") || "미리보기 계정",
-        loginId: localStorage.getItem("loginId") || "inventory_preview",
-        role: localStorage.getItem("role") || "INVENTORY"
+        userName: inventorySession.userName || "Inventory Manager",
+        loginId: inventorySession.loginId || "inventory",
+        role: inventorySession.role || "INVENTORY",
+        memberId: (() => {
+            const loginId = (localStorage.getItem("loginId") || "").toLowerCase();
+            const role = (localStorage.getItem("role") || "").toUpperCase();
+            if (loginId === "inventory" || role === "INVENTORY") return "2";
+            if (loginId === "hr" || role === "HR") return "3";
+            if (loginId === "admin" || role === "ADMIN") return "1";
+            return localStorage.getItem("memberId") || localStorage.getItem("userId") || "1";
+        })()
     };
     document.querySelector("[data-user-name]").textContent = previewSession.userName;
     document.querySelector("[data-login-id]").textContent = previewSession.loginId;
     document.querySelector("[data-role]").textContent = previewSession.role;
     document.querySelector("[data-action='logout']").addEventListener("click", () => {
         localStorage.removeItem("token");
+        localStorage.removeItem("memberId");
+        localStorage.removeItem("userId");
         localStorage.removeItem("loginId");
         localStorage.removeItem("role");
         localStorage.removeItem("userName");
@@ -516,7 +532,8 @@
             spec: newItemFields.spec.value.trim(),
             unit: newItemFields.unit.value.trim(),
             unitPrice: newItemFields.unitPrice.value === "" ? null : Number(newItemFields.unitPrice.value),
-            vendorId: Number(document.getElementById("vendorId").value)
+            vendorId: Number(document.getElementById("vendorId").value),
+            registeredById: Number(previewSession.memberId)
         };
         if (!payload.vendorId || payload.vendorId < 1) {
             setMessage("거래처를 먼저 조회해서 선택해야 품목을 등록할 수 있습니다.", "error");

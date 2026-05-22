@@ -1,10 +1,13 @@
 package com.dduk.entity.inventory;
 
 public enum PurchaseStatus {
-    DRAFT,          // 초안
-    APPROVED,       // 승인
-    ORDERED,        // 발주완료
-    RECEIVED,       // 입고완료 (회계 반영 시점)
-    COMPLETED,      // 종결
-    CANCELLED       // 취소
+    DRAFT,
+    APPROVED,
+    SENT_TO_VENDOR,
+    ORDERED,
+    INBOUND_DELAY,
+    RECEIVING,
+    RECEIVED,
+    COMPLETED,
+    CANCELLED
 }

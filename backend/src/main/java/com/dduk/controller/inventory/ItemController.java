@@ -1,9 +1,11 @@
 package com.dduk.controller.inventory;
 
+import com.dduk.config.PrincipalDetails;
 import com.dduk.dto.inventory.ItemCreateDto;
 import com.dduk.dto.inventory.ItemResponseDto;
 import com.dduk.service.inventory.ItemService;
 import lombok.RequiredArgsConstructor;
+import org.springframework.security.core.annotation.AuthenticationPrincipal;
 import org.springframework.web.bind.annotation.GetMapping;
 import org.springframework.web.bind.annotation.PostMapping;
 import org.springframework.web.bind.annotation.RequestBody;
@@ -26,7 +28,11 @@ public class ItemController {
     }
 
     @PostMapping
-    public ItemResponseDto createItem(@RequestBody ItemCreateDto requestDto) {
-        return itemService.createItem(requestDto);
+    public ItemResponseDto createItem(
+            @RequestBody ItemCreateDto requestDto,
+            @AuthenticationPrincipal PrincipalDetails principalDetails
+    ) {
+        Long memberId = principalDetails != null ? principalDetails.getMember().getId() : null;
+        return itemService.createItem(requestDto, memberId);
     }
 }

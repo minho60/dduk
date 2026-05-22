@@ -49,11 +49,11 @@ public class PurchaseOrder {
     private LocalDate expectedDate;
 
     @ManyToOne(fetch = FetchType.LAZY)
-    @JoinColumn(name = "requested_by_id")
+    @JoinColumn(name = "requested_by_member_id", nullable = false)
     private Member requestedBy;
 
     @ManyToOne(fetch = FetchType.LAZY)
-    @JoinColumn(name = "approved_by_id")
+    @JoinColumn(name = "approved_by_member_id")
     private Member approvedBy;
 
     @Column(length = 500)
