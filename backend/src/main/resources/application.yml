@@ -19,6 +19,7 @@ spring:
       schema-locations:
         - classpath:db/mysql/dduk_bootstrap_schema.sql
         - classpath:db/mysql/task_history_schema.sql
+        - classpath:db/mysql/notice_schema.sql
       data-locations:
         - classpath:db/mysql/dduk_bootstrap_data.sql
 

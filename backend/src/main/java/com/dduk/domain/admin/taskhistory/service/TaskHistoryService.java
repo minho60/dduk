@@ -14,6 +14,9 @@ import org.springframework.transaction.annotation.Transactional;
 import java.time.LocalDateTime;
 import java.util.EnumSet;
 
+import org.springframework.data.domain.Page;
+import org.springframework.data.domain.Pageable;
+
 @Slf4j
 @Service
 @RequiredArgsConstructor
@@ -21,6 +24,7 @@ import java.util.EnumSet;
 public class TaskHistoryService {
 
     private static final String DEFAULT_RPA_ACTION = "collect_purchase_orders";
+    private static final String DEFAULT_AI_ACTION = "ai_chat_request";
 
     private final TaskHistoryRepository taskHistoryRepository;
     private final ObjectMapper objectMapper;
@@ -114,6 +118,42 @@ public class TaskHistoryService {
             return DEFAULT_RPA_ACTION;
         }
         return actionName;
+    }
+
+    public void createAiTask(String taskId, String actionName, Object requestPayload) {
+        taskHistoryRepository.save(TaskHistory.builder()
+                .taskId(taskId)
+                .taskType(TaskHistoryType.AI)
+                .actionName(actionName != null && !actionName.isBlank() ? actionName : DEFAULT_AI_ACTION)
+                .status(TaskHistoryStatus.RUNNING)
+                .requestPayload(toJson(requestPayload))
+                .requestedAt(LocalDateTime.now())
+                .startedAt(LocalDateTime.now())
+                .build());
+    }
+
+    public void markAiSuccess(String taskId, Object responsePayload) {
+        taskHistoryRepository.findByTaskId(taskId).ifPresent(task -> {
+            task.markSuccess(toJson(responsePayload));
+            taskHistoryRepository.save(task);
+        });
+    }
+
+    public void markAiFailure(String taskId, String errorMessage, Object errorPayload) {
+        taskHistoryRepository.findByTaskId(taskId).ifPresent(task -> {
+            task.markFailure(errorMessage, toJson(errorPayload));
+            taskHistoryRepository.save(task);
+        });
+    }
+
+    @Transactional(readOnly = true)
+    public Page<TaskHistory> getTaskHistoryList(Pageable pageable) {
+        return taskHistoryRepository.findAll(pageable);
+    }
+
+    @Transactional(readOnly = true)
+    public TaskHistory getTaskHistoryDetail(String taskId) {
+        return taskHistoryRepository.findByTaskId(taskId).orElse(null);
     }
 
     private String extractErrorMessage(Object errorPayload) {

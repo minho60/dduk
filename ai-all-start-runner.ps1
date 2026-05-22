@@ -9,6 +9,7 @@ $rpaDir = Join-Path $workspaceRoot "rpa"
 $tmpRootDir = Join-Path $workspaceRoot ".local-run"
 $runId = Get-Date -Format "yyyyMMdd-HHmmss"
 $tmpDir = Join-Path $tmpRootDir $runId
+$serviceStateFile = Join-Path $tmpRootDir "current-services.json"
 
 $backendLog = Join-Path $tmpDir "backend.out.log"
 $backendErrLog = Join-Path $tmpDir "backend.err.log"
@@ -133,6 +134,18 @@ function Start-DetachedCommand {
     $process.Start() | Out-Null
 
     return $process
+}
+
+function Get-ListeningPid {
+    param([int]$Port)
+
+    $conn = Get-NetTCPConnection -LocalPort $Port -State Listen -ErrorAction SilentlyContinue |
+        Select-Object -First 1
+    if ($null -eq $conn) {
+        return $null
+    }
+
+    return $conn.OwningProcess
 }
 
 try {
@@ -315,6 +328,19 @@ try {
     $aiStatus = if ($aiAlreadyRunning) { "Reused existing server" } else { "Started new process (PID: $($aiProcess.Id))" }
     $rpaStatus = if ($rpaAlreadyRunning) { "Reused existing server" } else { "Started new process (PID: $($rpaProcess.Id))" }
 
+    $serviceState = [ordered]@{
+        workspaceRoot = $workspaceRoot
+        runId = $runId
+        recordedAt = (Get-Date).ToString("o")
+        services = @(
+            [ordered]@{ name = "Backend"; port = 8080; pid = Get-ListeningPid -Port 8080 },
+            [ordered]@{ name = "Frontend"; port = 5500; pid = Get-ListeningPid -Port 5500 },
+            [ordered]@{ name = "AI Server"; port = $aiPort; pid = Get-ListeningPid -Port $aiPort },
+            [ordered]@{ name = "RPA Server"; port = $rpaPort; pid = Get-ListeningPid -Port $rpaPort }
+        )
+    }
+    $serviceState | ConvertTo-Json -Depth 5 | Set-Content -Path $serviceStateFile -Encoding UTF8
+
     cmd.exe /c start "" $frontendUrl | Out-Null
 
     Write-Host ""
@@ -327,6 +353,7 @@ try {
     Write-Host "RPA Server Status: $rpaStatus (URL: $rpaUrl)"
     Write-Host "=========================================================="
     Write-Host "Output Logs Location: $tmpDir"
+    Write-Host "Service State File : $serviceStateFile"
     Write-Host "  - backend : $backendLog"
     Write-Host "  - frontend: $frontendLog"
     Write-Host "  - ai-serv : $aiLog"
