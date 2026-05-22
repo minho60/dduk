@@ -114,7 +114,7 @@ AI는 작업 요청 시:
 - **Controller**: `com.dduk.controller` 하위에 도메인별로 위치하며 요청/응답 처리를 담당한다.
 - **Service**: `com.dduk.service` 하위에 도메인별로 위치한다.
 - **Repository**: `com.dduk.repository` 하위에 도메인별로 위치한다.
-- **Entity**: `com.dduk.entity` (또는 `domain`) 하위에 위치한다.
+- **Entity**: `com.dduk.entity` 하위에 위치한다. (com.dduk.domain 사용 금지)
 - **DTO**: `com.dduk.dto` 하위에 위치한다.
 - **Config**: `com.dduk.config` 하위에 전역 설정 파일들이 위치한다.
 - **역할 분리**: Controller에 비즈니스 로직 작성을 금지하며, 반드시 Service Layer를 거친다.

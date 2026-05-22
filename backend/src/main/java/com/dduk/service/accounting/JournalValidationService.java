@@ -4,8 +4,8 @@ import com.dduk.dto.accounting.JournalLineRequest;
 import com.dduk.entity.accounting.Account;
 import com.dduk.entity.accounting.JournalEntry;
 import com.dduk.repository.accounting.AccountRepository;
-import com.dduk.domain.accounting.period.entity.AccountingPeriodStatus;
-import com.dduk.domain.accounting.period.repository.AccountingPeriodRepository;
+import com.dduk.entity.accounting.period.AccountingPeriodStatus;
+import com.dduk.repository.accounting.period.AccountingPeriodRepository;
 import lombok.RequiredArgsConstructor;
 import org.springframework.stereotype.Service;
 
