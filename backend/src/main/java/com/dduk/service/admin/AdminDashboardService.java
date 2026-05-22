@@ -1,6 +1,6 @@
 package com.dduk.service.admin;
 
-import com.dduk.domain.admin.taskhistory.service.TaskHistoryService;
+import com.dduk.service.admin.taskhistory.TaskHistoryService;
 import com.dduk.dto.admin.AdminDashboardResponseDto;
 import com.dduk.entity.admin.TaskHistoryType;
 import com.dduk.entity.inventory.PurchaseStatus;
