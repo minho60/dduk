@@ -2,7 +2,7 @@ package com.dduk.controller.accounting;
 
 import com.dduk.dto.accounting.JournalLineRequest;
 import com.dduk.entity.accounting.Account;
-import com.dduk.entity.accounting.AccountingPeriod;
+import com.dduk.domain.accounting.period.entity.AccountingPeriod;
 import com.dduk.entity.accounting.JournalEntry;
 import com.dduk.repository.accounting.AccountRepository;
 import com.dduk.service.accounting.AccountingPeriodService;
@@ -101,7 +101,7 @@ public class AccountingController {
         return success(accounts, "계정과목 목록 조회 완료");
     }
 
-    @GetMapping("/reports/trial-balance")
+    @GetMapping("/reports/trial-balance-legacy")
     public ResponseEntity<Map<String, Object>> getTrialBalance(
             @RequestParam(required = false) Integer fiscalYear,
             @RequestParam(required = false) Integer fiscalMonth) {

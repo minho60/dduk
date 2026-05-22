@@ -1,0 +1,191 @@
+<!doctype html>
+<html lang="ko">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>DDUK ERP - 전표 관리</title>
+  <script src="https://cdn.tailwindcss.com/3.4.17"></script>
+  <script src="https://cdn.jsdelivr.net/npm/lucide@0.263.0/dist/umd/lucide.min.js"></script>
+  <link rel="stylesheet" href="../../styles/common/dashboard.css">
+  <link rel="stylesheet" href="../../styles/accounting/voucher-management.css">
+</head>
+<body>
+  <aside data-dduk-sidebar></aside>
+  <div class="main_wrap">
+    <header class="topbar">
+      <button class="sidebar_icon_btn" onclick="toggleSidebar()" aria-label="메뉴">
+        <i data-lucide="menu"></i>
+      </button>
+      <div class="page-title">
+        <h1>전표 관리</h1>
+        <span>매출전표와 매입전표를 계정과목 기반으로 자동 분개합니다.</span>
+      </div>
+      <div class="topbar-actions">
+        <button class="sidebar_icon_btn" aria-label="알림"><i data-lucide="bell"></i></button>
+        <button class="sidebar_icon_btn" aria-label="사용자"><i data-lucide="user"></i></button>
+      </div>
+    </header>
+
+    <main class="content_area voucher-page">
+      <section class="voucher-summary" id="summaryCards">
+        <article><span>총 전표 수</span><strong data-summary="totalVoucherCount">0</strong></article>
+        <article><span>DRAFT</span><strong data-summary="draftCount">0</strong></article>
+        <article><span>REQUESTED</span><strong data-summary="requestedCount">0</strong></article>
+        <article><span>APPROVED</span><strong data-summary="approvedCount">0</strong></article>
+        <article><span>POSTED</span><strong data-summary="postedCount">0</strong></article>
+        <article><span>합계금액</span><strong data-summary-money="totalAmount">0</strong></article>
+      </section>
+
+      <section class="voucher-tabs" role="tablist" aria-label="전표 유형">
+        <button class="active" type="button" data-voucher-type="SALES">매출전표</button>
+        <button type="button" data-voucher-type="PURCHASE">매입전표</button>
+        <button type="button" disabled>일반전표</button>
+        <button type="button" disabled>수정전표</button>
+        <button type="button" disabled>반제전표</button>
+      </section>
+
+      <section class="voucher-workspace">
+        <form id="voucherForm" class="voucher-form">
+          <div class="form-grid">
+            <label>
+              <span>전표일자</span>
+              <input id="voucherDate" type="date" required>
+            </label>
+            <label>
+              <span>부가세 유형</span>
+              <select id="vatType" required>
+                <option value="TAX_INVOICE">세금계산서</option>
+                <option value="ZERO_TAX">영세율</option>
+                <option value="INVOICE">계산서</option>
+                <option value="RETAIL_SALES">소매매출</option>
+                <option value="EXPORT">수출</option>
+                <option value="CARD_SALES">카드매출</option>
+                <option value="CASH_RECEIPT">현금영수증</option>
+                <option value="TAX_FREE">면세</option>
+                <option value="PURCHASER_ISSUED_TAX_INVOICE">매입자발행세금계산서</option>
+                <option value="OTHER_SALES">기타매출</option>
+              </select>
+            </label>
+            <label>
+              <span>거래처</span>
+              <div class="lookup-field">
+                <input id="vendorName" type="text" readonly required placeholder="거래처 선택">
+                <input id="vendorId" type="hidden">
+                <button type="button" data-open-lookup="vendor" aria-label="거래처 검색"><i data-lucide="search"></i></button>
+              </div>
+            </label>
+            <label>
+              <span>공급가액</span>
+              <input id="supplyAmount" inputmode="decimal" required placeholder="0">
+            </label>
+            <label>
+              <span>부가세</span>
+              <input id="vatAmount" inputmode="decimal" required placeholder="0">
+            </label>
+            <label>
+              <span>합계금액</span>
+              <input id="totalAmount" inputmode="decimal" readonly placeholder="0">
+            </label>
+            <label>
+              <span>수수료</span>
+              <input id="feeAmount" inputmode="decimal" placeholder="0">
+            </label>
+            <label>
+              <span id="businessAccountLabel">매출계정</span>
+              <div class="lookup-field">
+                <input id="businessAccountName" type="text" required autocomplete="off" placeholder="계정코드/계정명 검색">
+                <input id="businessAccountId" type="hidden">
+                <button type="button" data-open-lookup="businessAccount" aria-label="계정과목 검색"><i data-lucide="search"></i></button>
+              </div>
+            </label>
+            <label>
+              <span id="settlementAccountLabel">입금계좌</span>
+              <div class="lookup-field">
+                <input id="settlementAccountName" type="text" required autocomplete="off" placeholder="현금/예금 계정 검색">
+                <input id="settlementAccountId" type="hidden">
+                <button type="button" data-open-lookup="settlementAccount" aria-label="계좌 검색"><i data-lucide="search"></i></button>
+              </div>
+            </label>
+            <label class="full">
+              <span>적요</span>
+              <textarea id="description" rows="3" placeholder="상품 판매, 원재료 매입, 카드 매출 발생"></textarea>
+            </label>
+          </div>
+
+          <div class="journal-preview">
+            <div class="preview-head">
+              <h2>자동 분개 미리보기</h2>
+              <span id="balanceState">차대 검증 대기</span>
+            </div>
+            <table>
+              <thead>
+                <tr>
+                  <th>차대</th>
+                  <th>계정과목</th>
+                  <th>차변</th>
+                  <th>대변</th>
+                  <th>적요</th>
+                </tr>
+              </thead>
+              <tbody id="journalPreviewBody"></tbody>
+            </table>
+          </div>
+
+          <div class="voucher-actions">
+            <button type="button" class="ghost" id="resetFormButton">다시 작성</button>
+            <button type="button" class="ghost" id="cancelButton">취소</button>
+            <button type="submit" class="secondary" data-save-action="DRAFT">임시저장</button>
+            <button type="submit" class="primary" data-save-action="REQUESTED">저장(기표)</button>
+          </div>
+        </form>
+
+        <section class="voucher-list">
+          <div class="list-head">
+            <h2>전표 리스트</h2>
+            <button type="button" id="reloadButton"><i data-lucide="refresh-cw"></i></button>
+          </div>
+          <div class="table-wrap">
+            <table>
+              <thead>
+                <tr>
+                  <th>전표번호</th>
+                  <th>유형</th>
+                  <th>전표일자</th>
+                  <th>거래처</th>
+                  <th>공급가액</th>
+                  <th>부가세</th>
+                  <th>합계</th>
+                  <th>상태</th>
+                  <th>작성자</th>
+                  <th>등록일시</th>
+                  <th>게시</th>
+                </tr>
+              </thead>
+              <tbody id="voucherListBody"></tbody>
+            </table>
+          </div>
+        </section>
+      </section>
+    </main>
+  </div>
+
+  <dialog id="lookupDialog">
+    <form method="dialog" class="lookup-dialog">
+      <header>
+        <h2 id="lookupTitle">검색</h2>
+        <button type="submit" aria-label="닫기"><i data-lucide="x"></i></button>
+      </header>
+      <div class="lookup-search">
+        <input id="lookupKeyword" type="search" placeholder="검색어 입력">
+        <button type="button" id="lookupSearchButton"><i data-lucide="search"></i></button>
+      </div>
+      <div id="lookupResults" class="lookup-results"></div>
+    </form>
+  </dialog>
+
+  <div id="toast" class="toast" role="status" aria-live="polite"></div>
+
+  <script src="../../services/common/sidebar.js"></script>
+  <script src="../../assets/js/accounting/voucher_management.js"></script>
+</body>
+</html>

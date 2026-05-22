@@ -4,7 +4,8 @@ import com.dduk.dto.accounting.JournalLineRequest;
 import com.dduk.entity.accounting.Account;
 import com.dduk.entity.accounting.JournalEntry;
 import com.dduk.repository.accounting.AccountRepository;
-import com.dduk.repository.accounting.AccountingPeriodRepository;
+import com.dduk.domain.accounting.period.entity.AccountingPeriodStatus;
+import com.dduk.domain.accounting.period.repository.AccountingPeriodRepository;
 import lombok.RequiredArgsConstructor;
 import org.springframework.stereotype.Service;
 
@@ -38,6 +39,16 @@ public class JournalValidationService {
             if (!Boolean.TRUE.equals(account.getIsActive())) {
                 throw new IllegalArgumentException(
                         "비활성화된 계정입니다: " + req.getAccountCode() + " (" + account.getName() + ")");
+            }
+
+            if (!Boolean.TRUE.equals(account.getAllowPosting())) {
+                throw new IllegalArgumentException(
+                        "기표(posting)가 차단된 계정입니다. 계정코드: " + req.getAccountCode() + " (" + account.getName() + ")");
+            }
+
+            if (!account.isLeaf()) {
+                throw new IllegalArgumentException(
+                        "말단(Leaf) 계정만 전표 기표가 가능합니다. 상위 계정코드: " + req.getAccountCode() + " (" + account.getName() + ")");
             }
 
             if (req.getDebitAmount() == null) {
@@ -82,7 +93,7 @@ public class JournalValidationService {
         int month = date.getMonthValue();
 
         boolean isClosed = accountingPeriodRepository
-                .existsByFiscalYearAndFiscalMonthAndStatus(year, month, "CLOSED");
+                .existsByFiscalYearAndFiscalMonthAndStatus(year, month, AccountingPeriodStatus.CLOSED);
         if (isClosed) {
             throw new IllegalStateException(
                     "마감된 회계 기간(" + year + "-" + String.format("%02d", month) + ")에는 전표를 생성할 수 없습니다.");

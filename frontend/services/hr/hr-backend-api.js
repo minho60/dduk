@@ -117,5 +117,51 @@ export const hrBackendApi = {
             method: 'POST',
             body: payload
         });
+    },
+
+    getAccountTree() {
+        return request('/api/v1/accounting/accounts/tree');
+    },
+
+    getAccountList() {
+        return request('/api/v1/accounting/accounts/list');
+    },
+
+    searchAccounts(params = {}) {
+        const query = new URLSearchParams(params).toString();
+        return request(`/api/v1/accounting/accounts/search${query ? `?${query}` : ''}`);
+    },
+
+    createAccount(payload) {
+        return request('/api/v1/accounting/accounts', {
+            method: 'POST',
+            body: payload
+        });
+    },
+
+    updateAccount(id, payload) {
+        return request(`/api/v1/accounting/accounts/${id}`, {
+            method: 'PUT',
+            body: payload
+        });
+    },
+
+    deleteAccount(id) {
+        return request(`/api/v1/accounting/accounts/${id}`, {
+            method: 'DELETE'
+        });
+    },
+
+    seedAccounts() {
+        return request('/api/v1/accounting/accounts/seed', {
+            method: 'POST'
+        });
+    },
+
+    createVoucher(payload) {
+        return request('/api/v1/accounting/vouchers', {
+            method: 'POST',
+            body: payload
+        });
     }
 };

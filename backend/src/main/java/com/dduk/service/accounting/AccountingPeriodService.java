@@ -1,7 +1,8 @@
 package com.dduk.service.accounting;
 
-import com.dduk.entity.accounting.AccountingPeriod;
-import com.dduk.repository.accounting.AccountingPeriodRepository;
+import com.dduk.domain.accounting.period.entity.AccountingPeriod;
+import com.dduk.domain.accounting.period.entity.AccountingPeriodStatus;
+import com.dduk.domain.accounting.period.repository.AccountingPeriodRepository;
 import com.dduk.repository.accounting.JournalEntryRepository;
 import lombok.RequiredArgsConstructor;
 import org.springframework.stereotype.Service;
@@ -24,7 +25,7 @@ public class AccountingPeriodService {
     @Transactional(readOnly = true)
     public boolean isClosed(int fiscalYear, int fiscalMonth) {
         return accountingPeriodRepository
-                .existsByFiscalYearAndFiscalMonthAndStatus(fiscalYear, fiscalMonth, "CLOSED");
+                .existsByFiscalYearAndFiscalMonthAndStatus(fiscalYear, fiscalMonth, AccountingPeriodStatus.CLOSED);
     }
 
     @Transactional
@@ -41,7 +42,9 @@ public class AccountingPeriodService {
                 .orElseGet(() -> AccountingPeriod.builder()
                         .fiscalYear(fiscalYear)
                         .fiscalMonth(fiscalMonth)
-                        .status("OPEN")
+                        .startDate(java.time.LocalDate.of(fiscalYear, fiscalMonth, 1))
+                        .endDate(java.time.LocalDate.of(fiscalYear, fiscalMonth, 1).withDayOfMonth(java.time.LocalDate.of(fiscalYear, fiscalMonth, 1).lengthOfMonth()))
+                        .status(AccountingPeriodStatus.OPEN)
                         .build());
 
         period.close(closedBy);

@@ -586,58 +586,163 @@ window.closeJournalModal = function closeJournalModal() {
     byId('journal_detail_modal')?.style.setProperty('display', 'none');
 };
 
-function initJournalPage() {
-    byId('status_filter')?.addEventListener('change', renderJournalList);
-    byId('btn_refresh_journals')?.addEventListener('click', renderJournalList);
-    byId('btn_add_journal_row')?.addEventListener('click', () => {
-        addJournalRow();
-        updateJournalBalances();
-    });
+function initVoucherManagementLogic() {
+    const tableBody = byId('voucherLinesBody');
+    const balanceDisplay = byId('voucher_balance_display');
+    const voucherTypeSelect = byId('voucherType');
 
-    byId('journal_items')?.addEventListener('input', updateJournalBalances);
-    byId('journal_items')?.addEventListener('change', updateJournalBalances);
+    function calculateVatAmount(supplyAmount, vatType) {
+        if (vatType === 'TAX_FREE') return 0;
+        return Math.floor(supplyAmount * 0.1);
+    }
 
-    byId('journal_form')?.addEventListener('submit', (event) => {
-        event.preventDefault();
-        safeRun('page_status', async () => {
-            const payload = {
-                date: byId('journal_date').value,
-                description: byId('journal_description').value.trim(),
-                lines: readJournalItems().map((item) => ({
-                    accountCode: item.accountCode,
-                    debitAmount: item.side === 'DEBIT' ? item.amount : 0,
-                    creditAmount: item.side === 'CREDIT' ? item.amount : 0,
-                    description: byId('journal_description').value.trim()
-                }))
-            };
+    function calculateTotalAmount(supplyAmount, vatAmount) {
+        return supplyAmount + vatAmount;
+    }
 
-            if (!payload.date || !payload.description || payload.lines.length < 2) {
-                throw new Error('일자, 설명, 최소 2개 이상의 전표 항목을 입력하세요.');
+    function updateRowAmounts(row) {
+        const supplyInput = row.querySelector('[data-field="supplyAmount"]');
+        const vatInput = row.querySelector('[data-field="vatAmount"]');
+        const totalInput = row.querySelector('[data-field="totalAmount"]');
+        
+        const supplyAmount = Number(supplyInput.value) || 0;
+        let vatAmount = Number(vatInput.value) || 0;
+        
+        // Auto-calc VAT if manually triggered or default
+        const currentVatType = byId('vatType').value;
+        const expectedVat = calculateVatAmount(supplyAmount, currentVatType);
+        
+        if (vatAmount === 0 && supplyAmount > 0) {
+            vatAmount = expectedVat;
+            vatInput.value = vatAmount;
+        }
+
+        totalInput.value = calculateTotalAmount(supplyAmount, vatAmount);
+        updateTotals();
+    }
+
+    function updateTotals() {
+        let totalDebit = 0;
+        let totalCredit = 0;
+
+        document.querySelectorAll('#voucherLinesBody tr').forEach(row => {
+            const side = row.querySelector('[data-field="accountSide"]').value;
+            const total = Number(row.querySelector('[data-field="totalAmount"]').value) || 0;
+            if (side === 'DEBIT') totalDebit += total;
+            else if (side === 'CREDIT') totalCredit += total;
+        });
+
+        if (balanceDisplay) {
+            balanceDisplay.textContent = `차변 ${money(totalDebit)} - 대변 ${money(totalCredit)}`;
+            if (totalDebit > 0 && totalDebit === totalCredit) {
+                balanceDisplay.style.color = '#2e7d32'; // green
+            } else {
+                balanceDisplay.style.color = '#d32f2f'; // red
             }
+        }
+    }
 
-            await hrBackendApi.createJournal(payload);
-            showToast('전표가 생성되었습니다.', 'success');
-            await renderJournalList();
-            byId('journal_form')?.reset();
-            const items = byId('journal_items');
-            if (items) {
-                items.innerHTML = '';
-            }
-            addJournalRow();
-            addJournalRow();
-            byId('journal_date').value = new Date().toISOString().slice(0, 10);
-            updateJournalBalances();
+    function addVoucherLine() {
+        const tr = document.createElement('tr');
+        tr.innerHTML = `
+            <td><input type="text" data-field="accountCode" class="hr_input" placeholder="예: 5100" required></td>
+            <td>
+                <select data-field="accountSide" class="hr_input hr_select">
+                    <option value="DEBIT">차변</option>
+                    <option value="CREDIT">대변</option>
+                </select>
+            </td>
+            <td><input type="number" data-field="supplyAmount" class="hr_input amount-cell" value="0"></td>
+            <td><input type="number" data-field="vatAmount" class="hr_input amount-cell" value="0"></td>
+            <td><input type="number" data-field="totalAmount" class="hr_input amount-cell" value="0" readonly style="background:#f5f5f5;"></td>
+            <td><input type="text" data-field="description" class="hr_input" placeholder="적요"></td>
+            <td><button type="button" class="hr_button small warn" data-action="removeLine">삭제</button></td>
+        `;
+        
+        tr.querySelectorAll('input[type="number"]').forEach(input => {
+            input.addEventListener('input', () => updateRowAmounts(tr));
+        });
+        
+        tr.querySelector('[data-action="removeLine"]').addEventListener('click', () => {
+            tr.remove();
+            updateTotals();
+        });
+
+        tableBody.appendChild(tr);
+        updateTotals();
+    }
+
+    byId('btn_add_voucher_line')?.addEventListener('click', addVoucherLine);
+    byId('vatType')?.addEventListener('change', () => {
+        document.querySelectorAll('#voucherLinesBody tr').forEach(row => {
+            const vatInput = row.querySelector('[data-field="vatAmount"]');
+            vatInput.value = 0; // reset to trigger auto-calc
+            updateRowAmounts(row);
         });
     });
 
-    const journalDate = byId('journal_date');
-    if (journalDate) {
-        journalDate.value = new Date().toISOString().slice(0, 10);
+    byId('voucherForm')?.addEventListener('submit', async (e) => {
+        e.preventDefault();
+        safeRun('page_status', async () => {
+            const lines = [];
+            document.querySelectorAll('#voucherLinesBody tr').forEach(row => {
+                lines.push({
+                    accountCode: row.querySelector('[data-field="accountCode"]').value,
+                    accountSide: row.querySelector('[data-field="accountSide"]').value,
+                    supplyAmount: Number(row.querySelector('[data-field="supplyAmount"]').value) || 0,
+                    vatAmount: Number(row.querySelector('[data-field="vatAmount"]').value) || 0,
+                    description: row.querySelector('[data-field="description"]').value
+                });
+            });
+
+            if (lines.length === 0) {
+                throw new Error("전표 라인을 하나 이상 입력하세요.");
+            }
+
+            const payload = {
+                voucherType: byId('voucherType').value,
+                voucherDate: byId('voucherDate').value,
+                vendorId: Number(byId('vendorId').value) || null,
+                vendorName: byId('vendorName').value,
+                vatType: byId('vatType').value,
+                lines: lines
+            };
+
+            await hrBackendApi.createVoucher(payload);
+            showToast('전표가 저장(기표)되었습니다.', 'success');
+            document.getElementById('voucher_management_card').style.display = 'none';
+            await renderJournalList();
+        });
+    });
+
+    // Initialize with 2 empty lines
+    addVoucherLine();
+    addVoucherLine();
+}
+
+function initJournalPage() {
+    byId('status_filter')?.addEventListener('change', renderJournalList);
+    byId('btn_refresh_journals')?.addEventListener('click', renderJournalList);
+
+    // Fetch and inject voucher management UI
+    const container = byId('voucher_form_container');
+    if (container) {
+        fetch('voucher_management.html')
+            .then(res => res.text())
+            .then(html => {
+                container.innerHTML = html;
+                initVoucherManagementLogic();
+            })
+            .catch(err => console.error('Failed to load voucher_management.html', err));
     }
 
-    addJournalRow();
-    addJournalRow();
-    updateJournalBalances();
+    // Toggle button opens the voucher form
+    byId('btn_toggle_form')?.addEventListener('click', () => {
+        const formSection = document.getElementById('form_section');
+        if (formSection) formSection.classList.toggle('active');
+        const card = document.getElementById('voucher_management_card');
+        if (card) card.style.display = 'block';
+    });
     renderJournalList();
 }
 

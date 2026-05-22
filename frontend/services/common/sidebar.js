@@ -29,12 +29,13 @@
             id: 'accounting',
             label: '회계관리',
             items: [
-                { label: '회계 대시보드',    icon: 'bar-chart-3',   href: 'pages/hr/accounting/dashboard.html', roles: ['ADMIN'] },
-                { label: '거래 내역 등록',   icon: 'file-plus',     href: 'pages/hr/accounting/transactions.html', roles: ['ADMIN'] },
-                { label: '합계잔액시산표',   icon: 'trending-up',   href: 'pages/hr/accounting/trial-balance.html', roles: ['ADMIN'] },
-                { label: '월 마감',          icon: 'calendar-check', href: 'pages/hr/accounting/settlement.html', roles: ['ADMIN'] },
-                { label: '급여 계산',        icon: 'wallet',        href: 'pages/hr/payroll/list.html', match: 'pages/hr/payroll/', roles: ['ADMIN', 'HR'] },
-                { label: '회계 리포트',      icon: 'file-bar-chart', href: 'pages/hr/accounting/reports.html', roles: ['ADMIN'] },
+                { label: '회계 대시보드',    icon: 'bar-chart-3',   href: 'pages/accounting/accounting_dashboard.html', roles: ['ADMIN'] },
+                { label: '계정과목 관리',    icon: 'folder-tree',   href: 'pages/hr/accounting/accounts.html', roles: ['ADMIN'] },
+                { label: '거래내역 등록',   icon: 'file-plus',     href: 'pages/hr/accounting/transactions.html', roles: ['ADMIN'] },
+                { label: '합계잔액시산표',   icon: 'trending-up',   href: 'pages/accounting/trial_balance.html', roles: ['ADMIN'] },
+                { label: '월 마감',          icon: 'calendar-check', href: 'pages/accounting/monthly_closing.html', roles: ['ADMIN'] },
+                { label: '급여 계산/대장',   icon: 'wallet',        href: 'pages/accounting/payroll_management.html', match: 'pages/accounting/payroll_management.html', roles: ['ADMIN', 'HR'] },
+                { label: '회계 리포트',      icon: 'file-bar-chart', href: 'pages/accounting/accounting_reports.html', roles: ['ADMIN'] },
                 { label: '세금계산서',       icon: 'receipt',       href: 'pages/hr/accounting/wip.html', disabled: true, roles: ['ADMIN'] },
                 { label: '비용 처리',        icon: 'credit-card',   href: 'pages/hr/accounting/wip.html', disabled: true, roles: ['ADMIN'] }
             ]
