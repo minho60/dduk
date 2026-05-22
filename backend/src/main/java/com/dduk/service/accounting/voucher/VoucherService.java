@@ -96,7 +96,7 @@ public class VoucherService {
             lineNo.incrementAndGet();
         }
 
-        Voucher savedVoucher = voucherRepository.save(voucher);
+        Voucher savedVoucher = voucherRepository.saveAndFlush(voucher);
         JournalEntry journalEntry = createJournalEntry(savedVoucher);
         savedVoucher.setJournalEntry(journalEntry);
 
@@ -105,9 +105,7 @@ public class VoucherService {
 
     @Transactional(readOnly = true)
     public List<VoucherResponse> getVouchers(VoucherType voucherType) {
-        List<Voucher> vouchers = voucherType == null
-                ? voucherRepository.findTop100ByOrderByVoucherDateDescIdDesc()
-                : voucherRepository.findByVoucherTypeOrderByVoucherDateDescIdDesc(voucherType);
+        List<Voucher> vouchers = voucherRepository.findListWithLines(voucherType);
         return vouchers.stream().map(this::mapToResponse).collect(Collectors.toList());
     }
 

@@ -1,4 +1,6 @@
-# Accounting Voucher Management
+# Accounting Transaction
+
+이 문서는 기존 `ACCOUNTING_VOUCHER_MANAGEMENT.md`를 `docs/accounting/ACCOUNTING_TRANSACTION.md`로 이동한 문서다.
 
 DDUK ERP 회계관리의 단순 입출금 입력 화면을 ERP 스타일 전표 관리 구조로 리팩토링했다. 본 구현은 기존 Chart of Accounts의 `Account`, 계정 트리, `AccountType`, `AccountSide`, 말단 계정 구조를 기준으로 동작한다.
 
@@ -36,6 +38,8 @@ DDUK ERP 회계관리의 단순 입출금 입력 화면을 ERP 스타일 전표 
 | `GET` | `/api/v1/accounting/vouchers/summary` | 오늘 등록, 상태별 건수, 공급가액/VAT/합계 요약 조회 |
 | `GET` | `/api/v1/accounting/vouchers/accounts/search` | 계정과목 검색. `keyword`, `type`, `cashOnly` 지원 |
 | `GET` | `/api/v1/accounting/vouchers/accounts/tree-search` | 계층형 표시용 계정과목 검색. `level`, `parentCode` 포함 |
+| `GET` | `/api/v1/accounting/accounts/search` | Account Management 기준 계정과목 검색. `keyword`, `type`, `cashOnly` 지원 |
+| `GET` | `/api/accounting/accounts/search` | v1 없는 호환 계정과목 검색 경로 |
 | `POST` | `/api/v1/accounting/vouchers` | 전표 저장 및 자동 분개 생성 |
 | `PATCH` | `/api/v1/accounting/vouchers/{id}/status?status=REQUESTED` | 전표 상태 변경 |
 
@@ -179,6 +183,15 @@ DDUK ERP 회계관리의 단순 입출금 입력 화면을 ERP 스타일 전표 
 - 차대 일치 표시
 - 저장/임시저장/승인요청 버튼
 - 전표 리스트 및 요약 카드
+- 데이터가 없을 때 Empty State 표시
+- 계정 검색 결과에서 계정코드, 계정명, 계정유형, 사용 상태 표시
+
+## 2026-05-22 고도화 반영
+
+- `VoucherRepository.findListWithLines`를 추가해 전표 목록 조회 시 `VoucherLine`, `JournalEntry`를 함께 조회한다.
+- `VoucherService.createVoucher`는 `Voucher` 저장 후 즉시 flush하여 `VoucherLine.id`를 확보하고, `JournalLine.referenceId`에 전표 라인 ID를 연결한다.
+- Account Management API에 `/api/v1/accounting/accounts/search`, `/api/accounting/accounts/search`를 추가했다.
+- 구형 HR 경로의 `pages/hr/accounting/transactions.html` 삽입 전표 폼도 계정코드 직접 입력 대신 계정 검색 모달로 실제 `accountId`를 선택해 저장하도록 보강했다.
 
 ## Validation Rules
 

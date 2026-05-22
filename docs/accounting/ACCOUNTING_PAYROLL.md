@@ -1,4 +1,6 @@
-# Accounting Payroll Management
+# Accounting Payroll
+
+이 문서는 기존 `ACCOUNTING_PAYROLL_MANAGEMENT.md`를 `docs/accounting/ACCOUNTING_PAYROLL.md`로 이동한 문서다.
 
 ## 작업 개요
 

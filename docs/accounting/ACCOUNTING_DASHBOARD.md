@@ -1,4 +1,6 @@
-# Accounting Dashboard System
+# Accounting Dashboard
+
+이 문서는 기존 `ACCOUNTING_DASHBOARD_SYSTEM.md`를 `docs/accounting/ACCOUNTING_DASHBOARD.md`로 이동한 문서다.
 
 ## 작업 개요
 
@@ -169,4 +171,3 @@ cd backend
 2. 브라우저에서 `frontend/pages/accounting/accounting_dashboard.html` 열기
 3. 회계연도/월 변경 후 KPI, 차트, 전표, 월 마감, 급여, 알림 영역 렌더링 확인
 4. `/api/v1/accounting/dashboard?fiscalYear=2026&fiscalMonth=5` 응답 구조 확인
-

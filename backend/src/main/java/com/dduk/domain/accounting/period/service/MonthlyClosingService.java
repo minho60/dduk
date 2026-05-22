@@ -97,7 +97,22 @@ public class MonthlyClosingService {
 
     @Transactional(readOnly = true)
     public ClosingSummaryResponse getSummary(Integer fiscalYear, Integer fiscalMonth) {
-        AccountingPeriod period = resolvePeriod(fiscalYear, fiscalMonth);
+        YearMonth targetMonth = resolveYearMonth(fiscalYear, fiscalMonth);
+        AccountingPeriod period = accountingPeriodRepository.findByFiscalYearAndFiscalMonth(targetMonth.getYear(), targetMonth.getMonthValue())
+                .orElse(null);
+        if (period == null) {
+            return ClosingSummaryResponse.builder()
+                    .currentPeriod(periodKey(targetMonth.getYear(), targetMonth.getMonthValue()))
+                    .status(AccountingPeriodStatus.OPEN)
+                    .unapprovedVoucherCount(voucherRepository.countByVoucherDateBetweenAndStatusNotIn(targetMonth.atDay(1), targetMonth.atEndOfMonth(), APPROVED_OR_FINAL_VOUCHER_STATUSES))
+                    .unpostedVoucherCount(voucherRepository.countByVoucherDateBetweenAndStatusNotIn(targetMonth.atDay(1), targetMonth.atEndOfMonth(), POSTED_OR_FINAL_VOUCHER_STATUSES)
+                            + journalEntryRepository.countUnpostedByFiscalPeriod(targetMonth.getYear(), targetMonth.getMonthValue()))
+                    .totalDebit(BigDecimal.ZERO)
+                    .totalCredit(BigDecimal.ZERO)
+                    .balanced(true)
+                    .mismatchStatus("NOT_CREATED")
+                    .build();
+        }
         PeriodAggregation aggregation = aggregate(period);
         long unapproved = voucherRepository.countByVoucherDateBetweenAndStatusNotIn(period.getStartDate(), period.getEndDate(), APPROVED_OR_FINAL_VOUCHER_STATUSES);
         long unposted = voucherRepository.countByVoucherDateBetweenAndStatusNotIn(period.getStartDate(), period.getEndDate(), POSTED_OR_FINAL_VOUCHER_STATUSES)
@@ -249,6 +264,11 @@ public class MonthlyClosingService {
     private AccountingPeriod resolvePeriod(Integer fiscalYear, Integer fiscalMonth) {
         LocalDate today = LocalDate.now();
         return findPeriod(fiscalYear == null ? today.getYear() : fiscalYear, fiscalMonth == null ? today.getMonthValue() : fiscalMonth);
+    }
+
+    private YearMonth resolveYearMonth(Integer fiscalYear, Integer fiscalMonth) {
+        LocalDate today = LocalDate.now();
+        return YearMonth.of(fiscalYear == null ? today.getYear() : fiscalYear, fiscalMonth == null ? today.getMonthValue() : fiscalMonth);
     }
 
     private AccountingPeriod findPeriod(Integer fiscalYear, Integer fiscalMonth) {

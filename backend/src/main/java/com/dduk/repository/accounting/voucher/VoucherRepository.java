@@ -22,6 +22,16 @@ public interface VoucherRepository extends JpaRepository<Voucher, Long> {
 
     List<Voucher> findByVoucherTypeOrderByVoucherDateDescIdDesc(VoucherType voucherType);
 
+    @Query("""
+            SELECT DISTINCT v
+            FROM Voucher v
+            LEFT JOIN FETCH v.lines
+            LEFT JOIN FETCH v.journalEntry
+            WHERE (:voucherType IS NULL OR v.voucherType = :voucherType)
+            ORDER BY v.voucherDate DESC, v.id DESC
+    """)
+    List<Voucher> findListWithLines(@Param("voucherType") VoucherType voucherType);
+
     long countByStatus(VoucherStatus status);
 
     long countByVoucherDate(LocalDate voucherDate);

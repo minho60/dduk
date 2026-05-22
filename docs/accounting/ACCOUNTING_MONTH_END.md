@@ -1,4 +1,6 @@
-# Accounting Monthly Closing
+# Accounting Month End
+
+이 문서는 기존 `ACCOUNTING_MONTHLY_CLOSING.md`를 `docs/accounting/ACCOUNTING_MONTH_END.md`로 이동한 문서다.
 
 ## 작업 개요
 

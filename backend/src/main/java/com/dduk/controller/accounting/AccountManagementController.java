@@ -3,6 +3,7 @@ package com.dduk.controller.accounting;
 import com.dduk.dto.accounting.AccountCreateRequest;
 import com.dduk.dto.accounting.AccountResponse;
 import com.dduk.dto.accounting.AccountUpdateRequest;
+import com.dduk.entity.accounting.AccountType;
 import com.dduk.service.accounting.AccountManagementService;
 import lombok.RequiredArgsConstructor;
 import org.springframework.http.ResponseEntity;
@@ -13,7 +14,7 @@ import java.util.List;
 import java.util.Map;
 
 @RestController
-@RequestMapping("/api/v1/accounting/accounts")
+@RequestMapping({"/api/v1/accounting/accounts", "/api/accounting/accounts"})
 @RequiredArgsConstructor
 public class AccountManagementController {
 
@@ -40,6 +41,15 @@ public class AccountManagementController {
     /**
      * 계정과목 신규 생성
      */
+    @GetMapping("/search")
+    public ResponseEntity<Map<String, Object>> searchAccounts(
+            @RequestParam(required = false) String keyword,
+            @RequestParam(required = false) AccountType type,
+            @RequestParam(defaultValue = "false") boolean cashOnly
+    ) {
+        return success(accountManagementService.searchAccounts(keyword, type, cashOnly), "Account search completed.");
+    }
+
     @PostMapping
     public ResponseEntity<Map<String, Object>> createAccount(@RequestBody AccountCreateRequest request) {
         AccountResponse response = accountManagementService.createAccount(request);
@@ -71,6 +81,15 @@ public class AccountManagementController {
     public ResponseEntity<Map<String, Object>> seedDefaultChartOfAccounts() {
         accountManagementService.seedDefaultChartOfAccounts();
         return success(null, "표준 계정과목 시드 데이터가 성공적으로 적재/복원되었습니다.");
+    }
+
+    @ExceptionHandler({IllegalArgumentException.class, IllegalStateException.class})
+    public ResponseEntity<Map<String, Object>> handleAccountException(RuntimeException exception) {
+        Map<String, Object> response = new LinkedHashMap<>();
+        response.put("status", "error");
+        response.put("message", exception.getMessage());
+        response.put("code", "ACCOUNT_REQUEST_INVALID");
+        return ResponseEntity.badRequest().body(response);
     }
 
     private ResponseEntity<Map<String, Object>> success(Object data, String message) {

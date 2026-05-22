@@ -15,6 +15,7 @@ import lombok.extern.slf4j.Slf4j;
 import org.springframework.core.io.ClassPathResource;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
+import org.springframework.util.StringUtils;
 
 import java.io.InputStream;
 import java.util.*;
@@ -78,6 +79,17 @@ public class AccountManagementService {
     @Transactional(readOnly = true)
     public List<AccountResponse> getAccountList() {
         return accountRepository.findAllWithChildrenAndDeletedFalse().stream()
+                .map(AccountResponse::from)
+                .collect(Collectors.toList());
+    }
+
+    @Transactional(readOnly = true)
+    public List<AccountResponse> searchAccounts(String keyword, AccountType type, boolean cashOnly) {
+        String normalizedKeyword = StringUtils.hasText(keyword) ? keyword.trim() : null;
+        List<Account> accounts = cashOnly
+                ? accountRepository.searchCashAccounts(normalizedKeyword, AccountType.ASSET)
+                : accountRepository.searchPostingAccounts(normalizedKeyword, type);
+        return accounts.stream()
                 .map(AccountResponse::from)
                 .collect(Collectors.toList());
     }

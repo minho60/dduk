@@ -127,6 +127,11 @@ export const hrBackendApi = {
         return request('/api/v1/accounting/accounts/list');
     },
 
+    searchAccounts(params = {}) {
+        const query = new URLSearchParams(params).toString();
+        return request(`/api/v1/accounting/accounts/search${query ? `?${query}` : ''}`);
+    },
+
     createAccount(payload) {
         return request('/api/v1/accounting/accounts', {
             method: 'POST',

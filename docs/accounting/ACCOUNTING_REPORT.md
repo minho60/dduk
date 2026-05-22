@@ -1,4 +1,6 @@
-# Accounting Reports System
+# Accounting Report
+
+이 문서는 기존 `ACCOUNTING_REPORTS_SYSTEM.md`를 `docs/accounting/ACCOUNTING_REPORT.md`로 이동한 문서다.
 
 ## 작업 개요
 
@@ -210,4 +212,3 @@ GET /api/v1/accounting/reports/analytics?startDate=2026-05-01&endDate=2026-05-31
 3. 기간 조회, KPI 카드, 차트, 테이블 렌더링 확인
 4. Excel/PDF 버튼 다운로드 확인
 5. 인쇄 버튼 동작 확인
-

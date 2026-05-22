@@ -1,4 +1,5 @@
 const API_BASE = '/api/accounting/vouchers';
+const ACCOUNT_SEARCH_API = '/api/accounting/accounts/search';
 const VENDOR_SEARCH_API = '/api/v1/inventory/vendors/search';
 
 const state = {
@@ -267,6 +268,7 @@ async function changeStatus(id, status) {
 }
 
 async function loadSummary() {
+  setLoadingText('voucherListBody', 11, '전표 요약을 조회하고 있습니다.');
   const data = await fetchJson(`${API_BASE}/summary`, { data: {} });
   const summary = data.data || {};
   document.querySelectorAll('[data-summary]').forEach((el) => {
@@ -278,10 +280,22 @@ async function loadSummary() {
 }
 
 async function loadVouchers() {
+  setLoadingText('voucherListBody', 11, '전표 목록을 조회하고 있습니다.');
   const data = await fetchJson(`${API_BASE}?type=${state.voucherType}`, { data: [] });
   const vouchers = data.data || [];
   const tbody = document.getElementById('voucherListBody');
   if (!tbody) return;
+
+  if (!vouchers.length) {
+    tbody.innerHTML = `
+      <tr>
+        <td colspan="11" class="empty-state">
+          저장된 전표가 없습니다. 계정과목과 거래처를 선택한 뒤 전표를 저장하면 이 목록에 바로 반영됩니다.
+        </td>
+      </tr>
+    `;
+    return;
+  }
 
   tbody.innerHTML = vouchers.map((voucher) => {
     const totals = summarizeLines(voucher.lines || []);
@@ -355,12 +369,14 @@ async function runLookupSearch() {
   } else {
     params.set('type', state.voucherType === 'SALES' ? 'REVENUE' : 'EXPENSE');
   }
-  const accounts = await fetchJson(`${API_BASE}/accounts/tree-search?${params.toString()}`, { data: [] });
+  const accounts = await fetchJson(`${ACCOUNT_SEARCH_API}?${params.toString()}`, { data: [] });
   renderLookupRows((accounts.data || []).map((account) => ({
     id: account.id,
     code: account.code,
     name: account.name,
     type: account.type,
+    status: account.status,
+    allowPosting: account.allowPosting,
     level: account.level || 1,
     raw: account,
   })));
@@ -378,7 +394,7 @@ function renderLookupRows(rows) {
     <button type="button" class="lookup-row" data-id="${row.id}" style="--depth:${Math.max((row.level || 1) - 1, 0)}">
       <small>${escapeHtml(row.code)}</small>
       <strong>${escapeHtml(row.name)}</strong>
-      <small>${escapeHtml(row.type)}</small>
+      <small>${escapeHtml(row.type)} · ${row.allowPosting === false ? '사용불가' : escapeHtml(row.status || 'ACTIVE')}</small>
     </button>
   `).join('');
 
@@ -495,6 +511,12 @@ function setText(id, value) {
 function setHtml(id, value) {
   const el = document.getElementById(id);
   if (el) el.innerHTML = value;
+}
+
+function setLoadingText(tbodyId, colspan, message) {
+  const tbody = document.getElementById(tbodyId);
+  if (!tbody) return;
+  tbody.innerHTML = `<tr><td colspan="${colspan}" class="empty-state">${escapeHtml(message)}</td></tr>`;
 }
 
 function showToast(message, type = 'success') {
