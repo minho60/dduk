@@ -96,6 +96,33 @@ public interface JournalEntryRepository extends JpaRepository<JournalEntry, Long
     );
 
     @Query("""
+        SELECT l.account.id,
+               coalesce(sum(l.debitAmount), 0),
+               coalesce(sum(l.creditAmount), 0)
+        FROM JournalEntry e
+        JOIN e.lines l
+        WHERE e.status = 'POSTED'
+          AND e.transactionDate < :endExclusive
+        GROUP BY l.account.id
+    """)
+    List<Object[]> aggregatePostedBeforeDate(@Param("endExclusive") java.time.LocalDate endExclusive);
+
+    @Query("""
+        SELECT l.account.id,
+               coalesce(sum(l.debitAmount), 0),
+               coalesce(sum(l.creditAmount), 0)
+        FROM JournalEntry e
+        JOIN e.lines l
+        WHERE e.status = 'POSTED'
+          AND e.transactionDate between :startDate and :endDate
+        GROUP BY l.account.id
+    """)
+    List<Object[]> aggregatePostedBetweenDates(
+            @Param("startDate") java.time.LocalDate startDate,
+            @Param("endDate") java.time.LocalDate endDate
+    );
+
+    @Query("""
         SELECT e.transactionDate, e.journalNo, e.description,
                l.debitAmount, l.creditAmount, l.description
         FROM JournalEntry e

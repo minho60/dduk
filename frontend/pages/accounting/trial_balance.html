@@ -1,0 +1,110 @@
+<!doctype html>
+<html lang="ko">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>DDUK ERP - 합계잔액시산표</title>
+  <script src="https://cdn.tailwindcss.com/3.4.17"></script>
+  <script src="https://cdn.jsdelivr.net/npm/lucide@0.263.0/dist/umd/lucide.min.js"></script>
+  <link rel="stylesheet" href="../../styles/common/dashboard.css">
+  <link rel="stylesheet" href="../../styles/accounting/trial-balance.css">
+</head>
+<body>
+  <aside data-dduk-sidebar></aside>
+  <div class="main_wrap">
+    <header class="topbar">
+      <button class="sidebar_icon_btn" onclick="toggleSidebar()" aria-label="메뉴">
+        <i data-lucide="menu"></i>
+      </button>
+      <div class="page-title">
+        <h1>합계잔액시산표</h1>
+        <span>계정 계층과 회계 방향을 반영해 기초, 당기, 기말 잔액을 조회합니다.</span>
+      </div>
+      <div class="topbar-actions">
+        <button class="sidebar_icon_btn" aria-label="알림"><i data-lucide="bell"></i></button>
+        <button class="sidebar_icon_btn" aria-label="사용자"><i data-lucide="user"></i></button>
+      </div>
+    </header>
+
+    <main class="content_area trial-page">
+      <section class="filter-panel">
+        <div class="filter-grid">
+          <label><span>시작일</span><input id="startDate" type="date" required></label>
+          <label><span>종료일</span><input id="endDate" type="date" required></label>
+          <label>
+            <span>조회 기준</span>
+            <select id="reportBasis">
+              <option value="MONTHLY">월별</option>
+              <option value="QUARTERLY">분기별</option>
+              <option value="HALF_YEARLY">반기별</option>
+              <option value="YEARLY">연도별</option>
+            </select>
+          </label>
+          <label>
+            <span>계정 레벨</span>
+            <select id="accountLevel">
+              <option value="ALL">전체</option>
+              <option value="MAJOR">대분류</option>
+              <option value="MIDDLE">중분류</option>
+              <option value="SMALL">소분류</option>
+              <option value="ACCOUNT">계정과목</option>
+            </select>
+          </label>
+        </div>
+        <div class="option-row">
+          <label><input id="includeZeroBalance" type="checkbox"> <span>잔액 없는 계정 포함</span></label>
+          <label><input id="includeSubAccounts" type="checkbox" checked> <span>보조계정 포함</span></label>
+          <label><input id="summaryOnly" type="checkbox"> <span>합계만 보기</span></label>
+          <label><input id="profitLossFormat" type="checkbox"> <span>손익계산서 형식 보기</span></label>
+        </div>
+        <div class="action-row">
+          <button id="searchButton" type="button" class="primary-button"><i data-lucide="search"></i><span>조회</span></button>
+          <button id="expandAllButton" type="button" class="ghost-button"><i data-lucide="list-tree"></i><span>전체 펼침</span></button>
+          <button id="collapseAllButton" type="button" class="ghost-button"><i data-lucide="fold-horizontal"></i><span>전체 접기</span></button>
+          <button id="excelButton" type="button" class="secondary-button"><i data-lucide="download"></i><span>Excel</span></button>
+          <button id="printButton" type="button" class="ghost-button"><i data-lucide="printer"></i><span>인쇄</span></button>
+        </div>
+      </section>
+
+      <section class="summary-grid">
+        <article><span>기초 차변</span><strong data-summary-money="openingDebitTotal">0</strong></article>
+        <article><span>기초 대변</span><strong data-summary-money="openingCreditTotal">0</strong></article>
+        <article><span>당기 차변</span><strong data-summary-money="periodDebitTotal">0</strong></article>
+        <article><span>당기 대변</span><strong data-summary-money="periodCreditTotal">0</strong></article>
+        <article><span>기말 차변</span><strong data-summary-money="closingDebitTotal">0</strong></article>
+        <article><span>기말 대변</span><strong data-summary-money="closingCreditTotal">0</strong></article>
+        <article><span>일치 여부</span><strong data-summary="balanceStatus">-</strong></article>
+      </section>
+
+      <section class="trial-panel">
+        <div class="panel-head">
+          <h2>시산표</h2>
+          <span id="periodLabel">-</span>
+        </div>
+        <div class="table-wrap">
+          <table>
+            <thead>
+              <tr>
+                <th>계정코드</th>
+                <th>계정명</th>
+                <th class="amount">기초잔액(차변)</th>
+                <th class="amount">기초잔액(대변)</th>
+                <th class="amount">당기합계(차변)</th>
+                <th class="amount">당기합계(대변)</th>
+                <th class="amount">기말잔액(차변)</th>
+                <th class="amount">기말잔액(대변)</th>
+              </tr>
+            </thead>
+            <tbody id="trialTableBody"></tbody>
+            <tfoot id="trialTableFoot"></tfoot>
+          </table>
+        </div>
+      </section>
+    </main>
+  </div>
+
+  <div id="toast" class="toast" role="status" aria-live="polite"></div>
+  <script src="../../services/common/sidebar.js"></script>
+  <script src="../../assets/js/accounting/trial_balance.js"></script>
+</body>
+</html>
