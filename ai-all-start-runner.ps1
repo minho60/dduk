@@ -186,19 +186,22 @@ try {
     $pythonCommand = Get-PythonCommand
 
     $aiVenvPython = Join-Path $aiDir "venv\Scripts\python.exe"
-    if (-not (Test-Path $aiVenvPython)) {
+    $aiPip = Join-Path $aiDir "venv\Scripts\pip.exe"
+    if (-not (Test-Path $aiVenvPython) -or -not (Test-Path $aiPip)) {
         Write-Host ">>> Creating AI server virtualenv..." -ForegroundColor Cyan
+        if (Test-Path (Join-Path $aiDir "venv")) {
+            Remove-Item -Recurse -Force (Join-Path $aiDir "venv") -ErrorAction SilentlyContinue
+        }
         Push-Location $aiDir
         try {
             & $pythonCommand -m venv venv
         } finally {
             Pop-Location
         }
-        if (-not (Test-Path $aiVenvPython)) {
+        if (-not (Test-Path $aiVenvPython) -or -not (Test-Path $aiPip)) {
             throw "AI virtualenv creation failed: $aiDir"
         }
         Write-Host ">>> Installing AI server dependencies..." -ForegroundColor Cyan
-        $aiPip = Join-Path $aiDir "venv\Scripts\pip.exe"
         Push-Location $aiDir
         try {
             & $aiPip install -r requirements.txt
@@ -207,7 +210,6 @@ try {
         }
     } elseif (-not (Test-PythonImports -PythonExe $aiVenvPython -Modules @("flask", "flask_cors", "dotenv", "google.generativeai", "waitress"))) {
         Write-Host ">>> AI virtualenv exists but dependencies are incomplete. Reinstalling AI requirements..." -ForegroundColor Yellow
-        $aiPip = Join-Path $aiDir "venv\Scripts\pip.exe"
         Push-Location $aiDir
         try {
             & $aiPip install -r requirements.txt
@@ -218,19 +220,22 @@ try {
     $aiPythonCmd = """$aiVenvPython"""
 
     $rpaVenvPython = Join-Path $rpaDir "venv\Scripts\python.exe"
-    if (-not (Test-Path $rpaVenvPython)) {
+    $rpaPip = Join-Path $rpaDir "venv\Scripts\pip.exe"
+    if (-not (Test-Path $rpaVenvPython) -or -not (Test-Path $rpaPip)) {
         Write-Host ">>> Creating RPA virtualenv..." -ForegroundColor Cyan
+        if (Test-Path (Join-Path $rpaDir "venv")) {
+            Remove-Item -Recurse -Force (Join-Path $rpaDir "venv") -ErrorAction SilentlyContinue
+        }
         Push-Location $rpaDir
         try {
             & $pythonCommand -m venv venv
         } finally {
             Pop-Location
         }
-        if (-not (Test-Path $rpaVenvPython)) {
+        if (-not (Test-Path $rpaVenvPython) -or -not (Test-Path $rpaPip)) {
             throw "RPA virtualenv creation failed: $rpaDir"
         }
         Write-Host ">>> Installing RPA dependencies..." -ForegroundColor Cyan
-        $rpaPip = Join-Path $rpaDir "venv\Scripts\pip.exe"
         Push-Location $rpaDir
         try {
             & $rpaPip install -r requirements.txt
@@ -250,7 +255,6 @@ try {
         }
     } elseif (-not (Test-PythonImports -PythonExe $rpaVenvPython -Modules @("flask", "dotenv", "playwright", "requests"))) {
         Write-Host ">>> RPA virtualenv exists but dependencies are incomplete. Reinstalling RPA requirements..." -ForegroundColor Yellow
-        $rpaPip = Join-Path $rpaDir "venv\Scripts\pip.exe"
         Push-Location $rpaDir
         try {
             & $rpaPip install -r requirements.txt
