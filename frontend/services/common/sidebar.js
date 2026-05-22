@@ -34,7 +34,7 @@
                 { label: '거래내역 등록',   icon: 'file-plus',     href: 'pages/hr/accounting/transactions.html' },
                 { label: '합계잔액시산표',   icon: 'trending-up',   href: 'pages/hr/accounting/trial-balance.html' },
                 { label: '월 마감',          icon: 'calendar-check', href: 'pages/hr/accounting/settlement.html' },
-                { label: '급여 계산/대장',        icon: 'wallet',        href: 'pages/hr/payroll/list.html', match: 'pages/hr/payroll/' },
+                { label: '급여 계산/대장',        icon: 'wallet',        href: 'pages/accounting/payroll_management.html', match: 'pages/accounting/payroll_management.html' },
                 { label: '회계 리포트',      icon: 'file-bar-chart', href: 'pages/hr/accounting/reports.html' },
                 { label: '세금계산서',       icon: 'receipt',       href: 'pages/hr/accounting/wip.html', disabled: true },
                 { label: '비용 처리',        icon: 'credit-card',   href: 'pages/hr/accounting/wip.html', disabled: true }

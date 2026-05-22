@@ -69,6 +69,14 @@ public interface AccountRepository extends JpaRepository<Account, Long> {
 
     boolean existsByCodeAndDeletedFalse(String code);
 
+    @Query("""
+            SELECT count(a)
+            FROM Account a
+            WHERE a.deleted = false
+              AND (a.status <> 'ACTIVE' OR a.allowPosting = false OR a.children IS NOT EMPTY)
+            """)
+    long countAccountsBlockedForPosting();
+
     /**
      * N+1 문제를 방지하여 전체 계정을 단 1회 쿼리로 페치 조인 조회하는 고성능 쿼리
      */

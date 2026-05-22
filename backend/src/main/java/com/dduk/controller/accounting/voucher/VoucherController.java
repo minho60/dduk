@@ -57,6 +57,15 @@ public class VoucherController {
         return success(voucherService.updateStatus(id, status), "Voucher status updated.");
     }
 
+    @ExceptionHandler({IllegalArgumentException.class, IllegalStateException.class})
+    public ResponseEntity<Map<String, Object>> handleVoucherException(RuntimeException exception) {
+        Map<String, Object> response = new LinkedHashMap<>();
+        response.put("status", "error");
+        response.put("message", exception.getMessage());
+        response.put("code", "VOUCHER_REQUEST_INVALID");
+        return ResponseEntity.badRequest().body(response);
+    }
+
     private ResponseEntity<Map<String, Object>> success(Object data, String message) {
         Map<String, Object> response = new LinkedHashMap<>();
         response.put("status", "success");

@@ -1,0 +1,14 @@
+package com.dduk.domain.accounting.payroll.dto;
+
+import lombok.Builder;
+import lombok.Getter;
+
+import java.math.BigDecimal;
+
+@Getter
+@Builder
+public class PayrollDeductionResponse {
+    private String type;
+    private String name;
+    private BigDecimal amount;
+}

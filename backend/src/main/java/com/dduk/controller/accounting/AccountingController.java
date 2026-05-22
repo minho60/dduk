@@ -2,7 +2,7 @@ package com.dduk.controller.accounting;
 
 import com.dduk.dto.accounting.JournalLineRequest;
 import com.dduk.entity.accounting.Account;
-import com.dduk.entity.accounting.AccountingPeriod;
+import com.dduk.domain.accounting.period.entity.AccountingPeriod;
 import com.dduk.entity.accounting.JournalEntry;
 import com.dduk.repository.accounting.AccountRepository;
 import com.dduk.service.accounting.AccountingPeriodService;

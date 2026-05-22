@@ -4,7 +4,8 @@ import com.dduk.dto.accounting.JournalLineRequest;
 import com.dduk.entity.accounting.Account;
 import com.dduk.entity.accounting.JournalEntry;
 import com.dduk.repository.accounting.AccountRepository;
-import com.dduk.repository.accounting.AccountingPeriodRepository;
+import com.dduk.domain.accounting.period.entity.AccountingPeriodStatus;
+import com.dduk.domain.accounting.period.repository.AccountingPeriodRepository;
 import lombok.RequiredArgsConstructor;
 import org.springframework.stereotype.Service;
 
@@ -92,7 +93,7 @@ public class JournalValidationService {
         int month = date.getMonthValue();
 
         boolean isClosed = accountingPeriodRepository
-                .existsByFiscalYearAndFiscalMonthAndStatus(year, month, "CLOSED");
+                .existsByFiscalYearAndFiscalMonthAndStatus(year, month, AccountingPeriodStatus.CLOSED);
         if (isClosed) {
             throw new IllegalStateException(
                     "마감된 회계 기간(" + year + "-" + String.format("%02d", month) + ")에는 전표를 생성할 수 없습니다.");

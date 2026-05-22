@@ -1,0 +1,205 @@
+<!doctype html>
+<html lang="ko">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>DDUK ERP - 급여 계산/대장</title>
+  <script src="https://cdn.tailwindcss.com/3.4.17"></script>
+  <script src="https://cdn.jsdelivr.net/npm/lucide@0.263.0/dist/umd/lucide.min.js"></script>
+  <link rel="stylesheet" href="../../styles/common/dashboard.css">
+  <link rel="stylesheet" href="../../styles/accounting/payroll-management.css">
+</head>
+<body>
+  <aside data-dduk-sidebar></aside>
+  <div class="main_wrap">
+    <header class="topbar">
+      <button class="sidebar_icon_btn" onclick="toggleSidebar()" aria-label="메뉴"><i data-lucide="menu"></i></button>
+      <div class="page-title">
+        <h1>급여 계산/대장</h1>
+        <span>급여대장 생성, 계산, 확정, 명세서와 자동 분개를 관리합니다.</span>
+      </div>
+      <div class="topbar-actions">
+        <button class="sidebar_icon_btn" aria-label="알림"><i data-lucide="bell"></i></button>
+        <button class="sidebar_icon_btn" aria-label="사용자"><i data-lucide="user"></i></button>
+      </div>
+    </header>
+
+    <main class="content_area payroll-page">
+      <section class="payroll-summary" id="summaryCards">
+        <article><span>진행 중 급여대장</span><strong data-summary="activeLedgerCount">0</strong></article>
+        <article><span>계산 완료</span><strong data-summary="calculatedCount">0</strong></article>
+        <article><span>지급 예정 금액</span><strong data-summary-money="scheduledPaymentAmount">0</strong></article>
+        <article><span>총 공제 금액</span><strong data-summary-money="totalDeductionAmount">0</strong></article>
+        <article><span>총 실지급액</span><strong data-summary-money="totalNetAmount">0</strong></article>
+        <article><span>미정산</span><strong data-summary="unsettledCount">0</strong></article>
+      </section>
+
+      <section class="payroll-toolbar">
+        <button type="button" class="primary" id="openCreateButton"><i data-lucide="file-plus"></i><span>급여정보입력</span></button>
+        <button type="button" id="calculateButton"><i data-lucide="calculator"></i><span>급여계산</span></button>
+        <button type="button" id="confirmButton"><i data-lucide="check-circle"></i><span>급여확정</span></button>
+        <button type="button" id="payslipButton"><i data-lucide="receipt-text"></i><span>급여명세서 출력</span></button>
+      </section>
+
+      <section class="payroll-board">
+        <div class="board-head">
+          <div>
+            <h2>급여대장 리스트</h2>
+            <p>귀속연월과 급여구분 기준으로 계산 진행 상태를 확인합니다.</p>
+          </div>
+          <button type="button" id="reloadButton" aria-label="새로고침"><i data-lucide="refresh-cw"></i></button>
+        </div>
+        <div class="table-wrap">
+          <table>
+            <thead>
+              <tr>
+                <th>신고귀속</th>
+                <th>급여구분</th>
+                <th>대장명칭</th>
+                <th>지급일</th>
+                <th>지급연월</th>
+                <th>사전작업</th>
+                <th>급여계산</th>
+                <th>인원수</th>
+                <th>급여대장</th>
+                <th>명세서</th>
+                <th>지급총액</th>
+                <th>공제총액</th>
+                <th>실지급액</th>
+                <th>상여지급률(액)</th>
+                <th>상태</th>
+                <th>작성자</th>
+                <th>등록일시</th>
+              </tr>
+            </thead>
+            <tbody id="ledgerTableBody"></tbody>
+          </table>
+        </div>
+      </section>
+    </main>
+  </div>
+
+  <dialog id="payrollDialog">
+    <form method="dialog" class="payroll-dialog">
+      <header>
+        <h2>급여정보입력</h2>
+        <button type="button" data-close-dialog="payrollDialog" aria-label="닫기"><i data-lucide="x"></i></button>
+      </header>
+      <div class="form-grid">
+        <label><span>귀속연월</span><input id="attributionYearMonth" type="month" required></label>
+        <label><span>급여구분</span>
+          <select id="payrollType" required>
+            <option value="SALARY">급여</option>
+            <option value="BONUS">상여</option>
+            <option value="INCENTIVE">성과급</option>
+            <option value="SEVERANCE">퇴직금</option>
+            <option value="OTHER_ALLOWANCE">기타수당</option>
+          </select>
+        </label>
+        <label><span>세금관련</span>
+          <select id="taxType" required>
+            <option value="TAXABLE">과세</option>
+            <option value="NON_TAXABLE">비과세</option>
+            <option value="MIXED">혼합</option>
+          </select>
+        </label>
+        <label><span>정산기간</span>
+          <select id="settlementCycle" required>
+            <option value="MONTHLY">월정산</option>
+            <option value="QUARTERLY">분기정산</option>
+            <option value="HALF_YEARLY">반기정산</option>
+            <option value="YEARLY">연정산</option>
+          </select>
+        </label>
+        <label><span>대상기간 설정</span>
+          <select id="targetPeriodMode" required>
+            <option value="BULK">일괄설정</option>
+            <option value="ITEM">항목별설정</option>
+          </select>
+        </label>
+        <label><span>지급일</span><input id="paymentDate" type="date" required></label>
+        <label><span>지급연월</span><input id="paymentYearMonth" type="month" required></label>
+        <label><span>상여지급률(액)</span><input id="bonusRateOrAmount" placeholder="50% 또는 1000000"></label>
+        <label class="full"><span>급여대장명칭</span><input id="ledgerName" required placeholder="2026년 5월 급여대장"></label>
+      </div>
+
+      <section class="option-panel">
+        <div class="option-head">
+          <strong>대상항목 설정</strong>
+          <div class="segmented">
+            <label><input type="radio" name="settlementMode" value="ALL" checked>전체</label>
+            <label><input type="radio" name="settlementMode" value="SELECTED">선택</label>
+          </div>
+        </div>
+        <div class="check-grid" id="settlementItems">
+          <label><input type="checkbox" value="YEAR_END_TAX">연말정산</label>
+          <label><input type="checkbox" value="HEALTH_INSURANCE_ADJUSTMENT">건강보험정산</label>
+          <label><input type="checkbox" value="LONG_TERM_CARE_ADJUSTMENT">장기요양보험정산</label>
+          <label><input type="checkbox" value="NATIONAL_PENSION_ADJUSTMENT">국민연금정산</label>
+          <label><input type="checkbox" value="EMPLOYMENT_INSURANCE_ADJUSTMENT">고용보험정산</label>
+        </div>
+      </section>
+
+      <section class="option-panel">
+        <div class="option-head">
+          <strong>대상사원 선택</strong>
+          <div class="segmented">
+            <label><input type="radio" name="employeeMode" value="ALL" checked>전체</label>
+            <label><input type="radio" name="employeeMode" value="SELECTED">선택</label>
+          </div>
+        </div>
+        <div class="employee-select-row">
+          <button type="button" id="openEmployeeSearchButton"><i data-lucide="search"></i><span>사원 검색</span></button>
+          <span id="selectedEmployeeSummary">전체 사원 대상</span>
+        </div>
+        <div class="selected-employees" id="selectedEmployees"></div>
+      </section>
+
+      <footer>
+        <button type="button" class="ghost" data-close-dialog="payrollDialog">닫기</button>
+        <button type="button" id="draftSaveButton">임시저장</button>
+        <button type="button" class="secondary" id="saveLedgerButton">저장</button>
+        <button type="button" class="primary" id="runCalculationButton">계산실행</button>
+      </footer>
+    </form>
+  </dialog>
+
+  <dialog id="employeeDialog">
+    <form method="dialog" class="lookup-dialog">
+      <header>
+        <h2>사원 검색</h2>
+        <button type="button" data-close-dialog="employeeDialog" aria-label="닫기"><i data-lucide="x"></i></button>
+      </header>
+      <div class="lookup-search">
+        <input id="employeeKeyword" type="search" placeholder="사번, 이름, 부서, 직급">
+        <button type="button" id="employeeSearchButton"><i data-lucide="search"></i></button>
+      </div>
+      <div id="employeeResults" class="lookup-results"></div>
+    </form>
+  </dialog>
+
+  <dialog id="detailDialog">
+    <form method="dialog" class="detail-dialog">
+      <header>
+        <h2 id="detailTitle">급여대장 상세</h2>
+        <button type="button" data-close-dialog="detailDialog" aria-label="닫기"><i data-lucide="x"></i></button>
+      </header>
+      <div id="detailContent"></div>
+    </form>
+  </dialog>
+
+  <dialog id="payslipDialog">
+    <form method="dialog" class="detail-dialog">
+      <header>
+        <h2>급여명세서</h2>
+        <button type="button" data-close-dialog="payslipDialog" aria-label="닫기"><i data-lucide="x"></i></button>
+      </header>
+      <div id="payslipContent"></div>
+    </form>
+  </dialog>
+
+  <div id="toast" class="toast" role="status" aria-live="polite"></div>
+  <script src="../../services/common/sidebar.js"></script>
+  <script src="../../assets/js/accounting/payroll_management.js"></script>
+</body>
+</html>

@@ -27,6 +27,9 @@ public interface InventoryRepository extends JpaRepository<Inventory, Long> {
     @Query("SELECT COUNT(i) FROM Inventory i WHERE i.currentStock <= i.safetyStock")
     Long countLowStockItems();
 
+    @Query("SELECT COUNT(i) FROM Inventory i WHERE i.currentStock < 0 OR i.allocatedStock < 0")
+    long countNegativeStockItems();
+
     @Query("SELECT i.warehouse.warehouseName, SUM(i.currentStock), SUM(i.inventoryValue) " +
            "FROM Inventory i GROUP BY i.warehouse.warehouseName")
     List<Object[]> getStockDistributionByWarehouse();

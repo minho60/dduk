@@ -6,6 +6,7 @@ import com.dduk.dto.accounting.voucher.VoucherLineResponse;
 import com.dduk.dto.accounting.voucher.VoucherRequest;
 import com.dduk.dto.accounting.voucher.VoucherResponse;
 import com.dduk.dto.accounting.voucher.VoucherSummaryResponse;
+import com.dduk.domain.accounting.period.service.MonthlyClosingService;
 import com.dduk.entity.accounting.Account;
 import com.dduk.entity.accounting.AccountSide;
 import com.dduk.entity.accounting.AccountType;
@@ -45,10 +46,12 @@ public class VoucherService {
     private final VoucherRepository voucherRepository;
     private final AccountRepository accountRepository;
     private final JournalEntryRepository journalEntryRepository;
+    private final MonthlyClosingService monthlyClosingService;
 
     @Transactional
     public VoucherResponse createVoucher(VoucherRequest request) {
         validateHeader(request);
+        monthlyClosingService.assertPeriodMutable(request.getVoucherDate());
 
         List<VoucherLineRequest> journalLines = request.getLines();
         if (journalLines == null || journalLines.isEmpty()) {
@@ -144,6 +147,7 @@ public class VoucherService {
     public VoucherResponse updateStatus(Long id, VoucherStatus nextStatus) {
         Voucher voucher = voucherRepository.findById(id)
                 .orElseThrow(() -> new IllegalArgumentException("Voucher not found: " + id));
+        monthlyClosingService.assertPeriodMutable(voucher.getVoucherDate());
         VoucherStatus current = voucher.getStatus();
 
         if (nextStatus == VoucherStatus.REQUESTED && current != VoucherStatus.DRAFT) {

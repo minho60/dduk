@@ -26,22 +26,58 @@ DDUK ERP 회계관리의 단순 입출금 입력 화면을 ERP 스타일 전표 
 
 ## API 설명
 
-기본 경로: `/api/v1/accounting/vouchers`
+기본 경로: `/api/accounting/vouchers`
+
+호환 경로: `/api/v1/accounting/vouchers`
 
 | Method | Path | 설명 |
 | --- | --- | --- |
 | `GET` | `/api/v1/accounting/vouchers?type=SALES` | 전표 목록 조회. `type`은 선택값이다. |
 | `GET` | `/api/v1/accounting/vouchers/summary` | 오늘 등록, 상태별 건수, 공급가액/VAT/합계 요약 조회 |
 | `GET` | `/api/v1/accounting/vouchers/accounts/search` | 계정과목 검색. `keyword`, `type`, `cashOnly` 지원 |
+| `GET` | `/api/v1/accounting/vouchers/accounts/tree-search` | 계층형 표시용 계정과목 검색. `level`, `parentCode` 포함 |
 | `POST` | `/api/v1/accounting/vouchers` | 전표 저장 및 자동 분개 생성 |
 | `PATCH` | `/api/v1/accounting/vouchers/{id}/status?status=REQUESTED` | 전표 상태 변경 |
 
 계정 검색 규칙:
 
-- 일반 계정 검색은 `Account.allowPosting = true`, 말단 계정(`children is empty`)만 반환한다.
+- 일반 계정 검색은 `deleted=false`, `status=ACTIVE`, `Account.allowPosting = true`, 말단 계정(`children is empty`)만 반환한다.
 - 매출계정은 프론트에서 `AccountType=REVENUE`로 조회한다.
 - 매입계정은 프론트에서 `AccountType=EXPENSE`로 조회한다.
 - 입금/출금 계좌는 `cashOnly=true`로 조회하며 `AccountType=ASSET` 중 `111%` 현금및현금성자산 계열과 레거시 현금/예금 계정만 반환한다.
+- 코드, 계정명, 영문명 검색을 지원한다.
+- 초성 검색은 사용자가 `ㄱ-ㅎ` 초성 문자열을 입력한 경우 서비스 레이어에서 계정명 초성을 계산해 필터링한다.
+
+## Summary Aggregation
+
+`GET /api/accounting/vouchers/summary` 응답 예시:
+
+```json
+{
+  "status": "success",
+  "data": {
+    "todayCount": 1,
+    "totalVoucherCount": 1,
+    "draftCount": 0,
+    "requestedCount": 1,
+    "approvedCount": 0,
+    "postedCount": 0,
+    "totalSupplyAmount": 100000.00,
+    "totalVatAmount": 10000.00,
+    "totalAmount": 110000.00
+  }
+}
+```
+
+집계 방식:
+
+- 총 전표 수: `vouchers` 건수
+- `DRAFT`, `REQUESTED`, `APPROVED`, `POSTED`: `Voucher.status`별 건수
+- 공급가액: `voucher_lines.supply_amount` 합계
+- 부가세: `voucher_lines.vat_amount` 합계
+- 총 거래 금액: 차변(`debitCredit=DEBIT`) `voucher_lines.total_amount` 합계
+
+차변 라인 기준으로 총 거래 금액을 계산하는 이유는 자동 분개 구조상 차변과 대변 라인이 동시에 저장되므로 전체 라인의 `total_amount`를 단순 합산하면 금액이 중복되기 때문이다.
 
 ## Entity 구조
 
@@ -87,7 +123,17 @@ DDUK ERP 회계관리의 단순 입출금 입력 화면을 ERP 스타일 전표 
 | 차변 | 부가세대급금 100,000 |
 | 대변 | 출금계좌 또는 매입채무 계정 1,100,000 |
 
-부가세 유형이 `ZERO_TAX`, `TAX_FREE`, `EXPORT`, `INVOICE`이면 프론트 자동 계산 VAT는 0으로 처리한다. 백엔드도 `ZERO_TAX`, `TAX_FREE`, `EXPORT`는 VAT 자동 계산 시 0으로 처리한다.
+부가세 유형이 `ZERO_TAX`, `TAX_FREE`, `EXPORT`, `INVOICE`이면 프론트 자동 계산 VAT는 0으로 처리한다. 백엔드도 같은 기준으로 VAT 자동 계산 시 0으로 처리한다.
+
+프론트 계산 정책:
+
+- 공급가액 입력 후 180ms debounce
+- 숫자가 아닌 문자는 제거
+- 음수 입력 불가
+- 소수점은 허용하지 않고 원 단위 정수로 처리
+- 기본 VAT는 `Math.floor(공급가액 * 0.1)`
+- 합계금액은 `공급가액 + VAT`
+- 사용자가 VAT를 직접 수정하면 합계금액과 자동 분개 미리보기를 다시 계산한다.
 
 ## 전표 승인 흐름
 
@@ -126,12 +172,34 @@ DDUK ERP 회계관리의 단순 입출금 입력 화면을 ERP 스타일 전표 
 - VAT 자동 계산 및 직접 수정
 - 천단위 콤마 표시
 - 거래처 검색 모달
-- 계정과목 검색 모달
-- 계좌 검색 모달
+- 계정과목 검색 모달 및 입력창 자동완성
+- 계좌 검색 모달 및 입력창 자동완성
+- 계정 트리 레벨 기반 들여쓰기 표시
 - 자동 분개 미리보기
 - 차대 일치 표시
 - 저장/임시저장/승인요청 버튼
 - 전표 리스트 및 요약 카드
+
+## Validation Rules
+
+프론트:
+
+- 전표일자 필수
+- 거래처 필수
+- 공급가액은 0보다 커야 함
+- 계정과목은 검색 모달 또는 자동완성 결과에서 선택해야 함
+- 입금/출금 계좌는 검색 모달 또는 자동완성 결과에서 선택해야 함
+- 수수료 음수 불가
+
+백엔드:
+
+- `voucherType`, `voucherDate`, 거래처명 필수
+- 자동 분개는 `SALES`, `PURCHASE` 우선 지원
+- 매출전표의 사업 계정은 `REVENUE`
+- 매입전표의 사업 계정은 `ASSET` 또는 `EXPENSE`
+- 입금/출금 계좌는 `ASSET`
+- 선택 계정은 말단 계정이고 `allowPosting=true`
+- 차변 합계와 대변 합계가 반드시 일치해야 함
 
 ## 향후 확장 포인트
 

@@ -1,0 +1,137 @@
+<!doctype html>
+<html lang="ko">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>DDUK ERP - 월 마감</title>
+  <script src="https://cdn.tailwindcss.com/3.4.17"></script>
+  <script src="https://cdn.jsdelivr.net/npm/lucide@0.263.0/dist/umd/lucide.min.js"></script>
+  <link rel="stylesheet" href="../../styles/common/dashboard.css">
+  <link rel="stylesheet" href="../../styles/accounting/monthly-closing.css">
+</head>
+<body>
+  <aside data-dduk-sidebar></aside>
+  <div class="main_wrap">
+    <header class="topbar">
+      <button class="sidebar_icon_btn" onclick="toggleSidebar()" aria-label="메뉴">
+        <i data-lucide="menu"></i>
+      </button>
+      <div class="page-title">
+        <h1>월 마감</h1>
+        <span>회계기간 기준으로 전표, 분개, 원장, 급여 데이터를 검증하고 잠급니다.</span>
+      </div>
+      <div class="topbar-actions">
+        <button class="sidebar_icon_btn" aria-label="알림"><i data-lucide="bell"></i></button>
+        <button class="sidebar_icon_btn" aria-label="사용자"><i data-lucide="user"></i></button>
+      </div>
+    </header>
+
+    <main class="content_area closing-page">
+      <section class="closing-toolbar">
+        <div class="period-filter">
+          <input id="filterYear" type="number" min="2000" max="2100" aria-label="회계연도">
+          <button id="reloadButton" type="button" class="icon-button" aria-label="새로고침"><i data-lucide="refresh-cw"></i></button>
+        </div>
+        <div class="toolbar-actions">
+          <button id="createPeriodButton" type="button" class="secondary-button"><i data-lucide="calendar-plus"></i><span>회계기간 생성</span></button>
+          <button id="createYearButton" type="button" class="ghost-button"><i data-lucide="calendar-days"></i><span>연간 자동 생성</span></button>
+        </div>
+      </section>
+
+      <section class="summary-grid" id="summaryCards">
+        <article><span>현재 회계기간</span><strong data-summary="currentPeriod">-</strong></article>
+        <article><span>마감 상태</span><strong data-summary="status">-</strong></article>
+        <article><span>미승인 전표</span><strong data-summary="unapprovedVoucherCount">0건</strong></article>
+        <article><span>미게시 전표</span><strong data-summary="unpostedVoucherCount">0건</strong></article>
+        <article><span>총 차변</span><strong data-summary-money="totalDebit">0</strong></article>
+        <article><span>총 대변</span><strong data-summary-money="totalCredit">0</strong></article>
+        <article><span>불일치 여부</span><strong data-summary="mismatchStatus">-</strong></article>
+      </section>
+
+      <section class="period-panel">
+        <div class="panel-head">
+          <h2>회계기간 목록</h2>
+          <span id="selectedPeriodHint">기간을 선택하면 검증과 마감을 실행할 수 있습니다.</span>
+        </div>
+        <div class="table-wrap">
+          <table>
+            <thead>
+              <tr>
+                <th>회계기간</th>
+                <th>시작일</th>
+                <th>종료일</th>
+                <th>상태</th>
+                <th>전표수</th>
+                <th>총차변</th>
+                <th>총대변</th>
+                <th>검증상태</th>
+                <th>마감일시</th>
+                <th>마감자</th>
+                <th>재오픈</th>
+                <th>작업</th>
+              </tr>
+            </thead>
+            <tbody id="periodTableBody"></tbody>
+          </table>
+        </div>
+      </section>
+    </main>
+  </div>
+
+  <dialog id="periodDialog">
+    <form method="dialog" class="closing-dialog" id="periodForm">
+      <header>
+        <h2>회계기간 생성</h2>
+        <button type="submit" aria-label="닫기"><i data-lucide="x"></i></button>
+      </header>
+      <div class="form-grid">
+        <label><span>회계연도</span><input id="periodYear" type="number" min="2000" max="2100" required></label>
+        <label><span>회계월</span><input id="periodMonth" type="number" min="1" max="12" required></label>
+        <label><span>시작일</span><input id="periodStartDate" type="date" required></label>
+        <label><span>종료일</span><input id="periodEndDate" type="date" required></label>
+      </div>
+      <footer>
+        <button type="button" class="secondary-button" id="savePeriodButton"><i data-lucide="save"></i><span>저장</span></button>
+      </footer>
+    </form>
+  </dialog>
+
+  <dialog id="validationDialog">
+    <form method="dialog" class="closing-dialog wide">
+      <header>
+        <h2 id="validationTitle">마감 검증</h2>
+        <button type="submit" aria-label="닫기"><i data-lucide="x"></i></button>
+      </header>
+      <div class="table-wrap">
+        <table>
+          <thead>
+            <tr>
+              <th>검증유형</th>
+              <th>상태</th>
+              <th>상세내용</th>
+              <th>대상건수</th>
+              <th>처리필요</th>
+            </tr>
+          </thead>
+          <tbody id="validationTableBody"></tbody>
+        </table>
+      </div>
+    </form>
+  </dialog>
+
+  <dialog id="logDialog">
+    <form method="dialog" class="closing-dialog wide">
+      <header>
+        <h2>마감 로그</h2>
+        <button type="submit" aria-label="닫기"><i data-lucide="x"></i></button>
+      </header>
+      <div class="log-list" id="logList"></div>
+    </form>
+  </dialog>
+
+  <div id="toast" class="toast" role="status" aria-live="polite"></div>
+
+  <script src="../../services/common/sidebar.js"></script>
+  <script src="../../assets/js/accounting/monthly_closing.js"></script>
+</body>
+</html>
