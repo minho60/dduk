@@ -7,6 +7,7 @@ import org.springframework.data.repository.query.Param;
 import org.springframework.stereotype.Repository;
 
 import java.util.List;
+import java.time.LocalDate;
 
 @Repository
 public interface JournalEntryRepository extends JpaRepository<JournalEntry, Long> {
@@ -16,6 +17,8 @@ public interface JournalEntryRepository extends JpaRepository<JournalEntry, Long
     List<JournalEntry> findByStatus(String status);
 
     List<JournalEntry> findByFiscalYearAndFiscalMonth(Integer fiscalYear, Integer fiscalMonth);
+
+    List<JournalEntry> findTop10ByOrderByCreatedAtDesc();
 
     boolean existsByFiscalYearAndFiscalMonthAndStatusIn(Integer fiscalYear, Integer fiscalMonth, List<String> statuses);
 
@@ -120,6 +123,55 @@ public interface JournalEntryRepository extends JpaRepository<JournalEntry, Long
     List<Object[]> aggregatePostedBetweenDates(
             @Param("startDate") java.time.LocalDate startDate,
             @Param("endDate") java.time.LocalDate endDate
+    );
+
+    @Query("""
+        SELECT l.account.type,
+               coalesce(sum(l.debitAmount), 0),
+               coalesce(sum(l.creditAmount), 0)
+        FROM JournalEntry e
+        JOIN e.lines l
+        WHERE e.status = 'POSTED'
+          AND e.transactionDate between :startDate and :endDate
+        GROUP BY l.account.type
+    """)
+    List<Object[]> aggregatePostedByAccountTypeBetweenDates(
+            @Param("startDate") LocalDate startDate,
+            @Param("endDate") LocalDate endDate
+    );
+
+    @Query("""
+        SELECT e.fiscalYear,
+               e.fiscalMonth,
+               l.account.type,
+               coalesce(sum(l.debitAmount), 0),
+               coalesce(sum(l.creditAmount), 0)
+        FROM JournalEntry e
+        JOIN e.lines l
+        WHERE e.status = 'POSTED'
+          AND e.transactionDate between :startDate and :endDate
+        GROUP BY e.fiscalYear, e.fiscalMonth, l.account.type
+        ORDER BY e.fiscalYear ASC, e.fiscalMonth ASC
+    """)
+    List<Object[]> aggregatePostedMonthlyByAccountType(
+            @Param("startDate") LocalDate startDate,
+            @Param("endDate") LocalDate endDate
+    );
+
+    @Query("""
+        SELECT coalesce(sum(l.debitAmount), 0),
+               coalesce(sum(l.creditAmount), 0)
+        FROM JournalEntry e
+        JOIN e.lines l
+        JOIN l.account a
+        WHERE e.status = 'POSTED'
+          AND e.transactionDate between :startDate and :endDate
+          AND a.type = com.dduk.entity.accounting.AccountType.ASSET
+          AND (a.code LIKE '111%' OR a.code IN ('1001', '1002') OR a.name LIKE '%현금%' OR a.name LIKE '%예금%')
+    """)
+    Object[] aggregateCashFlowBetweenDates(
+            @Param("startDate") LocalDate startDate,
+            @Param("endDate") LocalDate endDate
     );
 
     @Query("""

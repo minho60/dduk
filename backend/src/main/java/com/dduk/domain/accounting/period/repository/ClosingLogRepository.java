@@ -8,4 +8,6 @@ import java.util.List;
 public interface ClosingLogRepository extends JpaRepository<ClosingLog, Long> {
 
     List<ClosingLog> findByAccountingPeriodIdOrderByActionAtDesc(Long accountingPeriodId);
+
+    List<ClosingLog> findTop10ByOrderByActionAtDesc();
 }
