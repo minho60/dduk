@@ -1,6 +1,15 @@
-const API_BASE = '/api/accounting/vouchers';
-const ACCOUNT_SEARCH_API = '/api/accounting/accounts/search';
-const VENDOR_SEARCH_API = '/api/v1/inventory/vendors/search';
+const API_BASE_URL = (() => {
+  if (window.location.protocol === 'file:') {
+      return window.ddukSession?.getApiBaseUrl?.() || 'http://localhost:8080';
+  }
+  if (window.location.port && window.location.port !== '8080') {
+      return window.ddukSession?.getApiBaseUrl?.() || 'http://localhost:8080';
+  }
+  return '';
+})();
+const API_BASE = `${API_BASE_URL}/api/v1/accounting/vouchers`;
+const ACCOUNT_SEARCH_API = `${API_BASE_URL}/api/v1/accounting/vouchers/accounts/search`;
+const VENDOR_SEARCH_API = `${API_BASE_URL}/api/v1/inventory/vendors/search`;
 
 const state = {
   voucherType: 'SALES',
@@ -308,7 +317,7 @@ async function loadVouchers() {
         <td class="amount">${formatWon(totals.supply)}</td>
         <td class="amount">${formatWon(totals.vat)}</td>
         <td class="amount">${formatWon(totals.total)}</td>
-        <td><span class="status-pill">${escapeHtml(voucher.status || '')}</span></td>
+        <td><span class="status_badge ${statusClass(voucher.status)}">${escapeHtml(voucher.status || '')}</span></td>
         <td>${escapeHtml(voucher.createdBy || '')}</td>
         <td>${formatDateTime(voucher.createdAt)}</td>
         <td>${voucher.status === 'POSTED' ? '게시' : '-'}</td>
@@ -341,7 +350,7 @@ function openLookup(target, initialKeyword = '') {
   setText('lookupTitle', title);
   if (keyword) keyword.value = initialKeyword;
   setHtml('lookupResults', '');
-  if (dialog && !dialog.open) dialog.showModal();
+  if (dialog) dialog.classList.add('is_active');
   runLookupSearch();
 }
 
@@ -386,19 +395,19 @@ function renderLookupRows(rows) {
   const results = document.getElementById('lookupResults');
   if (!results) return;
   if (!rows.length) {
-    results.innerHTML = '<div class="lookup-empty">검색 결과가 없습니다.</div>';
+    results.innerHTML = '<div class="lookup_empty">검색 결과가 없습니다.</div>';
     return;
   }
 
   results.innerHTML = rows.map((row) => `
-    <button type="button" class="lookup-row" data-id="${row.id}" style="--depth:${Math.max((row.level || 1) - 1, 0)}">
+    <button type="button" class="account_lookup_row" data-id="${row.id}" style="--depth:${Math.max((row.level || 1) - 1, 0)}; width: 100%;">
       <small>${escapeHtml(row.code)}</small>
       <strong>${escapeHtml(row.name)}</strong>
       <small>${escapeHtml(row.type)} · ${row.allowPosting === false ? '사용불가' : escapeHtml(row.status || 'ACTIVE')}</small>
     </button>
   `).join('');
 
-  results.querySelectorAll('.lookup-row').forEach((button) => {
+  results.querySelectorAll('.account_lookup_row').forEach((button) => {
     const row = rows.find((item) => String(item.id) === button.dataset.id);
     if (row) {
       button.addEventListener('click', () => selectLookupRow(row.raw));
@@ -422,7 +431,7 @@ function selectLookupRow(row) {
     setValue('settlementAccountId', row.id);
   }
 
-  document.getElementById('lookupDialog')?.close();
+  document.getElementById('lookupDialog')?.classList.remove('is_active');
   refreshJournalPreview();
 }
 
@@ -516,7 +525,18 @@ function setHtml(id, value) {
 function setLoadingText(tbodyId, colspan, message) {
   const tbody = document.getElementById(tbodyId);
   if (!tbody) return;
-  tbody.innerHTML = `<tr><td colspan="${colspan}" class="empty-state">${escapeHtml(message)}</td></tr>`;
+  tbody.innerHTML = `<tr><td colspan="${colspan}" class="erp_empty_state">${escapeHtml(message)}</td></tr>`;
+}
+
+function statusClass(status) {
+  switch (status) {
+    case 'POSTED': return 'success';
+    case 'APPROVED': return 'success';
+    case 'DRAFT': return 'warning';
+    case 'REQUESTED': return 'warning';
+    case 'CANCELLED': return 'danger';
+    default: return 'muted';
+  }
 }
 
 function showToast(message, type = 'success') {

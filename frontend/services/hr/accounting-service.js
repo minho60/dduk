@@ -1,138 +1,83 @@
 /**
- * Accounting Management Service
+ * Accounting Service - 실제 API 연동 버전
+ * 이전 mock 데이터 방식 제거, /api/v1/accounting/vouchers 실제 호출
  */
 
-import { mockTransactions } from './mock-accounting-data.js';
+const VOUCHER_API_BASE = '/api/v1/accounting/vouchers';
 
 class AccountingService {
-    constructor() {
-        this.transactions = [...mockTransactions];
-    }
 
     /**
-     * Get Transactions with filters and pagination
+     * 전표 목록 조회 (거래내역 등록 페이지용)
+     * GET /api/v1/accounting/vouchers?type=SALES|PURCHASE&status=...
      */
     async getTransactions(filters = {}) {
-        // Simulate network delay
-        await new Promise(resolve => setTimeout(resolve, 300));
+        const params = new URLSearchParams();
 
-        let filtered = this.transactions.filter(t => !t.isDeleted);
-
-        // Date filter
+        if (filters.type && filters.type !== 'ALL') {
+            params.set('type', filters.type);
+        }
+        if (filters.status && filters.status !== 'ALL') {
+            params.set('status', filters.status);
+        }
+        if (filters.keyword) {
+            params.set('keyword', filters.keyword);
+        }
         if (filters.startDate) {
-            filtered = filtered.filter(t => t.transactionDate >= filters.startDate);
+            params.set('startDate', filters.startDate);
         }
         if (filters.endDate) {
-            filtered = filtered.filter(t => t.transactionDate <= filters.endDate);
+            params.set('endDate', filters.endDate);
         }
 
-        // Type filter
-        if (filters.type && filters.type !== 'ALL') {
-            filtered = filtered.filter(t => t.type === filters.type);
+        const response = await fetch(`${VOUCHER_API_BASE}?${params.toString()}`);
+        if (!response.ok) {
+            const errorBody = await response.json().catch(() => ({}));
+            throw new Error(errorBody.message || `거래내역 조회 실패 (${response.status})`);
         }
-
-        // Status filter
-        if (filters.status && filters.status !== 'ALL') {
-            filtered = filtered.filter(t => t.status === filters.status);
-        }
-
-        // Search filter (Vendor Name or Note)
-        if (filters.keyword) {
-            const kw = filters.keyword.toLowerCase();
-            filtered = filtered.filter(t => 
-                t.vendorName.toLowerCase().includes(kw) || 
-                (t.note && t.note.toLowerCase().includes(kw)) ||
-                t.voucherNo.toLowerCase().includes(kw)
-            );
-        }
-
-        // Sorting
-        if (filters.sortBy) {
-            const order = filters.sortOrder === 'desc' ? -1 : 1;
-            filtered.sort((a, b) => {
-                if (a[filters.sortBy] < b[filters.sortBy]) return -1 * order;
-                if (a[filters.sortBy] > b[filters.sortBy]) return 1 * order;
-                return 0;
-            });
-        } else {
-            // Default sort: Date desc
-            filtered.sort((a, b) => b.transactionDate.localeCompare(a.transactionDate));
-        }
-
-        // Pagination
-        const page = parseInt(filters.page) || 1;
-        const size = parseInt(filters.size) || 10;
-        const total = filtered.length;
-        const start = (page - 1) * size;
-        const paginated = filtered.slice(start, start + size);
-
+        const body = await response.json();
         return {
             success: true,
-            data: paginated,
-            pagination: {
-                page,
-                size,
-                total,
-                totalPages: Math.ceil(total / size)
-            },
-            message: ""
+            data: body.data || [],
+            message: body.message || ''
         };
     }
 
     /**
-     * Save (Create or Update) Transaction
+     * 전표 상태 변경
+     * PATCH /api/v1/accounting/vouchers/{id}/status?status=POSTED|CANCELLED
      */
-    async saveTransaction(transactionData) {
-        await new Promise(resolve => setTimeout(resolve, 500));
-
-        if (transactionData.id) {
-            const index = this.transactions.findIndex(t => t.id === transactionData.id);
-            if (index !== -1) {
-                this.transactions[index] = { 
-                    ...this.transactions[index], 
-                    ...transactionData,
-                    updatedAt: new Date().toISOString()
-                };
-            }
-        } else {
-            const newId = Math.max(...this.transactions.map(t => t.id), 0) + 1;
-            const newTransaction = {
-                ...transactionData,
-                id: newId,
-                voucherNo: `VOU-${new Date().getFullYear()}-${String(newId).padStart(5, '0')}`,
-                isDeleted: false,
-                createdAt: new Date().toISOString(),
-                updatedAt: new Date().toISOString()
-            };
-            this.transactions.unshift(newTransaction);
+    async updateTransactionStatus(id, status) {
+        const response = await fetch(`${VOUCHER_API_BASE}/${id}/status?status=${encodeURIComponent(status)}`, {
+            method: 'PATCH',
+            headers: { 'Content-Type': 'application/json' }
+        });
+        if (!response.ok) {
+            const errorBody = await response.json().catch(() => ({}));
+            throw new Error(errorBody.message || `상태 변경 실패 (${response.status})`);
         }
-
-        return { success: true, message: "저장되었습니다." };
+        return { success: true, message: '상태가 변경되었습니다.' };
     }
 
     /**
-     * Soft Delete Transaction
+     * 전표 취소 (CANCELLED 상태로 변경)
      */
     async deleteTransaction(id) {
-        await new Promise(resolve => setTimeout(resolve, 300));
-        const index = this.transactions.findIndex(t => t.id === id);
-        if (index !== -1) {
-            this.transactions[index].isDeleted = true;
-        }
-        return { success: true, message: "삭제되었습니다." };
+        return this.updateTransactionStatus(id, 'CANCELLED');
     }
 
     /**
-     * Bulk Soft Delete
+     * 전표 요약 조회 (KPI용)
+     * GET /api/v1/accounting/vouchers/summary
      */
-    async deleteTransactions(ids) {
-        await new Promise(resolve => setTimeout(resolve, 500));
-        this.transactions.forEach(t => {
-            if (ids.includes(t.id)) {
-                t.isDeleted = true;
-            }
-        });
-        return { success: true, message: `${ids.length}건이 삭제되었습니다.` };
+    async getSummary() {
+        const response = await fetch(`${VOUCHER_API_BASE}/summary`);
+        if (!response.ok) {
+            const errorBody = await response.json().catch(() => ({}));
+            throw new Error(errorBody.message || `요약 조회 실패 (${response.status})`);
+        }
+        const body = await response.json();
+        return body.data || {};
     }
 }
 

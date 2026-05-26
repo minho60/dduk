@@ -4,150 +4,165 @@
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
   <title>DDUK ERP - 회계 대시보드</title>
-  <script src="https://cdn.tailwindcss.com/3.4.17"></script>
   <script src="https://cdn.jsdelivr.net/npm/lucide@0.263.0/dist/umd/lucide.min.js"></script>
   <script src="https://cdn.jsdelivr.net/npm/chart.js@4.4.1/dist/chart.umd.min.js"></script>
   <link rel="stylesheet" href="../../../styles/common/dashboard.css">
+  <link rel="stylesheet" href="../../../styles/common/erp_components.css">
   <link rel="stylesheet" href="../../../styles/accounting/accounting-dashboard.css">
 </head>
 <body>
   <aside data-dduk-sidebar></aside>
   <div class="main_wrap">
     <header class="topbar">
-      <button class="sidebar_icon_btn" onclick="toggleSidebar()" aria-label="메뉴">
-        <i data-lucide="menu"></i>
+      <button class="sidebar_icon_btn dduk-inline-027" onclick="toggleSidebar()" id="mobile_menu_btn" aria-label="메뉴">
+        <i class="dduk-inline-028" data-lucide="menu"></i>
       </button>
-      <div class="page-title">
-        <h1>회계 대시보드</h1>
-        <span>전표, Ledger, 시산표, 월 마감, 급여 흐름을 통합 모니터링합니다.</span>
+      <div class="dduk-inline-029">
+        <div class="dduk-inline-030">
+          <i class="dduk-inline-031" data-lucide="search"></i>
+          <input class="dduk-inline-032" type="text" placeholder="메뉴, 거래처, 문서 검색..." aria-label="검색">
+        </div>
       </div>
-      <div class="period-controls">
-        <input id="filterYear" type="number" min="2000" max="2100" aria-label="회계연도">
-        <select id="filterMonth" aria-label="회계월"></select>
-        <button id="reloadButton" class="icon-button" type="button" aria-label="새로고침"><i data-lucide="refresh-cw"></i></button>
+      <div class="dduk-inline-033">
+        <button class="sidebar_icon_btn" aria-label="알림"><i class="dduk-inline-034" data-lucide="bell"></i></button>
+        <button class="sidebar_icon_btn" aria-label="프로필"><i class="dduk-inline-034" data-lucide="user"></i></button>
       </div>
     </header>
 
-    <main class="content_area accounting-dashboard">
-      <section class="dashboard-hero">
+    <main class="content_area accounting_dashboard">
+      <section class="page_header">
+        <div class="page_title_area">
+          <h2>회계 대시보드</h2>
+          <p>전표, Ledger, 시산표, 월 마감, 급여 흐름을 통합 모니터링합니다.</p>
+        </div>
+        <div class="header_actions">
+          <div class="period_controls" style="display: flex; gap: 8px;">
+            <input id="filterYear" type="number" min="2000" max="2100" class="erp_input" style="width: 100px; height: 38px;" aria-label="회계연도">
+            <select id="filterMonth" class="erp_select" style="width: 90px; height: 38px;" aria-label="회계월"></select>
+            <button id="reloadButton" class="erp_btn erp_btn_secondary erp_btn_icon" type="button" aria-label="새로고침"><i data-lucide="refresh-cw"></i></button>
+          </div>
+        </div>
+      </section>
+
+      <section class="dashboard_hero">
         <div>
           <p class="eyebrow">Accounting Control Center</p>
           <h2 id="periodTitle">-</h2>
           <span id="generatedAt">-</span>
         </div>
-        <div class="hero-status">
-          <span id="periodStatusBadge" class="status-badge">-</span>
-          <span id="validationBadge" class="status-badge muted">-</span>
+        <div class="hero_status">
+          <span id="periodStatusBadge" class="status_badge">-</span>
+          <span id="validationBadge" class="status_badge muted">-</span>
         </div>
       </section>
 
-      <section class="kpi-grid" id="kpiGrid"></section>
+      <section class="kpi_grid" id="kpiGrid"></section>
 
-      <section class="dashboard-grid">
-        <article class="dashboard-panel span-2">
-          <div class="panel-head">
+      <section class="dashboard_grid">
+        <article class="dashboard_panel span_2">
+          <div class="panel_head">
             <div>
               <h3>월별 손익 추이</h3>
               <span>최근 6개월 Ledger 집계</span>
             </div>
           </div>
-          <div class="chart-box"><canvas id="profitLossChart"></canvas></div>
+          <div class="chart_box"><canvas id="profitLossChart"></canvas></div>
         </article>
 
-        <article class="dashboard-panel">
-          <div class="panel-head">
+        <article class="dashboard_panel">
+          <div class="panel_head">
             <div>
               <h3>전표 진행 상태</h3>
               <span>당월 상태별 전표</span>
             </div>
           </div>
-          <div class="voucher-status-grid" id="voucherStatusGrid"></div>
+          <div class="voucher_status_grid" id="voucherStatusGrid"></div>
         </article>
 
-        <article class="dashboard-panel">
-          <div class="panel-head">
+        <article class="dashboard_panel">
+          <div class="panel_head">
             <div>
               <h3>자산 / 부채 / 자본</h3>
               <span>AccountType 기준 구성</span>
             </div>
           </div>
-          <div class="chart-box compact"><canvas id="compositionChart"></canvas></div>
+          <div class="chart_box compact"><canvas id="compositionChart"></canvas></div>
         </article>
 
-        <article class="dashboard-panel">
-          <div class="panel-head">
+        <article class="dashboard_panel">
+          <div class="panel_head">
             <div>
               <h3>현금 흐름 요약</h3>
               <span id="cashFlowBasis">-</span>
             </div>
           </div>
-          <div class="metric-list" id="cashFlowList"></div>
+          <div class="metric_list" id="cashFlowList"></div>
         </article>
 
-        <article class="dashboard-panel">
-          <div class="panel-head">
+        <article class="dashboard_panel">
+          <div class="panel_head">
             <div>
               <h3>급여 현황</h3>
               <span>Payroll Ledger 연동</span>
             </div>
           </div>
-          <div class="metric-list" id="payrollList"></div>
+          <div class="metric_list" id="payrollList"></div>
         </article>
 
-        <article class="dashboard-panel">
-          <div class="panel-head">
+        <article class="dashboard_panel">
+          <div class="panel_head">
             <div>
               <h3>월 마감 현황</h3>
               <span>AccountingPeriod 통제</span>
             </div>
           </div>
-          <div class="metric-list" id="periodList"></div>
+          <div class="metric_list" id="periodList"></div>
         </article>
 
-        <article class="dashboard-panel">
-          <div class="panel-head">
+        <article class="dashboard_panel">
+          <div class="panel_head">
             <div>
               <h3>합계잔액시산표 요약</h3>
               <span>Trial Balance 검증</span>
             </div>
           </div>
-          <div class="metric-list" id="trialBalanceList"></div>
-          <div class="account-rank" id="majorAccounts"></div>
+          <div class="metric_list" id="trialBalanceList"></div>
+          <div class="account_rank" id="majorAccounts"></div>
         </article>
 
-        <article class="dashboard-panel span-2">
-          <div class="panel-head">
+        <article class="dashboard_panel span_2">
+          <div class="panel_head">
             <div>
               <h3>회계 알림 / 통제</h3>
               <span>마감 전 점검 항목</span>
             </div>
           </div>
-          <div class="alert-list" id="alertList"></div>
+          <div class="alert_list" id="alertList"></div>
         </article>
 
-        <article class="dashboard-panel span-2">
-          <div class="panel-head">
+        <article class="dashboard_panel span_2">
+          <div class="panel_head">
             <div>
               <h3>최근 회계 활동</h3>
               <span>전표, 분개, 급여, 마감 로그</span>
             </div>
           </div>
-          <div class="activity-table">
-            <div class="activity-row head">
+          <div class="activity_table">
+            <div class="activity_row head">
               <span>작업유형</span><span>대상</span><span>작업자</span><span>작업일시</span><span>상태</span>
             </div>
             <div id="activityRows"></div>
           </div>
         </article>
 
-        <article class="dashboard-panel">
-          <div class="panel-head">
+        <article class="dashboard_panel">
+          <div class="panel_head">
             <div>
               <h3>빠른 실행</h3>
               <span>회계 업무 바로가기</span>
             </div>
           </div>
-          <div class="quick-actions" id="quickActions"></div>
+          <div class="quick_actions" id="quickActions"></div>
         </article>
       </section>
     </main>

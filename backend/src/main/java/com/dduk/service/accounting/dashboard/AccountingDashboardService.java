@@ -402,10 +402,23 @@ public class AccountingDashboardService {
         if (row == null || row.length <= index || row[index] == null) {
             return BigDecimal.ZERO;
         }
-        if (row[index] instanceof BigDecimal value) {
-            return value;
+        try {
+            if (row[index] instanceof BigDecimal value) {
+                return value;
+            }
+            if (row[index] instanceof Number number) {
+                // Double, Long, Integer 등은 안전하게 doubleValue를 통해 변환
+                return BigDecimal.valueOf(number.doubleValue());
+            }
+            String strValue = row[index].toString().trim();
+            if (strValue.isEmpty() || "null".equalsIgnoreCase(strValue)) {
+                return BigDecimal.ZERO;
+            }
+            return new BigDecimal(strValue);
+        } catch (Exception e) {
+            // 지수 표기법 오류나 드라이버 파싱 장애 시 안전하게 0.00으로 폴백하여 대시보드 마비 차단
+            return BigDecimal.ZERO;
         }
-        return new BigDecimal(row[index].toString());
     }
 
     private String defaultActor(String actor) {

@@ -1,5 +1,14 @@
 (function () {
-  const API_BASE = "/api/v1/accounting/monthly-closing";
+  const API_BASE_URL = (() => {
+    if (window.location.protocol === 'file:') {
+        return window.ddukSession?.getApiBaseUrl?.() || 'http://localhost:8080';
+    }
+    if (window.location.port && window.location.port !== '8080') {
+        return window.ddukSession?.getApiBaseUrl?.() || 'http://localhost:8080';
+    }
+    return '';
+  })();
+  const API_BASE = `${API_BASE_URL}/api/v1/accounting/monthly-closing`;
   const state = {
     periods: [],
     selected: null,

@@ -32,9 +32,28 @@ public interface VoucherRepository extends JpaRepository<Voucher, Long> {
     """)
     List<Voucher> findListWithLines(@Param("voucherType") VoucherType voucherType);
 
-    long countByStatus(VoucherStatus status);
-
-    long countByVoucherDate(LocalDate voucherDate);
+    @Query("""
+            SELECT DISTINCT v
+            FROM Voucher v
+            LEFT JOIN FETCH v.lines
+            LEFT JOIN FETCH v.journalEntry
+            WHERE (:voucherType IS NULL OR v.voucherType = :voucherType)
+              AND (:status IS NULL OR v.status = :status)
+              AND (:startDate IS NULL OR v.voucherDate >= :startDate)
+              AND (:endDate IS NULL OR v.voucherDate <= :endDate)
+              AND (:keyword IS NULL
+                   OR lower(v.vendorNameSnapshot) LIKE lower(concat('%', :keyword, '%'))
+                   OR lower(v.voucherNo) LIKE lower(concat('%', :keyword, '%'))
+                   OR lower(coalesce(v.description, '')) LIKE lower(concat('%', :keyword, '%')))
+            ORDER BY v.voucherDate DESC, v.id DESC
+    """)
+    List<Voucher> findWithFilters(
+            @Param("voucherType") VoucherType voucherType,
+            @Param("status") VoucherStatus status,
+            @Param("startDate") LocalDate startDate,
+            @Param("endDate") LocalDate endDate,
+            @Param("keyword") String keyword
+    );
 
     @Query("""
             SELECT DISTINCT v
@@ -44,6 +63,10 @@ public interface VoucherRepository extends JpaRepository<Voucher, Long> {
             ORDER BY v.voucherDate DESC, v.id DESC
     """)
     List<Voucher> findAllWithLinesForList();
+
+    long countByStatus(VoucherStatus status);
+
+    long countByVoucherDate(LocalDate voucherDate);
 
     @Query("""
             select count(v)

@@ -1,6 +1,17 @@
 $ErrorActionPreference = "Stop"
 
 $workspaceRoot = $PSScriptRoot
+$envFile = Join-Path $workspaceRoot ".env"
+if (Test-Path $envFile) {
+    Get-Content $envFile | ForEach-Object {
+        if ($_ -match "^(?<name>[^#\s=]+)=(?<value>.*)$") {
+            $name = $Matches['name'].Trim()
+            $value = $Matches['value'].Trim()
+            [Environment]::SetEnvironmentVariable($name, $value, "Process")
+        }
+    }
+}
+
 $backendDir = Join-Path $workspaceRoot "backend"
 $frontendDir = Join-Path $workspaceRoot "frontend"
 $tmpRootDir = Join-Path $workspaceRoot ".local-run"

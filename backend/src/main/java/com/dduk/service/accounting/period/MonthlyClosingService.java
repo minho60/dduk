@@ -258,7 +258,24 @@ public class MonthlyClosingService {
         if (row == null || row.length <= index || row[index] == null) {
             return BigDecimal.ZERO;
         }
-        return (BigDecimal) row[index];
+        Object val = row[index];
+        if (val instanceof BigDecimal) {
+            return (BigDecimal) val;
+        }
+        if (val instanceof byte[]) {
+            String str = new String((byte[]) val, java.nio.charset.StandardCharsets.UTF_8);
+            return str.trim().isEmpty() ? BigDecimal.ZERO : new BigDecimal(str);
+        }
+        String str = val.toString().trim();
+        if (str.isEmpty()) {
+            return BigDecimal.ZERO;
+        }
+        try {
+            return new BigDecimal(str);
+        } catch (NumberFormatException e) {
+            System.err.println("[MonthlyClosingService] NumberFormatException for value: " + str);
+            return BigDecimal.ZERO;
+        }
     }
 
     private AccountingPeriod resolvePeriod(Integer fiscalYear, Integer fiscalMonth) {

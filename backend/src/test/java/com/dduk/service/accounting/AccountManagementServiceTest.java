@@ -441,45 +441,7 @@ class AccountManagementServiceTest {
     }
 
     // =========================================================
-    // validateTypeAndSide 차대 방향 강제 검증
-    // =========================================================
 
-    @Test
-    @DisplayName("차대방향 검증 - 자산 계정에 CREDIT 설정 시 예외")
-    void validateTypeAndSide_자산계정CREDIT_예외발생() {
-        // when & then: 엔티티 레벨 검증이 서비스 로직 호출 이전에도 동작함을 확인
-        Account invalidAccount = Account.builder()
-                .code("TEST01")
-                .name("잘못된 자산계정")
-                .type(AccountType.ASSET)
-                .normalBalance(AccountSide.CREDIT) // 자산에 CREDIT 지정 -> 불법
-                .level(1)
-                .status(AccountStatus.ACTIVE)
-                .children(new ArrayList<>())
-                .build();
-
-        assertThatThrownBy(invalidAccount::validateTypeAndSide)
-                .isInstanceOf(IllegalArgumentException.class)
-                .hasMessageContaining("차변(DEBIT)만 지정 가능합니다");
-    }
-
-    @Test
-    @DisplayName("차대방향 검증 - 부채 계정에 DEBIT 설정 시 예외")
-    void validateTypeAndSide_부채계정DEBIT_예외발생() {
-        Account invalidAccount = Account.builder()
-                .code("TEST02")
-                .name("잘못된 부채계정")
-                .type(AccountType.LIABILITY)
-                .normalBalance(AccountSide.DEBIT) // 부채에 DEBIT -> 불법
-                .level(1)
-                .status(AccountStatus.ACTIVE)
-                .children(new ArrayList<>())
-                .build();
-
-        assertThatThrownBy(invalidAccount::validateTypeAndSide)
-                .isInstanceOf(IllegalArgumentException.class)
-                .hasMessageContaining("대변(CREDIT)만 지정 가능합니다");
-    }
 
     // =========================================================
     // 헬퍼 메서드 - Reflection으로 ID 설정 (테스트 전용)

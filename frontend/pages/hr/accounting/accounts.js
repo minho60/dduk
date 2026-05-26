@@ -314,7 +314,7 @@ window.filterByType = function(type) {
     currentTypeFilter = type;
     
     // Update active tab styling
-    document.querySelectorAll('.coa-tab').forEach(tab => {
+    document.querySelectorAll('.segmented_tab').forEach(tab => {
         const isTarget = tab.textContent.includes(type === 'ALL' ? '전체' : getKoreanTypeName(type));
         tab.classList.toggle('active', isTarget);
     });
@@ -386,7 +386,7 @@ window.openCreateModal = function() {
     document.getElementById('system_account_alert').classList.add('coa-row-hidden');
 
     populateParentSelect();
-    modal.classList.add('active');
+    modal.classList.add('is_active');
     handleTypeChange(); // Set default debit/credit direction
 };
 
@@ -436,11 +436,11 @@ function openEditModal(id) {
         document.getElementById('form_status').disabled = false;
     }
 
-    modal.classList.add('active');
+    modal.classList.add('is_active');
 }
 
 window.closeAccountModal = function() {
-    modal.classList.remove('active');
+    modal.classList.remove('is_active');
 };
 
 /**
@@ -535,7 +535,15 @@ function showToast(message, type = 'success') {
     if (!container) return;
 
     const toast = document.createElement('div');
-    toast.className = `toast toast-${type}`;
+    
+    // erp_components toast class mapping
+    let toastType = type;
+    if (type === 'danger') toastType = 'error';
+    toast.className = `toast show ${toastType}`;
+    toast.style.position = 'static';
+    toast.style.display = 'flex';
+    toast.style.alignItems = 'center';
+    toast.style.gap = '8px';
     
     let iconName = 'check-circle';
     if (type === 'danger') iconName = 'x-circle';
@@ -550,7 +558,7 @@ function showToast(message, type = 'success') {
     if (window.lucide) lucide.createIcons();
 
     setTimeout(() => {
-        toast.style.animation = 'fadeOut 0.3s forwards';
+        toast.classList.remove('show');
         setTimeout(() => toast.remove(), 300);
     }, 3000);
 }

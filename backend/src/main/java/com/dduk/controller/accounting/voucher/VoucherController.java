@@ -13,15 +13,21 @@ import java.util.LinkedHashMap;
 import java.util.Map;
 
 @RestController
-@RequestMapping({"/api/v1/accounting/vouchers", "/api/accounting/vouchers"})
+@RequestMapping("/api/v1/accounting/vouchers")
 @RequiredArgsConstructor
 public class VoucherController {
 
     private final VoucherService voucherService;
 
     @GetMapping
-    public ResponseEntity<Map<String, Object>> getVouchers(@RequestParam(required = false) VoucherType type) {
-        return success(voucherService.getVouchers(type), "Voucher list loaded.");
+    public ResponseEntity<Map<String, Object>> getVouchers(
+            @RequestParam(required = false) VoucherType type,
+            @RequestParam(required = false) VoucherStatus status,
+            @RequestParam(required = false) java.time.LocalDate startDate,
+            @RequestParam(required = false) java.time.LocalDate endDate,
+            @RequestParam(required = false) String keyword
+    ) {
+        return success(voucherService.getVouchers(type, status, startDate, endDate, keyword), "Voucher list loaded.");
     }
 
     @GetMapping("/summary")

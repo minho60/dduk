@@ -1,5 +1,14 @@
 (function () {
-  const API_BASE = "/api/v1/accounting/dashboard";
+  const API_BASE_URL = (() => {
+    if (window.location.protocol === 'file:') {
+        return window.ddukSession?.getApiBaseUrl?.() || 'http://localhost:8080';
+    }
+    if (window.location.port && window.location.port !== '8080') {
+        return window.ddukSession?.getApiBaseUrl?.() || 'http://localhost:8080';
+    }
+    return '';
+  })();
+  const API_BASE = `${API_BASE_URL}/api/v1/accounting/dashboard`;
   const money = new Intl.NumberFormat("ko-KR", { maximumFractionDigits: 0 });
   let profitLossChart;
   let compositionChart;
@@ -73,10 +82,12 @@
       ["월 마감 상태", kpi.monthlyClosingStatus || "-", "AccountingPeriod"]
     ];
     byId("kpiGrid").innerHTML = items.map(([label, value, hint]) => `
-      <article class="erp-kpi-card ${String(hint).startsWith("-") ? "negative" : String(hint).startsWith("+") ? "positive" : ""}">
-        <span>${label}</span>
-        <strong>${value}</strong>
-        <small>${hint || "-"}</small>
+      <article class="kpi_card ${String(hint).startsWith("-") ? "negative" : String(hint).startsWith("+") ? "positive" : ""}">
+        <div class="kpi_content">
+          <div class="kpi_label">${label}</div>
+          <div class="kpi_value">${value}</div>
+          <div class="kpi_hint">${hint || "-"}</div>
+        </div>
       </article>
     `).join("");
   }
@@ -91,7 +102,7 @@
       ["CANCELLED", summary.cancelledCount]
     ];
     byId("voucherStatusGrid").innerHTML = items.map(([label, value]) => `
-      <div class="status-tile"><span>${label}</span><strong>${number(value)}건</strong></div>
+      <div class="status_tile"><span>${label}</span><strong>${number(value)}건</strong></div>
     `).join("");
   }
 
@@ -176,17 +187,17 @@
     ]);
     const rows = summary.majorAccounts || [];
     byId("majorAccounts").innerHTML = rows.map(row => `
-      <div class="rank-row">
+      <div class="rank_row">
         <span>${row.accountCode}</span>
         <strong>${row.accountName}</strong>
         <span>${won(row.closingBalance)}</span>
       </div>
-    `).join("") || `<div class="rank-row"><span>-</span><strong>주요 계정 잔액 없음</strong><span>-</span></div>`;
+    `).join("") || `<div class="rank_row"><span>-</span><strong>주요 계정 잔액 없음</strong><span>-</span></div>`;
   }
 
   function renderAlerts(alerts) {
     byId("alertList").innerHTML = alerts.map(alert => `
-      <div class="alert-item ${alert.severity}">
+      <div class="alert_item ${alert.severity}">
         <strong>${alert.title}</strong>
         <p>${alert.message}</p>
         <a href="${alert.actionUrl || "#"}">${alert.actionLabel || "확인"}</a>
@@ -196,14 +207,14 @@
 
   function renderActivities(rows) {
     byId("activityRows").innerHTML = rows.map(row => `
-      <div class="activity-row">
+      <div class="activity_row">
         <span>${row.activityType}</span>
         <span>${row.target || "-"}</span>
         <span>${row.actor || "-"}</span>
         <span>${formatDateTime(row.activityAt)}</span>
         <span>${row.status || "-"}</span>
       </div>
-    `).join("") || `<div class="activity-row"><span>-</span><span>최근 활동 없음</span><span>-</span><span>-</span><span>-</span></div>`;
+    `).join("") || `<div class="activity_row"><span>-</span><span>최근 활동 없음</span><span>-</span><span>-</span><span>-</span></div>`;
   }
 
   function renderQuickActions(period) {
@@ -214,10 +225,10 @@
       ["급여 계산", "wallet", "payroll_management.html", locked],
       ["월 마감 검증", "calendar-check", "monthly_closing.html", false],
       ["합계잔액시산표", "table-2", "trial_balance.html", false],
-      ["회계리포트", "file-bar-chart", "accounting_reports.html", false]
+      ["회계 분석 리포트", "file-bar-chart", "accounting_reports.html", false]
     ];
     byId("quickActions").innerHTML = actions.map(([label, icon, href, disabled]) => `
-      <a class="quick-action ${disabled ? "disabled" : ""}" href="${href}" aria-disabled="${disabled}">
+      <a class="quick_action ${disabled ? "disabled" : ""}" href="${href}" aria-disabled="${disabled}">
         <i data-lucide="${icon}"></i><span>${label}</span>
       </a>
     `).join("");
@@ -225,7 +236,7 @@
 
   function metricRows(items) {
     return items.map(([label, value]) => `
-      <div class="metric-row"><span>${label}</span><strong>${value}</strong></div>
+      <div class="metric_row"><span>${label}</span><strong>${value}</strong></div>
     `).join("");
   }
 
@@ -259,9 +270,9 @@
 
   function renderBadge(element, value) {
     element.textContent = value;
-    element.className = "status-badge";
+    element.className = "status_badge";
     if (["WARNING", "PRE_CLOSING", "REOPENED"].includes(value)) element.classList.add("warning");
-    if (["ERROR", "CRITICAL", "CLOSED", "ARCHIVED", "NOT_CREATED"].includes(value)) element.classList.add("error");
+    if (["ERROR", "CRITICAL", "CLOSED", "ARCHIVED", "NOT_CREATED"].includes(value)) element.classList.add("danger");
     if (["UNKNOWN"].includes(value)) element.classList.add("muted");
   }
 
