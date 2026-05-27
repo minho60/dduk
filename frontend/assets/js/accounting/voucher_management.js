@@ -1,15 +1,6 @@
-const API_BASE_URL = (() => {
-  if (window.location.protocol === 'file:') {
-      return window.ddukSession?.getApiBaseUrl?.() || 'http://localhost:8080';
-  }
-  if (window.location.port && window.location.port !== '8080') {
-      return window.ddukSession?.getApiBaseUrl?.() || 'http://localhost:8080';
-  }
-  return '';
-})();
-const API_BASE = `${API_BASE_URL}/api/v1/accounting/vouchers`;
-const ACCOUNT_SEARCH_API = `${API_BASE_URL}/api/v1/accounting/vouchers/accounts/search`;
-const VENDOR_SEARCH_API = `${API_BASE_URL}/api/v1/inventory/vendors/search`;
+const API_BASE = '/api/v1/accounting/vouchers';
+const ACCOUNT_SEARCH_API = '/api/v1/accounting/vouchers/accounts/search';
+const VENDOR_SEARCH_API = '/api/v1/inventory/vendors/search';
 
 const state = {
   voucherType: 'SALES',
@@ -475,13 +466,12 @@ async function fetchJson(url, fallback) {
 }
 
 async function requestJson(url, options = {}) {
-  const response = await fetch(url, options);
-  const text = await response.text();
-  const body = text ? JSON.parse(text) : {};
-  if (!response.ok || body.status === 'error') {
-    throw new Error(body.message || `요청 실패 (${response.status})`);
-  }
-  return body;
+  const method = (options.method || 'GET').toLowerCase();
+  if (method === 'post') return window.ddukApi.post(url, options.body ? JSON.parse(options.body) : {});
+  if (method === 'patch') return window.ddukApi.patch(url);
+  if (method === 'put') return window.ddukApi.put(url, options.body ? JSON.parse(options.body) : {});
+  if (method === 'delete') return window.ddukApi.delete(url);
+  return window.ddukApi.get(url);
 }
 
 function parseMoney(value) {

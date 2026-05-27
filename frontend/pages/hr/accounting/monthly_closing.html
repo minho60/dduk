@@ -5,27 +5,41 @@
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
   <title>DDUK ERP - 월 마감</title>
   <meta name="description" content="회계기간 기준으로 전표, 분개, 원장, 급여 데이터를 검증하고 마감합니다.">
+  <script src="https://cdn.tailwindcss.com/3.4.17"></script>
+  <link href="https://fonts.googleapis.com/css2?family=DM+Sans:wght@400;500;600;700&display=swap" rel="stylesheet">
   <script src="https://cdn.jsdelivr.net/npm/lucide@0.263.0/dist/umd/lucide.min.js"></script>
   <link rel="stylesheet" href="../../../styles/common/dashboard.css">
   <link rel="stylesheet" href="../../../styles/common/erp_components.css">
   <link rel="stylesheet" href="../../../styles/accounting/monthly-closing.css">
+  <style>
+    .erp_table_container { position: relative; max-height: 600px; overflow-y: auto; border-radius: 12px; border: 1px solid var(--border); background: var(--card-bg); }
+    .erp_table th { position: sticky; top: 0; background: #f1f5f9; z-index: 10; box-shadow: inset 0 -1px 0 var(--border); }
+    .table-loader-overlay { position: absolute; inset: 0; background: rgba(255,255,255,0.7); backdrop-filter: blur(2px); display: none; align-items: center; justify-content: center; z-index: 20; }
+    .spinner { width: 40px; height: 40px; border: 4px solid var(--border); border-top-color: var(--accent); border-radius: 50%; animation: spin 0.8s linear infinite; }
+    @keyframes spin { to { transform: rotate(360deg); } }
+    .empty-state { display: flex; flex-direction: column; align-items: center; justify-content: center; padding: 4rem 2rem; color: var(--text-secondary); text-align: center; }
+    .kpi_card { background: var(--card-bg); border-radius: 12px; padding: 20px 24px; border: 1px solid var(--border); transition: all 0.25s cubic-bezier(0.4,0,0.2,1); position: relative; overflow: hidden; }
+    .kpi_card:hover { transform: translateY(-4px); box-shadow: 0 10px 20px rgba(79,70,229,0.08); border-color: var(--accent); }
+    .kpi_card::after { content: ''; position: absolute; top: 0; left: 0; width: 4px; height: 100%; background: var(--accent); opacity: 0; transition: opacity 0.2s; }
+    .kpi_card:hover::after { opacity: 1; }
+  </style>
 </head>
 <body>
   <aside data-dduk-sidebar></aside>
   <div class="main_wrap">
     <header class="topbar">
-      <button class="sidebar_icon_btn" onclick="toggleSidebar()" id="mobile_menu_btn" aria-label="메뉴">
-        <i data-lucide="menu"></i>
+      <button class="sidebar_icon_btn dduk-inline-027" onclick="toggleSidebar()" id="mobile_menu_btn" aria-label="메뉴">
+        <i class="dduk-inline-028" data-lucide="menu"></i>
       </button>
-      <div class="topbar_search">
-        <div class="topbar_search_inner">
-          <i data-lucide="search"></i>
-          <input class="topbar_search_input" type="text" placeholder="메뉴, 거래처, 문서 검색.." aria-label="검색">
+      <div class="dduk-inline-029">
+        <div class="dduk-inline-030">
+          <i class="dduk-inline-031" data-lucide="search"></i>
+          <input class="dduk-inline-032" type="text" placeholder="메뉴, 거래처, 문서 검색..." aria-label="검색">
         </div>
       </div>
-      <div class="topbar_right">
-        <button class="sidebar_icon_btn" aria-label="알림"><i data-lucide="bell"></i></button>
-        <button class="sidebar_icon_btn" aria-label="프로필"><i data-lucide="user"></i></button>
+      <div class="dduk-inline-033">
+        <button class="sidebar_icon_btn" aria-label="알림"><i class="dduk-inline-034" data-lucide="bell"></i></button>
+        <button class="sidebar_icon_btn" aria-label="프로필"><i class="dduk-inline-034" data-lucide="user"></i></button>
       </div>
     </header>
 
@@ -267,6 +281,7 @@
   </dialog>
 
   <div id="toast" class="toast" role="status" aria-live="polite"></div>
+  <script src="../../../services/common/apiClient.js"></script>
   <script src="../../../services/common/sidebar.js"></script>
   <script src="../../../assets/js/accounting/monthly_closing.js"></script>
 </body>

@@ -389,13 +389,15 @@ CREATE TABLE IF NOT EXISTS journal_items (
 
 -- Default Chart of Accounts Seeds
 INSERT INTO accounts (code, name, type, normal_balance, level, status, allow_posting, system_account, deleted, sort_order) VALUES
-('1001', '현금', 'ASSET', 'DEBIT', 1, 'ACTIVE', 1, 1, 0, 0),
-('1002', '보통예금', 'ASSET', 'DEBIT', 1, 'ACTIVE', 1, 1, 0, 0),
-('2001', '외상매입금', 'LIABILITY', 'CREDIT', 1, 'ACTIVE', 1, 1, 0, 0),
-('2002', '미지급금(급여)', 'LIABILITY', 'CREDIT', 1, 'ACTIVE', 1, 1, 0, 0),
-('4001', '제품매출', 'REVENUE', 'CREDIT', 1, 'ACTIVE', 1, 1, 0, 0),
-('5001', '매출원가', 'EXPENSE', 'DEBIT', 1, 'ACTIVE', 1, 1, 0, 0),
-('5002', '급여비용', 'EXPENSE', 'DEBIT', 1, 'ACTIVE', 1, 1, 0, 0)
+('1001', '현금', 'ASSET', 'DEBIT', 1, 'ACTIVE', 1, 1, 0, 10),
+('1002', '보통예금', 'ASSET', 'DEBIT', 1, 'ACTIVE', 1, 1, 0, 20),
+('1003', '재고자산', 'ASSET', 'DEBIT', 1, 'ACTIVE', 1, 1, 0, 30),
+('2001', '외상매입금', 'LIABILITY', 'CREDIT', 1, 'ACTIVE', 1, 1, 0, 10),
+('2002', '미지급금(급여)', 'LIABILITY', 'CREDIT', 1, 'ACTIVE', 1, 1, 0, 20),
+('4001', '제품매출', 'REVENUE', 'CREDIT', 1, 'ACTIVE', 1, 1, 0, 10),
+('5001', '매출원가', 'EXPENSE', 'DEBIT', 1, 'ACTIVE', 1, 1, 0, 10),
+('5002', '급여비용', 'EXPENSE', 'DEBIT', 1, 'ACTIVE', 1, 1, 0, 20),
+('5003', '재고손실', 'EXPENSE', 'DEBIT', 1, 'ACTIVE', 1, 1, 0, 30)
 ON DUPLICATE KEY UPDATE
     name = VALUES(name),
     type = VALUES(type),
@@ -406,3 +408,49 @@ ON DUPLICATE KEY UPDATE
     system_account = VALUES(system_account),
     deleted = VALUES(deleted),
     sort_order = VALUES(sort_order);
+
+-- 재고-회계 연동: Voucher source tracking 컬럼 추가
+ALTER TABLE vouchers
+    ADD COLUMN IF NOT EXISTS source_type VARCHAR(50) NULL COMMENT '자동생성 원천 도메인 (VoucherSourceType enum)',
+    ADD COLUMN IF NOT EXISTS source_reference_id BIGINT NULL COMMENT '원천 엔티티 ID (stock_movement.id 등)';
+
+-- 재고-회계 연동: VoucherLine - StockMovement 연결 컬럼 추가
+ALTER TABLE voucher_lines
+    ADD COLUMN IF NOT EXISTS stock_movement_id BIGINT NULL COMMENT 'FK: stock_movements.id (nullable - 수동전표는 NULL)',
+    ADD COLUMN IF NOT EXISTS movement_type VARCHAR(50) NULL COMMENT '원장 거래 구분 (감사 추적용 스냅샷)',
+    ADD COLUMN IF NOT EXISTS movement_reference_no VARCHAR(50) NULL COMMENT '원장 참조번호 스냅샷';
+
+CREATE TABLE IF NOT EXISTS warehouse_transfers (
+    id BIGINT NOT NULL AUTO_INCREMENT,
+    transfer_no VARCHAR(50) NOT NULL,
+    source_warehouse_id BIGINT NOT NULL,
+    target_warehouse_id BIGINT NOT NULL,
+    status VARCHAR(30) NOT NULL DEFAULT 'PENDING',
+    remarks VARCHAR(255) NULL,
+    requested_by_id BIGINT NOT NULL,
+    approved_by_id BIGINT NULL,
+    created_at DATETIME NOT NULL DEFAULT CURRENT_TIMESTAMP,
+    updated_at DATETIME NOT NULL DEFAULT CURRENT_TIMESTAMP ON UPDATE CURRENT_TIMESTAMP,
+    approved_at DATETIME NULL,
+    completed_at DATETIME NULL,
+    PRIMARY KEY (id),
+    UNIQUE KEY uk_warehouse_transfers_no (transfer_no),
+    KEY idx_warehouse_transfers_status (status),
+    CONSTRAINT fk_transfers_source_wh FOREIGN KEY (source_warehouse_id) REFERENCES warehouses (id),
+    CONSTRAINT fk_transfers_target_wh FOREIGN KEY (target_warehouse_id) REFERENCES warehouses (id),
+    CONSTRAINT fk_transfers_requested_by FOREIGN KEY (requested_by_id) REFERENCES members (id),
+    CONSTRAINT fk_transfers_approved_by FOREIGN KEY (approved_by_id) REFERENCES members (id)
+) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci;
+
+CREATE TABLE IF NOT EXISTS warehouse_transfer_items (
+    id BIGINT NOT NULL AUTO_INCREMENT,
+    transfer_id BIGINT NOT NULL,
+    item_id BIGINT NOT NULL,
+    quantity INT NOT NULL,
+    PRIMARY KEY (id),
+    KEY idx_transfer_items_transfer (transfer_id),
+    CONSTRAINT chk_transfer_items_qty CHECK (quantity > 0),
+    CONSTRAINT fk_transfer_items_transfer FOREIGN KEY (transfer_id) REFERENCES warehouse_transfers (id) ON DELETE CASCADE,
+    CONSTRAINT fk_transfer_items_item FOREIGN KEY (item_id) REFERENCES items (id)
+) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci;
+

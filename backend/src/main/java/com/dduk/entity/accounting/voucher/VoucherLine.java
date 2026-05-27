@@ -54,6 +54,21 @@ public class VoucherLine {
     private BigDecimal unitPrice;
     private String description;
 
+    /**
+     * 연결된 StockMovement ID (nullable).
+     * 재고 입출고 자동 전표 라인에만 세팅되며, 수동전표 / 급여 / 발주전표 라인은 null입니다.
+     */
+    @Column(name = "stock_movement_id")
+    private Long stockMovementId;
+
+    /** 원장 거래 구분 스냅샷 (감사 추적용 - MovementType enum 이름). */
+    @Column(name = "movement_type", length = 50)
+    private String movementType;
+
+    /** 원장 참조번호 스냅샷 (감사 추적용 - stock_movements.reference_no). */
+    @Column(name = "movement_reference_no", length = 50)
+    private String movementReferenceNo;
+
     @Column(name = "sort_order", nullable = false)
     @Builder.Default
     private Integer sortOrder = 0;

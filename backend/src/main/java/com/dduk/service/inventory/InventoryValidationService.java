@@ -44,14 +44,16 @@ public class InventoryValidationService {
 
             int calculatedStock = 0;
             for (StockMovement m : movements) {
-                if (m.getMovementType() == MovementType.INBOUND || m.getMovementType() == MovementType.TRANSFER_IN || m.getMovementType() == MovementType.RETURN) {
+                if (m.getMovementType() == MovementType.INBOUND || 
+                    m.getMovementType() == MovementType.TRANSFER_IN || 
+                    m.getMovementType() == MovementType.RETURN_IN ||
+                    m.getMovementType() == MovementType.ADJUSTMENT_IN) {
                     calculatedStock += m.getQuantity();
-                } else if (m.getMovementType() == MovementType.OUTBOUND || m.getMovementType() == MovementType.TRANSFER_OUT) {
+                } else if (m.getMovementType() == MovementType.OUTBOUND || 
+                           m.getMovementType() == MovementType.TRANSFER_OUT ||
+                           m.getMovementType() == MovementType.RETURN_OUT ||
+                           m.getMovementType() == MovementType.ADJUSTMENT_OUT) {
                     calculatedStock -= m.getQuantity();
-                } else if (m.getMovementType() == MovementType.ADJUSTMENT) {
-                    // Logic depends on how adjustment is recorded. If quantity is signed, add it.
-                    // But in our case, quantity is absolute and we have different types or reasons.
-                    // For now, let's assume INBOUND/OUTBOUND type is used for adjustments too.
                 }
             }
 

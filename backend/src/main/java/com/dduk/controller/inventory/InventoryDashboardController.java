@@ -19,7 +19,7 @@ public class InventoryDashboardController {
 
     @GetMapping("/stats")
     public ResponseEntity<Map<String, Object>> getDashboardStats() {
-        Map<String, Object> data = inventoryQueryService.getDashboardStats();
+        com.dduk.dto.inventory.InventoryDashboardResponseDto data = inventoryQueryService.getDashboardStats();
         return buildSuccessResponse(data);
     }
 

@@ -47,9 +47,7 @@
     /* ─── KPI 카드 조회 ─────────────────────────────────────── */
     async function loadKpis() {
         try {
-            const response = await fetch(SUMMARY_API);
-            if (!response.ok) return;
-            const body = await response.json();
+            const body = await window.ddukApi.get(SUMMARY_API);
             const summary = body.data || {};
 
             // 오늘 등록된 전표 수 (VoucherSummaryResponse.todayCount)
@@ -70,6 +68,8 @@
         const tbody = document.getElementById('transaction_list');
         if (!tbody) return;
 
+        const loader = document.getElementById('tableLoader');
+
         tbody.innerHTML = `
             <tr>
                 <td colspan="8" style="text-align: center; padding: 32px; color: var(--text-muted);">
@@ -79,16 +79,13 @@
         `;
 
         try {
+            if (loader) loader.style.display = 'flex';
+
             const params = new URLSearchParams();
             if (state.statusFilter) params.set('status', state.statusFilter);
             if (state.keyword) params.set('keyword', state.keyword);
 
-            const response = await fetch(`${VOUCHER_API}?${params.toString()}`);
-            if (!response.ok) {
-                const errorBody = await response.json().catch(() => ({}));
-                throw new Error(errorBody.message || `조회 실패 (${response.status})`);
-            }
-            const body = await response.json();
+            const body = await window.ddukApi.get(`${VOUCHER_API}?${params.toString()}`);
             const vouchers = body.data || [];
 
             if (!vouchers.length) {
@@ -145,6 +142,8 @@
                     </td>
                 </tr>
             `;
+        } finally {
+            if (loader) loader.style.display = 'none';
         }
     }
 

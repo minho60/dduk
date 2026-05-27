@@ -1,14 +1,5 @@
 (function () {
-  const API_BASE_URL = (() => {
-    if (window.location.protocol === 'file:') {
-        return window.ddukSession?.getApiBaseUrl?.() || 'http://localhost:8080';
-    }
-    if (window.location.port && window.location.port !== '8080') {
-        return window.ddukSession?.getApiBaseUrl?.() || 'http://localhost:8080';
-    }
-    return '';
-  })();
-  const API_BASE = `${API_BASE_URL}/api/v1/accounting/payroll-ledgers`;
+  const API_PATH = '/api/v1/accounting/payroll-ledgers';
   const state = {
     ledgers: [],
     selectedLedgerId: null,
@@ -43,17 +34,17 @@
     toast.timer = window.setTimeout(() => el.classList.remove('show'), 2600);
   }
 
+  /** Unified API helper – delegates to window.ddukApi (apiClient.js) */
   async function request(path, options = {}) {
-    const response = await fetch(`${API_BASE}${path}`, {
-      headers: { 'Content-Type': 'application/json', ...(options.headers || {}) },
-      ...options
-    });
-    if (!response.ok) {
-      const text = await response.text();
-      throw new Error(text || `API 요청 실패 (${response.status})`);
-    }
-    if (response.status === 204) return null;
-    return response.json();
+    const url = `${API_PATH}${path}`;
+    const method = (options.method || 'GET').toUpperCase();
+    const body = options.body ? (typeof options.body === 'string' ? JSON.parse(options.body) : options.body) : undefined;
+    if (method === 'GET') return window.ddukApi.get(url);
+    if (method === 'POST') return window.ddukApi.post(url, body);
+    if (method === 'PUT') return window.ddukApi.put(url, body);
+    if (method === 'PATCH') return window.ddukApi.patch(url, body);
+    if (method === 'DELETE') return window.ddukApi.delete(url);
+    return window.ddukApi.get(url);
   }
 
   async function loadAll() {
