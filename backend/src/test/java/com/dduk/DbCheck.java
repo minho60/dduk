@@ -1,12 +1,14 @@
 package com.dduk;
 
+import org.junit.jupiter.api.Test;
 import java.sql.Connection;
 import java.sql.DriverManager;
 import java.sql.ResultSet;
 import java.sql.Statement;
 
 public class DbCheck {
-    public static void main(String[] args) {
+    @Test
+    public void checkDbCount() {
         System.out.println("==================================================");
         System.out.println("=== [DEBUG] START ACTUAL DB COUNT CHECK ===");
         try {
@@ -20,7 +22,7 @@ public class DbCheck {
                 "3UCLSyyYTzkXiNP.root",
                 "G7rPFFkfVMjTRv9c")) {
             
-            String[] tables = {"items", "inventories", "stock_movements", "purchase_orders"};
+            String[] tables = {"journal_entries", "journal_items", "accounts", "vouchers", "voucher_lines"};
             for (String table : tables) {
                 try (Statement stmt = conn.createStatement();
                      ResultSet rs = stmt.executeQuery("SELECT COUNT(*) FROM " + table)) {

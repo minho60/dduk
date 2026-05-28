@@ -414,6 +414,114 @@ public class OperationalDataInitializer {
                 postVoucher(res2.getId());
                 createdCount++;
             }
+
+            // [추가시드] 매월 5일: 소모성 물품 매입
+            LocalDate date5 = LocalDate.of(2026, month, 5);
+            String desc5 = month + "월 소모성 비품 정기 매입";
+            if (!isVoucherAlreadySeeded(date5, desc5)) {
+                BigDecimal supply = new BigDecimal("1000000");
+                BigDecimal vat = supply.multiply(new BigDecimal("0.10"));
+                BigDecimal total = supply.add(vat);
+
+                VoucherRequest req = new VoucherRequest();
+                req.setVoucherDate(date5);
+                req.setVoucherType(VoucherType.PURCHASE);
+                req.setVatType(VatType.TAX_INVOICE);
+                req.setVendorId(vendor2.getId());
+                req.setVendorNameSnapshot(vendor2.getName());
+                req.setDescription(desc5);
+
+                List<VoucherLineRequest> lines = new ArrayList<>();
+                lines.add(line(officeSup, AccountSide.DEBIT, supply, BigDecimal.ZERO, supply, "소모성 비품 매입"));
+                lines.add(line(vatRec, AccountSide.DEBIT, BigDecimal.ZERO, vat, vat, "매입 부가세대급금"));
+                lines.add(line(cashDep, AccountSide.CREDIT, BigDecimal.ZERO, BigDecimal.ZERO, total, "보통예금 지출"));
+                req.setLines(lines);
+
+                VoucherResponse res = voucherService.createVoucher(req);
+                postVoucher(res.getId());
+                createdCount++;
+            }
+
+            // [추가시드] 매월 10일: 임직원 식대 지급
+            LocalDate date10 = LocalDate.of(2026, month, 10);
+            String desc10 = month + "월 임직원 복리후생 식대 지급";
+            if (!isVoucherAlreadySeeded(date10, desc10)) {
+                BigDecimal supply = new BigDecimal("2000000");
+                BigDecimal vat = supply.multiply(new BigDecimal("0.10"));
+                BigDecimal total = supply.add(vat);
+
+                VoucherRequest req = new VoucherRequest();
+                req.setVoucherDate(date10);
+                req.setVoucherType(VoucherType.PURCHASE);
+                req.setVatType(VatType.TAX_INVOICE);
+                req.setVendorId(vendor1.getId());
+                req.setVendorNameSnapshot(vendor1.getName());
+                req.setDescription(desc10);
+
+                List<VoucherLineRequest> lines = new ArrayList<>();
+                lines.add(line(welfare, AccountSide.DEBIT, supply, BigDecimal.ZERO, supply, "복리후생 식대비"));
+                lines.add(line(vatRec, AccountSide.DEBIT, BigDecimal.ZERO, vat, vat, "매입 부가세대급금"));
+                lines.add(line(cashDep, AccountSide.CREDIT, BigDecimal.ZERO, BigDecimal.ZERO, total, "보통예금 지출"));
+                req.setLines(lines);
+
+                VoucherResponse res = voucherService.createVoucher(req);
+                postVoucher(res.getId());
+                createdCount++;
+            }
+
+            // [추가시드] 매월 20일: 거래처 정기 납품 매출
+            LocalDate date20 = LocalDate.of(2026, month, 20);
+            String desc20 = month + "월 거래처 정기 납품 매출";
+            if (!isVoucherAlreadySeeded(date20, desc20)) {
+                BigDecimal supply = new BigDecimal("5000000");
+                BigDecimal vat = supply.multiply(new BigDecimal("0.10"));
+                BigDecimal total = supply.add(vat);
+
+                VoucherRequest req = new VoucherRequest();
+                req.setVoucherDate(date20);
+                req.setVoucherType(VoucherType.SALES);
+                req.setVatType(VatType.TAX_INVOICE);
+                req.setVendorId(vendor1.getId());
+                req.setVendorNameSnapshot(vendor1.getName());
+                req.setDescription(desc20);
+
+                List<VoucherLineRequest> lines = new ArrayList<>();
+                lines.add(line(cashDep, AccountSide.DEBIT, BigDecimal.ZERO, BigDecimal.ZERO, total, "매출 대금 예입"));
+                lines.add(line(sales, AccountSide.CREDIT, supply, BigDecimal.ZERO, supply, "정기 상품 매출"));
+                lines.add(line(vatPay, AccountSide.CREDIT, BigDecimal.ZERO, vat, vat, "매출 부가세예수금"));
+                req.setLines(lines);
+
+                VoucherResponse res = voucherService.createVoucher(req);
+                postVoucher(res.getId());
+                createdCount++;
+            }
+
+            // [추가시드] 매월 25일: 소모품 추가 구매
+            LocalDate date25 = LocalDate.of(2026, month, 25);
+            String desc25 = month + "월 소모품비 추가 발생분";
+            if (!isVoucherAlreadySeeded(date25, desc25)) {
+                BigDecimal supply = new BigDecimal("300000");
+                BigDecimal vat = supply.multiply(new BigDecimal("0.10"));
+                BigDecimal total = supply.add(vat);
+
+                VoucherRequest req = new VoucherRequest();
+                req.setVoucherDate(date25);
+                req.setVoucherType(VoucherType.PURCHASE);
+                req.setVatType(VatType.TAX_INVOICE);
+                req.setVendorId(vendor2.getId());
+                req.setVendorNameSnapshot(vendor2.getName());
+                req.setDescription(desc25);
+
+                List<VoucherLineRequest> lines = new ArrayList<>();
+                lines.add(line(officeSup, AccountSide.DEBIT, supply, BigDecimal.ZERO, supply, "소모품비 추가 결제"));
+                lines.add(line(vatRec, AccountSide.DEBIT, BigDecimal.ZERO, vat, vat, "매입 부가세대급금"));
+                lines.add(line(cashDep, AccountSide.CREDIT, BigDecimal.ZERO, BigDecimal.ZERO, total, "보통예금 지출"));
+                req.setLines(lines);
+
+                VoucherResponse res = voucherService.createVoucher(req);
+                postVoucher(res.getId());
+                createdCount++;
+            }
         }
 
         // 5월 전표 (현재 월 - DRAFT, REQUESTED, APPROVED 등의 상태를 믹스하여 생성)

@@ -92,6 +92,10 @@ public class PayrollManagementService {
             throw new IllegalStateException("Only CALCULATED payroll ledgers can be confirmed.");
         }
         ledger.setStatus(PayrollStatus.CONFIRMED);
+        if (ledger.getJournalEntry() != null) {
+            ledger.getJournalEntry().post();
+            journalEntryRepository.save(ledger.getJournalEntry());
+        }
         return toResponse(ledger, true);
     }
 

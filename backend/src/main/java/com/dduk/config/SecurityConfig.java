@@ -83,7 +83,7 @@ public class SecurityConfig {
                 
                 .requestMatchers("/api/v1/admin/**").hasRole("ADMIN")
                 .requestMatchers("/api/v1/hr/**").hasAnyRole("ADMIN", "HR")
-                .requestMatchers("/api/v1/inventory/**").hasAnyRole("ADMIN", "INVENTORY")
+                .requestMatchers("/api/v1/inventory/**", "/api/v1/inventories/**").hasAnyRole("ADMIN", "INVENTORY")
                 .anyRequest().authenticated()
             )
             .exceptionHandling(exceptionHandling -> exceptionHandling
@@ -127,7 +127,7 @@ public class SecurityConfig {
                 // 운영(prod) 환경에서는 회계 관련 permitAll이 전혀 없음
                 .requestMatchers("/api/v1/admin/**").hasRole("ADMIN")
                 .requestMatchers("/api/v1/hr/**").hasAnyRole("ADMIN", "HR")
-                .requestMatchers("/api/v1/inventory/**").hasAnyRole("ADMIN", "INVENTORY")
+                .requestMatchers("/api/v1/inventory/**", "/api/v1/inventories/**").hasAnyRole("ADMIN", "INVENTORY")
                 .anyRequest().authenticated()
             )
             .exceptionHandling(exceptionHandling -> exceptionHandling
