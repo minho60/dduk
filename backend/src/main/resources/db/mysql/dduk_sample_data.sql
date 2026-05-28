@@ -1,50 +1,87 @@
 -- =================================================================
--- DDUK ERP Custom Sample Data Seed File
+-- DDUK ERP Custom Sample Data Seed File (Amantea Target Edition)
 -- =================================================================
--- 이 파일에 추후 커스텀 더미 데이터를 INSERT 쿼리 형태로 작성하시면 
--- Spring Boot 기동 시 자동으로 데이터베이스에 적재됩니다.
+-- 이 파일은 아망티(Amantea) 쇼핑몰 크롤링 시나리오 시연을 위한 
+-- 기초 마스터 데이터(거래처, 품목, 초기 재고 등) 작성 템플릿입니다.
 --
--- [주의사항]
--- 1. 데이터 정합성(외래키 제약조건)을 지키기 위해 아래 순서대로 작성하시는 것을 권장합니다.
---    - members -> employees -> payroll_contracts -> vendors -> warehouses -> items -> inventories -> vouchers -> voucher_lines ...
--- 2. 중복 기동 시 고유키(Unique Key) 충돌 에러를 방지하기 위해 
---    `INSERT INTO ... ON DUPLICATE KEY UPDATE` 구문을 적극 사용하십시오.
---
+-- 내일 직접 더미 데이터를 작성하실 때 아래 예시들의 주석(--)을 해제하고
+-- 실제 아망티 상품명 및 규격에 맞게 값을 채워 넣으시면 됩니다.
 -- =================================================================
 
 -- -----------------------------------------------------------------
--- 1. 예시: 임직원 (employees) 추가
--- -----------------------------------------------------------------
--- INSERT INTO employees (employee_no, name, department, position, employment_status, hire_date, email, phone)
--- VALUES ('E9999', '홍길동', '개발부', '사원', 'ACTIVE', '2026-01-01', 'hong@dduk.com', '010-1234-5678')
--- ON DUPLICATE KEY UPDATE 
---     name = VALUES(name), 
---     department = VALUES(department), 
---     position = VALUES(position), 
---     updated_at = NOW();
-
--- -----------------------------------------------------------------
--- 2. 예시: 거래처 (vendors) 추가
+-- 1. [거래처 등록 예시] 아망티 공식 도매처 등록
 -- -----------------------------------------------------------------
 -- INSERT INTO vendors (vendor_code, business_registration_no, name, representative_name, business_type, business_item, contact_name, contact_phone, email, status)
--- VALUES ('V999', '123-45-00000', '(주)예시대상', '김예시', '도소매', '샘플품목', '이담당', '010-9999-8888', 'sample@example.com', 'ACTIVE')
+-- VALUES ('V005', '000-00-00000', '(주)아망티', '아망티대표', '도소매', '식음료/차류', '아망티담당', '010-9999-8888', 'support@amantea.co.kr', 'ACTIVE')
 -- ON DUPLICATE KEY UPDATE 
 --     name = VALUES(name), 
---     representative_name = VALUES(representative_name), 
+--     representative_name = VALUES(representative_name),
 --     updated_at = NOW();
 
 -- -----------------------------------------------------------------
--- 3. 예시: 품목 (items) 추가
+-- 2. [품목 등록 예시] 아망티 크롤링 대상 허브차/홍차 품목 매핑
 -- -----------------------------------------------------------------
--- INSERT INTO items (item_code, name, item_type, category, spec, unit, standard_cost, unit_price, is_active)
--- VALUES ('ITM-9999', '예시 찹쌀가루', 'RAW_MATERIAL', '원재료', '10kg/포대', 'KG', 1500.00, 2000.00, 1)
+-- INSERT INTO items (item_code, name, item_type, category, spec, unit, default_vendor_id, standard_cost, unit_price, is_active)
+-- VALUES 
+--     (
+--         'ITM-AMNT-001', 
+--         '아망티 얼그레이 홍차 (100T)', 
+--         'RAW_MATERIAL', 
+--         '원재료', 
+--         '100개입/상자 [아망티 직매입]', 
+--         'BOX', 
+--         (SELECT id FROM vendors WHERE vendor_code = 'V005'), 
+--         4500.00,  -- ERP 내부 장부가(기준가)
+--         6000.00,  -- ERP 표준 발주단가
+--         1
+--     ),
+--     (
+--         'ITM-AMNT-002', 
+--         '아망티 루이보스 오렌지 (50T)', 
+--         'RAW_MATERIAL', 
+--         '원재료', 
+--         '50개입/상자 [아망티 직매입]', 
+--         'BOX', 
+--         (SELECT id FROM vendors WHERE vendor_code = 'V005'), 
+--         3200.00, 
+--         4500.00, 
+--         1
+--     )
 -- ON DUPLICATE KEY UPDATE 
 --     name = VALUES(name), 
 --     standard_cost = VALUES(standard_cost), 
---     unit_price = VALUES(unit_price), 
+--     unit_price = VALUES(unit_price),
 --     updated_at = NOW();
 
 -- -----------------------------------------------------------------
--- 빈 스크립트 실행 에러 방지를 위한 더미 쿼리
+-- 3. [초기 재고 매핑 예시] 아망티 품목에 대한 원재료창고(WH-RAW) 초기 재고 등록
+-- -----------------------------------------------------------------
+-- INSERT INTO inventories (item_id, warehouse_id, current_stock, allocated_stock, safety_stock, average_cost, inventory_value)
+-- VALUES 
+--     (
+--         (SELECT id FROM items WHERE item_code = 'ITM-AMNT-001'),
+--         (SELECT id FROM warehouses WHERE warehouse_code = 'WH-RAW'),
+--         150, -- 초기 재고 150 박스
+--         0, 
+--         20, 
+--         4500.0000, 
+--         675000.0000
+--     ),
+--     (
+--         (SELECT id FROM items WHERE item_code = 'ITM-AMNT-002'),
+--         (SELECT id FROM warehouses WHERE warehouse_code = 'WH-RAW'),
+--         80, 
+--         0, 
+--         10, 
+--         3200.0000, 
+--         256000.0000
+--     )
+-- ON DUPLICATE KEY UPDATE 
+--     current_stock = VALUES(current_stock), 
+--     inventory_value = VALUES(inventory_value),
+--     updated_at = NOW();
+
+-- -----------------------------------------------------------------
+-- 빈 스크립트 실행 에러 방지를 위한 더미 쿼리 (삭제 금지)
 -- -----------------------------------------------------------------
 SELECT 1;
