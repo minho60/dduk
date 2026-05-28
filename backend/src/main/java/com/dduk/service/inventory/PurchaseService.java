@@ -2,6 +2,7 @@ package com.dduk.service.inventory;
 
 import com.dduk.service.accounting.AccountingConstants;
 import com.dduk.service.accounting.autojounal.AutoJournalService;
+import com.dduk.dto.admin.OcrPurchaseOrderLinkRequestDto;
 import com.dduk.dto.inventory.PurchaseOrderCreateDto;
 import com.dduk.dto.inventory.PurchaseOrderItemCreateDto;
 import com.dduk.dto.inventory.PurchaseOrderItemResponseDto;
@@ -44,6 +45,7 @@ import java.util.List;
 import java.util.Map;
 import java.util.function.Function;
 import java.util.stream.Collectors;
+import java.lang.reflect.Field;
 
 @Service
 @RequiredArgsConstructor
@@ -502,6 +504,30 @@ public class PurchaseService {
     }
 
     @Transactional
+    public PurchaseOrderResponseDto createPurchaseOrderFromOcrLink(OcrPurchaseOrderLinkRequestDto requestDto, Long requestedByMemberId) {
+        PurchaseOrderCreateDto purchaseOrderCreateDto = new PurchaseOrderCreateDto();
+        setField(purchaseOrderCreateDto, "vendorId", requestDto.getVendorId());
+        setField(purchaseOrderCreateDto, "approvedByMemberId", requestDto.getApprovedByMemberId());
+        setField(purchaseOrderCreateDto, "expectedDate", requestDto.getExpectedDate());
+        setField(purchaseOrderCreateDto, "note", requestDto.getNote());
+
+        List<PurchaseOrderItemCreateDto> items = new ArrayList<>();
+        if (requestDto.getItems() != null) {
+            for (OcrPurchaseOrderLinkRequestDto.Item item : requestDto.getItems()) {
+                PurchaseOrderItemCreateDto itemCreateDto = new PurchaseOrderItemCreateDto();
+                setField(itemCreateDto, "itemId", item.getItemId());
+                setField(itemCreateDto, "quantity", item.getQuantity());
+                setField(itemCreateDto, "unitPrice", item.getUnitPrice());
+                setField(itemCreateDto, "expectedDate", item.getExpectedDate());
+                setField(itemCreateDto, "note", item.getNote());
+                items.add(itemCreateDto);
+            }
+        }
+        setField(purchaseOrderCreateDto, "items", items);
+        return createPurchaseOrder(purchaseOrderCreateDto, requestedByMemberId);
+    }
+
+    @Transactional
     public PurchaseOrderResponseDto updatePurchaseOrderStatus(Long id, PurchaseOrderStatusUpdateDto requestDto, Long memberId) {
         if (requestDto == null || requestDto.getStatus() == null || requestDto.getStatus().isBlank()) {
             throw new ResponseStatusException(HttpStatus.BAD_REQUEST, "변경할 발주 상태가 필요합니다.");
@@ -767,5 +793,15 @@ public class PurchaseService {
 
     private String generatePurchaseRequestNo() {
         return "PR-" + LocalDate.now().format(DateTimeFormatter.BASIC_ISO_DATE) + "-" + System.currentTimeMillis();
+    }
+
+    private void setField(Object target, String fieldName, Object value) {
+        try {
+            Field field = target.getClass().getDeclaredField(fieldName);
+            field.setAccessible(true);
+            field.set(target, value);
+        } catch (ReflectiveOperationException exception) {
+            throw new IllegalStateException("필드 매핑에 실패했습니다: " + fieldName, exception);
+        }
     }
 }

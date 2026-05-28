@@ -58,6 +58,7 @@ public class SecurityConfig {
                 ).permitAll()
                 .requestMatchers("/api/v1/auth/login").permitAll()
                 .requestMatchers("/api/v1/callbacks/rpa").permitAll() // RPA 비동기 웹훅 콜백 단일 엔드포인트 핀포인트 허용
+                .requestMatchers(HttpMethod.POST, "/api/v1/ai/ocr/documents").hasAnyRole("ADMIN", "HR", "INVENTORY")
                 .requestMatchers(HttpMethod.POST, "/api/v1/inventory/vendors").permitAll()
                 .requestMatchers(HttpMethod.GET, "/api/v1/inventory/vendors/**").permitAll()
                 .requestMatchers(HttpMethod.PATCH, "/api/v1/inventory/vendors/*").permitAll()

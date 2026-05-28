@@ -10,6 +10,7 @@ load_dotenv(dotenv_path)
 
 # 라우터 Blueprint 등록을 위해 지연 임포트(dotenv 로드 후 호출되어야 함)
 from api.chatbot_route import chatbot_bp
+from api.ocr_route import ocr_bp
 
 logging.basicConfig(level=logging.INFO)
 logger = logging.getLogger(__name__)
@@ -33,6 +34,7 @@ def create_app():
 
     # Blueprints
     app.register_blueprint(chatbot_bp)
+    app.register_blueprint(ocr_bp)
 
     @app.route("/health", methods=["GET"])
     def health():
