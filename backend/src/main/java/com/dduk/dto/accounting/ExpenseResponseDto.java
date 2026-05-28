@@ -31,7 +31,7 @@ public class ExpenseResponseDto {
                 .category(expense.getCategory())
                 .amount(expense.getAmount())
                 .description(expense.getDescription())
-                .receiptFilePath(expense.getReceiptFilePath())
+                .receiptFilePath(null)
                 .status(expense.getStatus())
                 .createdAt(expense.getCreatedAt())
                 .updatedAt(expense.getUpdatedAt())
