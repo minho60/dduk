@@ -1,67 +1,58 @@
+/**
+ * DDUK ERP 재고관리 전용 API 서비스
+ * - 모든 fetch는 window.ddukApi(apiClient.js)를 통해 처리
+ * - JWT, base URL, 401/에러 처리는 apiClient.js에 위임
+ * - 직접 fetch 호출 금지
+ */
 const InventoryService = {
-    getDashboardStats: async () => {
-        const response = await fetch('/api/v1/inventory/dashboard/stats');
-        return response.json();
+    getDashboardStats: () =>
+        window.ddukApi.get('/api/v1/inventory/dashboard/stats'),
+
+    getStocks: (params = {}) => {
+        const qs = new URLSearchParams(
+            Object.fromEntries(Object.entries(params).filter(([, v]) => v !== '' && v !== null && v !== undefined))
+        ).toString();
+        return window.ddukApi.get(`/api/v1/inventories${qs ? '?' + qs : ''}`);
     },
-    getStocks: async (params = {}) => {
-        const queryString = new URLSearchParams(params).toString();
-        const response = await fetch(`/api/v1/inventories?${queryString}`);
-        return response.json();
+
+    getMovements: (params = {}) => {
+        const qs = new URLSearchParams(
+            Object.fromEntries(Object.entries(params).filter(([, v]) => v !== '' && v !== null && v !== undefined))
+        ).toString();
+        return window.ddukApi.get(`/api/v1/inventories/stock-movements${qs ? '?' + qs : ''}`);
     },
-    getMovements: async (params = {}) => {
-        const queryString = new URLSearchParams(params).toString();
-        const response = await fetch(`/api/v1/inventories/stock-movements?${queryString}`);
-        return response.json();
+
+    transfer: (data) =>
+        window.ddukApi.post('/api/v1/inventories/transfer', data),
+
+    getReorderRecommendations: () =>
+        window.ddukApi.get('/api/v1/inventories/reorder-recommendations'),
+
+    getPurchaseRecommendations: () =>
+        window.ddukApi.get('/api/v1/inventory/purchase-recommendations'),
+
+    getWarehouses: () =>
+        window.ddukApi.get('/api/v1/warehouses'),
+
+    getTransfers: (params = {}) => {
+        const qs = new URLSearchParams(
+            Object.fromEntries(Object.entries(params).filter(([, v]) => v !== '' && v !== null && v !== undefined))
+        ).toString();
+        return window.ddukApi.get(`/api/v1/warehouse-transfers${qs ? '?' + qs : ''}`);
     },
-    transfer: async (data) => {
-        const response = await fetch('/api/v1/inventories/transfer', {
-            method: 'POST',
-            headers: { 'Content-Type': 'application/json' },
-            body: JSON.stringify(data)
-        });
-        return response.json();
-    },
-    getReorderRecommendations: async () => {
-        const response = await fetch('/api/v1/inventories/reorder-recommendations');
-        return response.json();
-    },
-    getWarehouses: async () => {
-        const response = await fetch('/api/v1/warehouses');
-        return response.json();
-    },
-    getTransfers: async (params = {}) => {
-        const queryString = new URLSearchParams(params).toString();
-        const response = await fetch(`/api/v1/warehouse-transfers?${queryString}`);
-        return response.json();
-    },
-    getTransferDetail: async (id) => {
-        const response = await fetch(`/api/v1/warehouse-transfers/${id}`);
-        return response.json();
-    },
-    requestTransfer: async (data) => {
-        const response = await fetch('/api/v1/warehouse-transfers', {
-            method: 'POST',
-            headers: { 'Content-Type': 'application/json' },
-            body: JSON.stringify(data)
-        });
-        return response.json();
-    },
-    approveTransfer: async (id) => {
-        const response = await fetch(`/api/v1/warehouse-transfers/${id}/approve`, {
-            method: 'POST'
-        });
-        return response.json();
-    },
-    completeTransfer: async (id) => {
-        const response = await fetch(`/api/v1/warehouse-transfers/${id}/complete`, {
-            method: 'POST'
-        });
-        return response.json();
-    },
-    cancelTransfer: async (id) => {
-        const response = await fetch(`/api/v1/warehouse-transfers/${id}/cancel`, {
-            method: 'POST'
-        });
-        return response.json();
-    }
+
+    getTransferDetail: (id) =>
+        window.ddukApi.get(`/api/v1/warehouse-transfers/${id}`),
+
+    requestTransfer: (data) =>
+        window.ddukApi.post('/api/v1/warehouse-transfers', data),
+
+    approveTransfer: (id) =>
+        window.ddukApi.post(`/api/v1/warehouse-transfers/${id}/approve`, {}),
+
+    completeTransfer: (id) =>
+        window.ddukApi.post(`/api/v1/warehouse-transfers/${id}/complete`, {}),
+
+    cancelTransfer: (id) =>
+        window.ddukApi.post(`/api/v1/warehouse-transfers/${id}/cancel`, {})
 };

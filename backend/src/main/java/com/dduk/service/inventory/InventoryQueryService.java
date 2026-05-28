@@ -30,13 +30,13 @@ public class InventoryQueryService {
     public List<Inventory> getInventories(Long warehouseId, Long itemId, Boolean lowStockOnly) {
         List<Inventory> results;
         if (warehouseId != null && itemId != null) {
-            results = inventoryRepository.findByWarehouseIdAndItemId(warehouseId, itemId);
+            results = inventoryRepository.findByWarehouseIdAndItemIdWithFetch(warehouseId, itemId);
         } else if (warehouseId != null) {
-            results = inventoryRepository.findByWarehouseId(warehouseId);
+            results = inventoryRepository.findByWarehouseIdWithFetch(warehouseId);
         } else if (itemId != null) {
-            results = inventoryRepository.findByItemId(itemId);
+            results = inventoryRepository.findByItemIdWithFetch(itemId);
         } else {
-            results = inventoryRepository.findAll();
+            results = inventoryRepository.findAllWithItemAndWarehouse();
         }
 
         if (Boolean.TRUE.equals(lowStockOnly)) {
@@ -48,7 +48,7 @@ public class InventoryQueryService {
     }
 
     public List<Inventory> getReorderRecommendations() {
-        return inventoryRepository.findItemsNeedingReorder();
+        return inventoryRepository.findItemsNeedingReorderWithFetch();
     }
 
     public InventoryDashboardResponseDto getDashboardStats() {
@@ -68,15 +68,11 @@ public class InventoryQueryService {
                         .build())
                 .collect(Collectors.toList());
 
-        // 2. 최근 5건 변동 이력 Read Model 변환
-        List<StockMovement> movements = stockMovementRepository.findAll();
-        movements.sort((m1, m2) -> {
-            int dateComp = m2.getCreatedAt().compareTo(m1.getCreatedAt());
-            if (dateComp != 0) return dateComp;
-            return m2.getId().compareTo(m1.getId());
-        });
-
-        List<RecentMovementDto> recentMovements = movements.stream().limit(5)
+        // 2. 최근 30일간의 모든 변동 이력 Read Model 변환 (차트 집계 및 위젯용)
+        List<StockMovement> movements = stockMovementRepository.findAllWithFetch();
+        LocalDateTime thirtyDaysAgo = LocalDateTime.now().minusDays(30);
+        List<RecentMovementDto> recentMovements = movements.stream()
+                .filter(m -> m.getCreatedAt().isAfter(thirtyDaysAgo))
                 .map(m -> RecentMovementDto.builder()
                         .id(m.getId())
                         .createdAt(m.getCreatedAt())
@@ -100,24 +96,25 @@ public class InventoryQueryService {
     }
 
     public List<StockMovement> getStockMovements(Long warehouseId, Long itemId, MovementType movementType) {
-        List<StockMovement> results = stockMovementRepository.findAll();
-        
-        if (warehouseId != null) {
-            results = results.stream().filter(m -> m.getWarehouse().getId().equals(warehouseId)).collect(Collectors.toList());
+        if (warehouseId != null && itemId != null && movementType != null) {
+            // 3가지 조합: warehouseId + itemId + movementType
+            return stockMovementRepository.findByWarehouseIdAndItemIdWithFetch(warehouseId, itemId)
+                    .stream().filter(m -> m.getMovementType() == movementType)
+                    .collect(Collectors.toList());
+        } else if (warehouseId != null && movementType != null) {
+            return stockMovementRepository.findByWarehouseIdAndMovementTypeWithFetch(warehouseId, movementType);
+        } else if (itemId != null && movementType != null) {
+            return stockMovementRepository.findByItemIdAndMovementTypeWithFetch(itemId, movementType);
+        } else if (warehouseId != null && itemId != null) {
+            return stockMovementRepository.findByWarehouseIdAndItemIdWithFetch(warehouseId, itemId);
+        } else if (warehouseId != null) {
+            return stockMovementRepository.findByWarehouseIdWithFetch(warehouseId);
+        } else if (itemId != null) {
+            return stockMovementRepository.findByItemIdWithFetch(itemId);
+        } else if (movementType != null) {
+            return stockMovementRepository.findByMovementTypeWithFetch(movementType);
+        } else {
+            return stockMovementRepository.findAllWithFetch();
         }
-        if (itemId != null) {
-            results = results.stream().filter(m -> m.getItem().getId().equals(itemId)).collect(Collectors.toList());
-        }
-        if (movementType != null) {
-            results = results.stream().filter(m -> m.getMovementType() == movementType).collect(Collectors.toList());
-        }
-        
-        results.sort((m1, m2) -> {
-            int dateComp = m2.getCreatedAt().compareTo(m1.getCreatedAt());
-            if (dateComp != 0) return dateComp;
-            return m2.getId().compareTo(m1.getId());
-        });
-
-        return results;
     }
 }

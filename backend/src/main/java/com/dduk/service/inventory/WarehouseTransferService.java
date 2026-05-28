@@ -221,6 +221,38 @@ public class WarehouseTransferService {
         return convertToResponseDto(transfer);
     }
 
+    @Transactional(rollbackFor = Exception.class)
+    public WarehouseTransferResponseDto cancelTransfer(Long transferId, String reason, String type) {
+        WarehouseTransfer transfer = warehouseTransferRepository.findById(transferId)
+                .orElseThrow(() -> new IllegalArgumentException("이동 요청을 찾을 수 없습니다."));
+
+        if (transfer.getStatus() == TransferStatus.CANCELLED) {
+            return convertToResponseDto(transfer);
+        }
+
+        // 상태 머신 강제 및 예약 해제
+        transfer.cancel();
+
+        // remarks 에 [유형] 사유 형태로 사유 누적
+        if (reason != null && !reason.trim().isEmpty()) {
+            String prefix = (type != null) ? type : "취소";
+            transfer.setRemarks("[" + prefix + "] 사유: " + reason);
+        }
+
+        Warehouse sourceWh = transfer.getSourceWarehouse();
+        for (WarehouseTransferItem transferItem : transfer.getItems()) {
+            Inventory sourceInventory = inventoryRepository.findByItemIdAndWarehouseId(transferItem.getItem().getId(), sourceWh.getId())
+                    .orElseThrow(() -> new IllegalStateException("출발 창고에 재고 데이터가 존재하지 않습니다."));
+            
+            // allocatedStock 차감 해제
+            sourceInventory.setAllocatedStock(Math.max(0, sourceInventory.getAllocatedStock() - transferItem.getQuantity()));
+            inventoryRepository.save(sourceInventory);
+        }
+
+        warehouseTransferRepository.save(transfer);
+        return convertToResponseDto(transfer);
+    }
+
     @Transactional(readOnly = true)
     public List<WarehouseTransferResponseDto> getAllTransfers(TransferStatus status, Long sourceWhId, Long targetWhId) {
         List<WarehouseTransfer> transfers = warehouseTransferRepository.findAll();

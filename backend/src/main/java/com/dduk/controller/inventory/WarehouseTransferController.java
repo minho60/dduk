@@ -90,14 +90,24 @@ public class WarehouseTransferController {
     }
 
     @PostMapping("/{id}/cancel")
-    public ResponseEntity<Map<String, Object>> cancelTransfer(@PathVariable Long id) {
+    public ResponseEntity<Map<String, Object>> cancelTransfer(
+            @PathVariable Long id,
+            @RequestBody(required = false) java.util.Map<String, String> body) {
         try {
-            WarehouseTransferResponseDto data = warehouseTransferService.cancelTransfer(id);
-            return buildSuccessResponse(data, "창고 이동 요청이 취소되었습니다.");
+            String reason = body != null ? body.get("reason") : null;
+            String type = body != null ? body.get("type") : "취소";
+            WarehouseTransferResponseDto data;
+            if (reason != null && !reason.trim().isEmpty()) {
+                data = warehouseTransferService.cancelTransfer(id, reason, type);
+            } else {
+                data = warehouseTransferService.cancelTransfer(id);
+            }
+            String msg = "반려".equals(type) ? "창고 이동 요청이 반려되었습니다." : "창고 이동 요청이 취소되었습니다.";
+            return buildSuccessResponse(data, msg);
         } catch (IllegalStateException | IllegalArgumentException e) {
             return buildErrorResponse(e.getMessage(), "INVALID_STATE_TRANSITION", HttpStatus.BAD_REQUEST);
         } catch (Exception e) {
-            return buildErrorResponse("취소 처리 중 서버 내부 오류가 발생했습니다.", "SERVER_ERROR", HttpStatus.INTERNAL_SERVER_ERROR);
+            return buildErrorResponse("처리 중 서버 내부 오류가 발생했습니다.", "SERVER_ERROR", HttpStatus.INTERNAL_SERVER_ERROR);
         }
     }
 

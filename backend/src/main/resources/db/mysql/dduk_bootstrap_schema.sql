@@ -411,6 +411,7 @@ ON DUPLICATE KEY UPDATE
 
 -- 재고-회계 연동: Voucher source tracking 컬럼 추가
 ALTER TABLE vouchers
+    MODIFY COLUMN voucher_type VARCHAR(50) NOT NULL,
     ADD COLUMN IF NOT EXISTS source_type VARCHAR(50) NULL COMMENT '자동생성 원천 도메인 (VoucherSourceType enum)',
     ADD COLUMN IF NOT EXISTS source_reference_id BIGINT NULL COMMENT '원천 엔티티 ID (stock_movement.id 등)';
 
