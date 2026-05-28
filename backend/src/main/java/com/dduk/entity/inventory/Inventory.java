@@ -34,13 +34,13 @@ public class Inventory {
     @Column(name = "location", nullable = false, length = 100)
     private String location;
 
-    @Column(name = "quantity", nullable = false)
+    @Column(name = "current_stock", nullable = false)
     private Integer currentStock;
 
     @Column(name = "safety_stock", nullable = false)
     private Integer safetyStock;
 
-    @Column(name = "allocated_quantity", nullable = false)
+    @Column(name = "allocated_stock", nullable = false)
     private Integer allocatedStock; // 예약수량
 
     @Column(name = "average_cost", nullable = false, precision = 19, scale = 4)

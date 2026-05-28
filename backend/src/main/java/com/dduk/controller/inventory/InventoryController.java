@@ -26,7 +26,7 @@ import java.util.List;
 import java.util.Map;
 
 @RestController
-@RequestMapping("/api/v1/inventories")
+@RequestMapping({"/api/v1/inventories", "/api/v1/inventory"})
 @RequiredArgsConstructor
 public class InventoryController {
 
@@ -45,7 +45,7 @@ public class InventoryController {
         return buildSuccessResponse(data);
     }
 
-    @GetMapping("/stock-movements")
+    @GetMapping({"/stock-movements", "/movements"})
     public ResponseEntity<Map<String, Object>> getStockMovements(
             @RequestParam(required = false) Long warehouseId,
             @RequestParam(required = false) Long itemId,

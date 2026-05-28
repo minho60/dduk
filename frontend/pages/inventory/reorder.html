@@ -3,11 +3,60 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <meta name="description" content="DDUK ERP 자동 발주 추천 - 안전재고 기반 규칙 엔진">
     <title>자동 발주 추천 | DDUK ERP</title>
     <script src="https://cdn.tailwindcss.com/3.4.17"></script>
     <script src="https://cdn.jsdelivr.net/npm/lucide@0.263.0/dist/umd/lucide.min.js"></script>
     <link href="https://fonts.googleapis.com/css2?family=DM+Sans:wght@400;500;600;700&display=swap" rel="stylesheet">
     <link rel="stylesheet" href="../../styles/common/dashboard.css">
+    <style>
+        .rec-table { width: 100%; border-collapse: separate; border-spacing: 0; }
+        .rec-table th { background: #f9fafb; padding: 0.875rem 1rem; text-align: left; font-size: 0.7rem; font-weight: 700; color: #6b7280; text-transform: uppercase; letter-spacing: 0.05em; border-bottom: 2px solid #e5e7eb; }
+        .rec-table td { padding: 1rem; font-size: 0.875rem; color: #374151; border-bottom: 1px solid #f3f4f6; vertical-align: middle; }
+        .rec-table tr:hover td { background: #f8faff; }
+        .rec-table tr:last-child td { border-bottom: none; }
+
+        /* 긴급도 뱃지 */
+        .urgency-badge { display: inline-flex; align-items: center; gap: 0.3rem; padding: 0.3rem 0.65rem; border-radius: 9999px; font-size: 0.7rem; font-weight: 700; text-transform: uppercase; letter-spacing: 0.04em; }
+        .urgency-CRITICAL { background: #fef2f2; color: #dc2626; border: 1px solid #fecaca; }
+        .urgency-HIGH { background: #fff7ed; color: #c2410c; border: 1px solid #fed7aa; }
+        .urgency-MEDIUM { background: #fffbeb; color: #b45309; border: 1px solid #fde68a; }
+        .urgency-LOW { background: #f0fdf4; color: #166534; border: 1px solid #bbf7d0; }
+
+        /* 재고 게이지 */
+        .stock-gauge-wrap { background: #f3f4f6; border-radius: 9999px; height: 5px; width: 80px; overflow: hidden; }
+        .stock-gauge-bar { height: 100%; border-radius: 9999px; }
+
+        /* 스켈레톤 */
+        .skeleton { background: linear-gradient(90deg, #f3f4f6 25%, #e5e7eb 50%, #f3f4f6 75%); background-size: 200% 100%; animation: skeleton-shimmer 1.4s infinite; border-radius: 0.375rem; }
+        @keyframes skeleton-shimmer { 0% { background-position: 200% 0; } 100% { background-position: -200% 0; } }
+
+        /* 요약 카드 */
+        .summary-cards { display: grid; grid-template-columns: repeat(auto-fit, minmax(160px, 1fr)); gap: 1rem; margin-bottom: 1.5rem; }
+        .summary-card { background: #fff; border: 1px solid #e5e7eb; border-radius: 1rem; padding: 1.25rem 1.5rem; }
+        .summary-card-icon { width: 2.25rem; height: 2.25rem; border-radius: 0.6rem; display: flex; align-items: center; justify-content: center; margin-bottom: 0.75rem; }
+        .summary-card-value { font-size: 1.6rem; font-weight: 800; line-height: 1; color: #111827; }
+        .summary-card-label { font-size: 0.7rem; font-weight: 600; color: #9ca3af; text-transform: uppercase; letter-spacing: 0.06em; margin-top: 0.3rem; }
+
+        /* 필터 섹션 */
+        .filter-bar { display: flex; align-items: center; gap: 0.75rem; margin-bottom: 1rem; flex-wrap: wrap; }
+        .filter-btn { padding: 0.4rem 0.9rem; border-radius: 9999px; font-size: 0.75rem; font-weight: 600; border: 1.5px solid transparent; cursor: pointer; transition: all 0.15s; }
+        .filter-btn.active { border-color: #6366f1; background: #eef2ff; color: #4338ca; }
+        .filter-btn:not(.active) { border-color: #e5e7eb; background: #fff; color: #6b7280; }
+        .filter-btn:hover:not(.active) { border-color: #d1d5db; background: #f9fafb; }
+
+        /* 발주 요청 버튼 */
+        .order-btn { padding: 0.4rem 0.85rem; border-radius: 0.5rem; font-size: 0.75rem; font-weight: 700; cursor: pointer; transition: all 0.15s; }
+        .order-btn-primary { background: #eef2ff; color: #4338ca; border: 1.5px solid #c7d2fe; }
+        .order-btn-primary:hover { background: #e0e7ff; }
+        .order-btn-urgent { background: #fef2f2; color: #dc2626; border: 1.5px solid #fecaca; }
+        .order-btn-urgent:hover { background: #fee2e2; }
+
+        /* 예상 소진일 색상 */
+        .stockout-red { color: #dc2626; font-weight: 700; }
+        .stockout-orange { color: #c2410c; font-weight: 600; }
+        .stockout-gray { color: #6b7280; font-weight: 500; }
+    </style>
 </head>
 <body class="bg-gray-50 min-h-screen">
     <aside data-dduk-sidebar></aside>
@@ -15,82 +64,350 @@
         <header class="topbar px-6 py-4 bg-white border-b flex items-center justify-between">
             <div class="flex items-center gap-4">
                 <button id="mobile_menu_btn" class="lg:hidden p-2 hover:bg-gray-100 rounded-lg"><i data-lucide="menu"></i></button>
-                <h1 class="text-xl font-bold text-gray-800">자동 발주 추천</h1>
+                <div>
+                    <h1 class="text-xl font-bold text-gray-800">자동 발주 추천</h1>
+                    <p class="text-xs text-gray-400 font-medium">안전재고 + 최근 30일 출고 기반 규칙 엔진</p>
+                </div>
             </div>
-            <button onclick="location.reload()" class="p-2 hover:bg-gray-100 rounded-lg text-indigo-600"><i data-lucide="refresh-cw" class="w-5 h-5"></i></button>
+            <div class="flex items-center gap-2">
+                <span id="last-updated" class="text-xs text-gray-400 font-medium"></span>
+                <button id="refresh-btn" class="p-2 hover:bg-indigo-50 rounded-lg text-indigo-600 transition-colors" title="새로고침">
+                    <i data-lucide="refresh-cw" class="w-5 h-5"></i>
+                </button>
+            </div>
         </header>
 
         <main class="content_area p-6">
+            <!-- 요약 카드 -->
+            <div class="summary-cards" id="summary-cards">
+                <div class="summary-card">
+                    <div class="summary-card-icon bg-red-50"><i data-lucide="alert-circle" class="w-4 h-4 text-red-500"></i></div>
+                    <div class="summary-card-value text-red-600" id="cnt-critical">-</div>
+                    <div class="summary-card-label">품절 위기</div>
+                </div>
+                <div class="summary-card">
+                    <div class="summary-card-icon bg-orange-50"><i data-lucide="alert-triangle" class="w-4 h-4 text-orange-500"></i></div>
+                    <div class="summary-card-value text-orange-600" id="cnt-high">-</div>
+                    <div class="summary-card-label">긴급 발주</div>
+                </div>
+                <div class="summary-card">
+                    <div class="summary-card-icon bg-yellow-50"><i data-lucide="clock" class="w-4 h-4 text-yellow-500"></i></div>
+                    <div class="summary-card-value text-yellow-600" id="cnt-medium">-</div>
+                    <div class="summary-card-label">발주 필요</div>
+                </div>
+                <div class="summary-card">
+                    <div class="summary-card-icon bg-indigo-50"><i data-lucide="package" class="w-4 h-4 text-indigo-500"></i></div>
+                    <div class="summary-card-value text-indigo-600" id="cnt-total">-</div>
+                    <div class="summary-card-label">추천 품목 수</div>
+                </div>
+            </div>
+
+            <!-- 필터 바 -->
+            <div class="filter-bar">
+                <span class="text-xs text-gray-500 font-bold mr-1">긴급도:</span>
+                <button class="filter-btn active" data-urgency="">전체</button>
+                <button class="filter-btn" data-urgency="CRITICAL">🔴 품절위기</button>
+                <button class="filter-btn" data-urgency="HIGH">🟠 긴급</button>
+                <button class="filter-btn" data-urgency="MEDIUM">🟡 주의</button>
+                <button class="filter-btn" data-urgency="LOW">🟢 여유</button>
+            </div>
+
+            <!-- 추천 테이블 -->
             <div class="bg-white rounded-2xl shadow-sm border border-gray-100 overflow-hidden">
-                <table class="w-full text-left">
-                    <thead class="bg-gray-50 border-b">
-                        <tr>
-                            <th class="p-4 text-xs font-bold text-gray-500 uppercase">품목 정보</th>
-                            <th class="p-4 text-xs font-bold text-gray-500 uppercase">창고</th>
-                            <th class="p-4 text-xs font-bold text-gray-500 uppercase text-center">현재고</th>
-                            <th class="p-4 text-xs font-bold text-gray-500 uppercase text-center">안전재고</th>
-                            <th class="p-4 text-xs font-bold text-gray-500 uppercase text-center text-red-600">추천발주수량</th>
-                            <th class="p-4 text-xs font-bold text-gray-500 uppercase">작업</th>
-                        </tr>
-                    </thead>
-                    <tbody id="recommendation-list">
-                        <!-- Data -->
-                    </tbody>
-                </table>
+                <div class="overflow-x-auto">
+                    <table class="rec-table">
+                        <thead>
+                            <tr>
+                                <th>긴급도</th>
+                                <th>품목 정보</th>
+                                <th>창고</th>
+                                <th class="text-center">현재고</th>
+                                <th class="text-center">안전재고</th>
+                                <th class="text-center">월 평균 출고</th>
+                                <th class="text-center">리드타임</th>
+                                <th class="text-center">권장 발주 수량</th>
+                                <th class="text-center">예상 소진일</th>
+                                <th>공급처</th>
+                                <th>액션</th>
+                            </tr>
+                        </thead>
+                        <tbody id="recommendation-list">
+                            <!-- Data rows -->
+                        </tbody>
+                    </table>
+                </div>
                 <div id="empty-state" class="hidden p-20 text-center">
                     <div class="w-20 h-20 bg-green-50 text-green-500 rounded-full flex items-center justify-center mx-auto mb-4">
                         <i data-lucide="check-circle" class="w-10 h-10"></i>
                     </div>
                     <p class="text-lg font-bold text-gray-800">모든 재고가 안정적입니다.</p>
-                    <p class="text-sm text-gray-500">현재 안전재고 하회 품목이 없습니다.</p>
+                    <p class="text-sm text-gray-500 mt-1">현재 발주가 필요한 품목이 없습니다.</p>
+                </div>
+            </div>
+
+            <!-- 안내 패널 -->
+            <div class="mt-4 bg-indigo-50 border border-indigo-100 rounded-xl p-4 flex gap-3">
+                <i data-lucide="info" class="w-4 h-4 text-indigo-400 mt-0.5 flex-shrink-0"></i>
+                <div class="text-xs text-indigo-700">
+                    <strong>추천 로직:</strong> 권장발주수량 = (최근30일평균일사용량 × 리드타임) + 안전재고 - 현재고.
+                    현재 리드타임 기본값은 <strong>7일</strong>입니다.
+                    향후 품목/거래처 마스터 연동 시 개별 리드타임을 적용할 수 있습니다.
                 </div>
             </div>
         </main>
     </div>
 
+    <script src="../../services/common/apiClient.js"></script>
     <script src="../../services/inventory/inventory-service.js"></script>
     <script src="../../services/common/sidebar.js"></script>
     <script>
+        let allRecommendations = [];
+        let currentUrgencyFilter = '';
+
         document.addEventListener('DOMContentLoaded', async () => {
             lucide.createIcons();
             await loadRecommendations();
+
+            // 필터 버튼 이벤트
+            document.querySelectorAll('.filter-btn').forEach(btn => {
+                btn.addEventListener('click', () => {
+                    document.querySelectorAll('.filter-btn').forEach(b => b.classList.remove('active'));
+                    btn.classList.add('active');
+                    currentUrgencyFilter = btn.dataset.urgency;
+                    renderTable(allRecommendations);
+                });
+            });
+
+            // 새로고침
+            document.getElementById('refresh-btn').addEventListener('click', async () => {
+                const btn = document.getElementById('refresh-btn');
+                btn.querySelector('i').style.animation = 'spin 0.6s linear 1';
+                await loadRecommendations();
+                setTimeout(() => { btn.querySelector('i').style.animation = ''; }, 700);
+            });
         });
 
         async function loadRecommendations() {
+            const list = document.getElementById('recommendation-list');
+            const empty = document.getElementById('empty-state');
+
+            // 로딩 스켈레톤
+            list.innerHTML = Array(5).fill(0).map(() => `
+                <tr>
+                    ${Array(11).fill(0).map(() => `<td><div class="skeleton h-4 w-full" style="min-width:48px"></div></td>`).join('')}
+                </tr>
+            `).join('');
+            empty.classList.add('hidden');
+
             try {
-                const response = await InventoryService.getReorderRecommendations();
-                const list = document.getElementById('recommendation-list');
-                const empty = document.getElementById('empty-state');
-                
-                if (response.status === 'success' && response.data.length > 0) {
-                    list.innerHTML = response.data.map(i => {
-                        const recommended = i.safetyStock - i.currentStock;
-                        return `
-                            <tr class="border-b hover:bg-gray-50 transition-colors">
-                                <td class="p-4">
-                                    <p class="font-bold text-gray-800">${i.item.name}</p>
-                                    <p class="text-xs text-gray-400">${i.item.itemCode}</p>
-                                </td>
-                                <td class="p-4 text-sm text-gray-600">${i.warehouse.warehouseName}</td>
-                                <td class="p-4 text-center font-bold text-red-500">${i.currentStock.toLocaleString()}</td>
-                                <td class="p-4 text-center text-gray-500">${i.safetyStock.toLocaleString()}</td>
-                                <td class="p-4 text-center font-black text-xl text-indigo-600">${recommended.toLocaleString()}</td>
-                                <td class="p-4">
-                                    <button class="px-4 py-2 bg-indigo-50 text-indigo-600 rounded-lg text-sm font-bold hover:bg-indigo-100 transition-colors">
-                                        발주 요청 생성
-                                    </button>
-                                </td>
-                            </tr>
-                        `;
-                    }).join('');
-                    empty.classList.add('hidden');
-                } else {
-                    list.innerHTML = '';
-                    empty.classList.remove('hidden');
+                // 신규 추천 API 우선 시도, 실패 시 레거시 폴백
+                let recommendations = [];
+                try {
+                    const response = await InventoryService.getPurchaseRecommendations();
+                    if (response.status === 'success' && response.data && response.data.items) {
+                        recommendations = response.data.items;
+                    }
+                } catch (e) {
+                    // 신규 API 없으면 레거시 reorder-recommendations 폴백
+                    console.warn('신규 추천 API 실패, 레거시 API 폴백:', e.message);
+                    const legacyResponse = await InventoryService.getReorderRecommendations();
+                    if (legacyResponse.status === 'success') {
+                        recommendations = mapLegacyToRecommendations(legacyResponse.data);
+                    }
                 }
+
+                allRecommendations = recommendations;
+                updateSummaryCards(recommendations);
+                renderTable(recommendations);
+
+                const now = new Date().toLocaleString('ko-KR');
+                document.getElementById('last-updated').textContent = `최종 갱신: ${now}`;
+
             } catch (error) {
-                console.error('Failed to load recommendations:', error);
+                const isUnauthorized = error && (error.type === 'unauthorized' || error.status === 401);
+                const isNetwork = error && error.type === 'network';
+                const msg = isNetwork ? '네트워크 오류: 서버에 연결할 수 없습니다.'
+                    : isUnauthorized ? '로그인 후 이용하세요.'
+                    : '발주 추천 데이터 로드 실패: ' + (error.message || '알 수 없는 오류');
+
+                list.innerHTML = `
+                    <tr><td colspan="11" style="text-align:center;padding:3rem;color:#ef4444;font-size:0.85rem;font-weight:600">
+                        🔥 ${msg}
+                    </td></tr>`;
+
+                if (!isUnauthorized && window.ddukApi && window.ddukApi.showToast) {
+                    window.ddukApi.showToast(msg, isNetwork ? 'warning' : 'error');
+                }
             }
+        }
+
+        // 레거시 API 응답 → 추천 DTO 형태로 변환 (fallback용)
+        function mapLegacyToRecommendations(inventories) {
+            return inventories.map(inv => {
+                const shortage = inv.safetyStock - inv.currentStock;
+                return {
+                    inventoryId: inv.id,
+                    itemId: inv.item?.id,
+                    itemCode: inv.item?.itemCode || '-',
+                    itemName: inv.item?.name || '-',
+                    itemCategory: inv.item?.category || '-',
+                    unit: inv.item?.unit || '-',
+                    warehouseId: inv.warehouse?.id,
+                    warehouseName: inv.warehouse?.warehouseName || '-',
+                    currentStock: inv.currentStock || 0,
+                    safetyStock: inv.safetyStock || 0,
+                    allocatedStock: inv.allocatedStock || 0,
+                    availableStock: (inv.currentStock || 0) - (inv.allocatedStock || 0),
+                    averageCost: inv.averageCost || 0,
+                    avgMonthlyUsage: 0,
+                    recommendedOrderQty: Math.max(shortage, 1),
+                    urgency: calcUrgencyFront(inv.currentStock, inv.safetyStock),
+                    daysUntilStockout: inv.currentStock <= 0 ? 0 : 999,
+                    defaultVendorName: '-',
+                    leadTimeDays: 7
+                };
+            });
+        }
+
+        function calcUrgencyFront(current, safety) {
+            if (current <= 0) return 'CRITICAL';
+            if (current <= safety / 2) return 'HIGH';
+            if (current <= safety) return 'MEDIUM';
+            return 'LOW';
+        }
+
+        function updateSummaryCards(data) {
+            document.getElementById('cnt-critical').textContent = data.filter(r => r.urgency === 'CRITICAL').length;
+            document.getElementById('cnt-high').textContent = data.filter(r => r.urgency === 'HIGH').length;
+            document.getElementById('cnt-medium').textContent = data.filter(r => r.urgency === 'MEDIUM').length;
+            document.getElementById('cnt-total').textContent = data.length;
+        }
+
+        function renderTable(data) {
+            const list = document.getElementById('recommendation-list');
+            const empty = document.getElementById('empty-state');
+
+            // 긴급도 필터 적용
+            const filtered = currentUrgencyFilter
+                ? data.filter(r => r.urgency === currentUrgencyFilter)
+                : data;
+
+            if (filtered.length === 0) {
+                list.innerHTML = '';
+                empty.classList.remove('hidden');
+                return;
+            }
+            empty.classList.add('hidden');
+
+            list.innerHTML = filtered.map(r => {
+                const urgencyLabel = urgencyText(r.urgency);
+                const urgencyIcon = urgencyIcon2(r.urgency);
+                const stockPercent = r.safetyStock > 0
+                    ? Math.min(100, Math.round((r.currentStock / r.safetyStock) * 100))
+                    : 100;
+                const gaugeColor = r.urgency === 'CRITICAL' ? '#ef4444'
+                    : r.urgency === 'HIGH' ? '#f97316'
+                    : r.urgency === 'MEDIUM' ? '#eab308'
+                    : '#22c55e';
+
+                const stockoutText = stockoutDisplay(r.daysUntilStockout);
+                const stockoutClass = r.daysUntilStockout <= 3 ? 'stockout-red'
+                    : r.daysUntilStockout <= 14 ? 'stockout-orange'
+                    : 'stockout-gray';
+
+                const isUrgent = r.urgency === 'CRITICAL' || r.urgency === 'HIGH';
+                const btnClass = isUrgent ? 'order-btn order-btn-urgent' : 'order-btn order-btn-primary';
+                const btnLabel = isUrgent ? '⚡ 긴급 발주' : '발주 요청';
+
+                return `
+                    <tr>
+                        <td>
+                            <span class="urgency-badge urgency-${r.urgency}">
+                                ${urgencyIcon} ${urgencyLabel}
+                            </span>
+                        </td>
+                        <td>
+                            <p class="font-bold text-gray-800 text-sm">${escapeHtml(r.itemName)}</p>
+                            <p class="text-[10px] text-gray-400 font-semibold tracking-wider uppercase mt-0.5">${escapeHtml(r.itemCode)} · ${escapeHtml(r.itemCategory)} · ${escapeHtml(r.unit)}</p>
+                        </td>
+                        <td>
+                            <span class="text-xs font-semibold text-gray-600 bg-gray-100 px-2 py-1 rounded">${escapeHtml(r.warehouseName)}</span>
+                        </td>
+                        <td class="text-center">
+                            <p class="font-bold text-gray-800">${(r.currentStock || 0).toLocaleString()}</p>
+                            <div class="stock-gauge-wrap mx-auto mt-1">
+                                <div class="stock-gauge-bar" style="width:${stockPercent}%;background:${gaugeColor}"></div>
+                            </div>
+                        </td>
+                        <td class="text-center">
+                            <p class="text-xs font-semibold text-gray-500">${(r.safetyStock || 0).toLocaleString()}</p>
+                        </td>
+                        <td class="text-center">
+                            <p class="text-sm font-semibold text-gray-700">${formatAvgUsage(r.avgMonthlyUsage, r.unit)}</p>
+                        </td>
+                        <td class="text-center">
+                            <span class="text-xs font-bold text-indigo-600 bg-indigo-50 px-2 py-0.5 rounded-full">${r.leadTimeDays || 7}일</span>
+                        </td>
+                        <td class="text-center">
+                            <p class="text-xl font-black text-indigo-600">${(r.recommendedOrderQty || 0).toLocaleString()}</p>
+                            <p class="text-[10px] text-gray-400 font-semibold">${escapeHtml(r.unit)}</p>
+                        </td>
+                        <td class="text-center">
+                            <span class="${stockoutClass} text-sm">${stockoutText}</span>
+                        </td>
+                        <td>
+                            <span class="text-xs text-gray-600 font-medium">${escapeHtml(r.defaultVendorName || '-')}</span>
+                        </td>
+                        <td>
+                            <button class="${btnClass}"
+                                onclick="handleOrderRequest(${r.itemId}, '${escapeHtml(r.itemName)}', ${r.recommendedOrderQty}, '${escapeHtml(r.unit)}')">
+                                ${btnLabel}
+                            </button>
+                        </td>
+                    </tr>
+                `;
+            }).join('');
+
+            lucide.createIcons();
+        }
+
+        function urgencyText(urgency) {
+            const map = { CRITICAL: '품절위기', HIGH: '긴급', MEDIUM: '주의', LOW: '여유' };
+            return map[urgency] || urgency;
+        }
+
+        function urgencyIcon2(urgency) {
+            const map = { CRITICAL: '🔴', HIGH: '🟠', MEDIUM: '🟡', LOW: '🟢' };
+            return map[urgency] || '';
+        }
+
+        function stockoutDisplay(days) {
+            if (days === 0) return '이미 품절';
+            if (days >= 999) return '∞ (미사용)';
+            if (days === 1) return '내일 소진';
+            return `${days}일 후 소진`;
+        }
+
+        function formatAvgUsage(usage, unit) {
+            if (!usage || usage === 0) return `0 ${unit}/월`;
+            return `${Math.round(usage).toLocaleString()} ${unit}/월`;
+        }
+
+        function handleOrderRequest(itemId, itemName, qty, unit) {
+            // 향후 발주서 생성 화면으로 연결 가능 (purchase-order-request.html)
+            if (confirm(`[${itemName}] ${qty.toLocaleString()} ${unit} 발주 요청을 생성하시겠습니까?\n\n※ 현재 단계: 추천 생성만 지원합니다. 발주 요청 페이지로 이동합니다.`)) {
+                // 발주 요청 페이지로 이동 (향후 itemId를 쿼리 파라미터로 전달)
+                window.location.href = `purchase-order-request.html?itemId=${itemId}&qty=${qty}`;
+            }
+        }
+
+        function escapeHtml(str) {
+            if (str === null || str === undefined) return '-';
+            return String(str)
+                .replace(/&/g, '&amp;')
+                .replace(/</g, '&lt;')
+                .replace(/>/g, '&gt;')
+                .replace(/"/g, '&quot;');
         }
     </script>
 </body>

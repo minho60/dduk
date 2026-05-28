@@ -70,6 +70,7 @@ public class AccountingDashboardController {
 
     @ExceptionHandler({IllegalArgumentException.class, IllegalStateException.class})
     public ResponseEntity<Map<String, Object>> handleDashboardException(RuntimeException exception) {
+        exception.printStackTrace(); // 진단을 위해 스택 트레이스를 콘솔에 출력
         Map<String, Object> response = new LinkedHashMap<>();
         response.put("status", "error");
         response.put("message", exception.getMessage());

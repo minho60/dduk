@@ -1,5 +1,5 @@
-const API_BASE = '/api/accounting/vouchers';
-const ACCOUNT_SEARCH_API = '/api/accounting/accounts/search';
+const API_BASE = '/api/v1/accounting/vouchers';
+const ACCOUNT_SEARCH_API = '/api/v1/accounting/vouchers/accounts/search';
 const VENDOR_SEARCH_API = '/api/v1/inventory/vendors/search';
 
 const state = {
@@ -308,7 +308,7 @@ async function loadVouchers() {
         <td class="amount">${formatWon(totals.supply)}</td>
         <td class="amount">${formatWon(totals.vat)}</td>
         <td class="amount">${formatWon(totals.total)}</td>
-        <td><span class="status-pill">${escapeHtml(voucher.status || '')}</span></td>
+        <td><span class="status_badge ${statusClass(voucher.status)}">${escapeHtml(voucher.status || '')}</span></td>
         <td>${escapeHtml(voucher.createdBy || '')}</td>
         <td>${formatDateTime(voucher.createdAt)}</td>
         <td>${voucher.status === 'POSTED' ? '게시' : '-'}</td>
@@ -341,7 +341,7 @@ function openLookup(target, initialKeyword = '') {
   setText('lookupTitle', title);
   if (keyword) keyword.value = initialKeyword;
   setHtml('lookupResults', '');
-  if (dialog && !dialog.open) dialog.showModal();
+  if (dialog) dialog.classList.add('is_active');
   runLookupSearch();
 }
 
@@ -386,19 +386,19 @@ function renderLookupRows(rows) {
   const results = document.getElementById('lookupResults');
   if (!results) return;
   if (!rows.length) {
-    results.innerHTML = '<div class="lookup-empty">검색 결과가 없습니다.</div>';
+    results.innerHTML = '<div class="lookup_empty">검색 결과가 없습니다.</div>';
     return;
   }
 
   results.innerHTML = rows.map((row) => `
-    <button type="button" class="lookup-row" data-id="${row.id}" style="--depth:${Math.max((row.level || 1) - 1, 0)}">
+    <button type="button" class="account_lookup_row" data-id="${row.id}" style="--depth:${Math.max((row.level || 1) - 1, 0)}; width: 100%;">
       <small>${escapeHtml(row.code)}</small>
       <strong>${escapeHtml(row.name)}</strong>
       <small>${escapeHtml(row.type)} · ${row.allowPosting === false ? '사용불가' : escapeHtml(row.status || 'ACTIVE')}</small>
     </button>
   `).join('');
 
-  results.querySelectorAll('.lookup-row').forEach((button) => {
+  results.querySelectorAll('.account_lookup_row').forEach((button) => {
     const row = rows.find((item) => String(item.id) === button.dataset.id);
     if (row) {
       button.addEventListener('click', () => selectLookupRow(row.raw));
@@ -422,7 +422,7 @@ function selectLookupRow(row) {
     setValue('settlementAccountId', row.id);
   }
 
-  document.getElementById('lookupDialog')?.close();
+  document.getElementById('lookupDialog')?.classList.remove('is_active');
   refreshJournalPreview();
 }
 
@@ -466,13 +466,12 @@ async function fetchJson(url, fallback) {
 }
 
 async function requestJson(url, options = {}) {
-  const response = await fetch(url, options);
-  const text = await response.text();
-  const body = text ? JSON.parse(text) : {};
-  if (!response.ok || body.status === 'error') {
-    throw new Error(body.message || `요청 실패 (${response.status})`);
-  }
-  return body;
+  const method = (options.method || 'GET').toLowerCase();
+  if (method === 'post') return window.ddukApi.post(url, options.body ? JSON.parse(options.body) : {});
+  if (method === 'patch') return window.ddukApi.patch(url);
+  if (method === 'put') return window.ddukApi.put(url, options.body ? JSON.parse(options.body) : {});
+  if (method === 'delete') return window.ddukApi.delete(url);
+  return window.ddukApi.get(url);
 }
 
 function parseMoney(value) {
@@ -516,7 +515,18 @@ function setHtml(id, value) {
 function setLoadingText(tbodyId, colspan, message) {
   const tbody = document.getElementById(tbodyId);
   if (!tbody) return;
-  tbody.innerHTML = `<tr><td colspan="${colspan}" class="empty-state">${escapeHtml(message)}</td></tr>`;
+  tbody.innerHTML = `<tr><td colspan="${colspan}" class="erp_empty_state">${escapeHtml(message)}</td></tr>`;
+}
+
+function statusClass(status) {
+  switch (status) {
+    case 'POSTED': return 'success';
+    case 'APPROVED': return 'success';
+    case 'DRAFT': return 'warning';
+    case 'REQUESTED': return 'warning';
+    case 'CANCELLED': return 'danger';
+    default: return 'muted';
+  }
 }
 
 function showToast(message, type = 'success') {

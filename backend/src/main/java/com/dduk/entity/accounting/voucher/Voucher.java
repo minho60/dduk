@@ -1,6 +1,7 @@
 package com.dduk.entity.accounting.voucher;
 
 import com.dduk.entity.accounting.voucher.enums.VatType;
+import com.dduk.entity.accounting.voucher.enums.VoucherSourceType;
 import com.dduk.entity.accounting.voucher.enums.VoucherStatus;
 import com.dduk.entity.accounting.voucher.enums.VoucherType;
 import com.dduk.entity.accounting.JournalEntry;
@@ -47,6 +48,22 @@ public class Voucher {
     @Enumerated(EnumType.STRING)
     @Column(nullable = false)
     private VoucherStatus status;
+
+    /**
+     * 자동 생성 원천 도메인 식별자.
+     * 수동 전표(사용자 직접 입력)인 경우 null.
+     */
+    @Enumerated(EnumType.STRING)
+    @Column(name = "source_type", length = 50)
+    private VoucherSourceType sourceType;
+
+    /**
+     * 원천 도메인 엔티티 ID.
+     * STOCK_INBOUND 시 stock_movements.id, PURCHASE_ORDER 시 purchase_orders.id 등.
+     * 수동 전표인 경우 null.
+     */
+    @Column(name = "source_reference_id")
+    private Long sourceReferenceId;
 
     private String description;
 

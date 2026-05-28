@@ -1,301 +1,79 @@
-.page-title {
-  display: flex;
-  flex-direction: column;
-  gap: 2px;
-  flex: 1;
-  min-width: 0;
-  margin-left: 16px;
-}
+/* ============================================================
+   accounting-reports.css
+   회계 분석 리포트 페이지 전용 스타일
+   - erp_components.css 기반 공통 클래스 우선 사용
+   - 차트 그리드 레이아웃 및 report_grid 정의
+   ============================================================ */
 
-.page-title h1 {
-  font-size: 20px;
-  font-weight: 800;
-}
-
-.page-title span,
-.panel-head span {
-  color: var(--text-secondary);
-  font-size: 13px;
-}
-
-.report-actions {
-  display: flex;
-  gap: 8px;
-}
-
-.icon-button,
-.icon-text-button,
-.primary-button {
-  height: 36px;
-  border: 1px solid var(--border);
-  border-radius: 8px;
-  background: #fff;
-  display: inline-flex;
-  align-items: center;
-  justify-content: center;
-  gap: 8px;
-  padding: 0 12px;
-  font-size: 13px;
-  font-weight: 700;
-  cursor: pointer;
-}
-
-.icon-button {
-  width: 36px;
-  padding: 0;
-}
-
-.primary-button {
-  background: var(--accent);
-  color: #fff;
-  border-color: var(--accent);
-}
-
-.accounting-reports {
-  padding: 28px 32px 40px;
-}
-
-.report-filter-panel,
-.report-panel,
-.kpi-card {
-  border: 1px solid var(--border);
-  border-radius: 8px;
-  background: rgba(255, 255, 255, 0.84);
-  backdrop-filter: blur(14px);
-  box-shadow: 0 10px 28px rgba(15, 23, 42, 0.04);
-}
-
-.report-filter-panel {
-  display: grid;
-  grid-template-columns: repeat(5, minmax(0, 1fr)) auto;
-  gap: 12px;
-  padding: 16px;
-  align-items: end;
-}
-
-.report-filter-panel label {
-  display: grid;
-  gap: 6px;
-  color: var(--text-secondary);
-  font-size: 12px;
-  font-weight: 800;
-}
-
-.report-filter-panel input,
-.report-filter-panel select {
-  height: 36px;
-  border: 1px solid var(--border);
-  border-radius: 8px;
-  padding: 0 10px;
-  background: #fff;
-  color: var(--text-primary);
-}
-
-.kpi-grid {
-  display: grid;
-  grid-template-columns: repeat(4, minmax(0, 1fr));
-  gap: 14px;
-  margin-top: 18px;
-}
-
-.kpi-card {
-  min-height: 118px;
-  padding: 16px;
-  display: flex;
-  flex-direction: column;
-  justify-content: space-between;
-}
-
-.kpi-card span {
-  color: var(--text-secondary);
-  font-size: 12px;
-  font-weight: 800;
-}
-
-.kpi-card strong {
-  font-size: 22px;
-}
-
-.kpi-card small {
-  color: var(--text-muted);
-  font-size: 12px;
-}
-
-.kpi-card.positive small { color: var(--success); }
-.kpi-card.negative small { color: var(--danger); }
-
-.report-grid {
+/* 리포트 그리드 레이아웃 */
+.report_grid {
   display: grid;
   grid-template-columns: repeat(3, minmax(0, 1fr));
   gap: 16px;
-  margin-top: 18px;
+  margin-top: 16px;
 }
 
-.report-panel {
-  padding: 18px;
-  min-width: 0;
+.report_panel { min-width: 0; }
+.report_panel_wide { grid-column: span 2; }
+.report_panel_full { grid-column: span 3; }
+
+/* 차트 박스 */
+.chart_box {
+  height: 280px;
+  position: relative;
 }
 
-.span-2 { grid-column: span 2; }
-.span-3 { grid-column: span 3; }
-
-.panel-head {
-  display: flex;
-  justify-content: space-between;
-  gap: 12px;
-  margin-bottom: 14px;
+.chart_box_compact {
+  height: 220px;
+  position: relative;
 }
 
-.panel-head h2 {
-  font-size: 16px;
-  font-weight: 800;
-}
-
-.chart-box {
-  height: 290px;
-}
-
-.chart-box.compact {
-  height: 230px;
-}
-
-.table-wrap {
-  overflow-x: auto;
-  max-height: 420px;
-}
-
-.table-wrap.wide {
-  max-height: 520px;
-}
-
-table {
-  width: 100%;
-  border-collapse: collapse;
-  min-width: 640px;
-  font-size: 12px;
-}
-
-th,
-td {
-  padding: 11px 10px;
-  border-bottom: 1px solid var(--border);
-  text-align: left;
-  white-space: nowrap;
-}
-
-th {
-  color: var(--text-secondary);
-  background: rgba(248, 250, 252, 0.9);
-  font-weight: 800;
-  position: sticky;
-  top: 0;
-}
-
-td.amount {
-  text-align: right;
-  font-variant-numeric: tabular-nums;
-}
-
-.metric-list {
+/* 메트릭 리스트 */
+.metric_list {
   display: grid;
   gap: 8px;
   margin-bottom: 12px;
 }
 
-.metric-row {
+.metric_row {
   display: flex;
   justify-content: space-between;
+  align-items: center;
   gap: 12px;
   padding: 10px 12px;
   border: 1px solid var(--border);
   border-radius: 8px;
-  background: rgba(248, 250, 252, 0.82);
-  font-size: 12px;
+  background: #f8fafc;
+  font-size: 0.8125rem;
 }
 
-.metric-row span {
+.metric_row span {
   color: var(--text-secondary);
-  font-weight: 800;
+  font-weight: 600;
 }
 
-.toast {
-  position: fixed;
-  right: 24px;
-  bottom: 24px;
-  padding: 12px 16px;
-  border-radius: 8px;
-  background: #111827;
-  color: #fff;
-  opacity: 0;
-  transform: translateY(12px);
-  transition: 0.2s ease;
-  z-index: 100;
+.metric_row strong {
+  font-variant-numeric: tabular-nums;
 }
 
-.toast.show {
-  opacity: 1;
-  transform: translateY(0);
-}
-
+/* 인쇄 최적화 */
 @media print {
-  .sidebar,
   .topbar,
-  .report-filter-panel,
-  .report-actions {
-    display: none !important;
-  }
-
-  .main_wrap {
-    margin-left: 0 !important;
-  }
-
-  .accounting-reports {
-    padding: 0;
-  }
+  .sidebar,
+  .filter_section,
+  .page_actions { display: none !important; }
+  .main_wrap { margin-left: 0 !important; }
 }
 
+/* 반응형 */
 @media (max-width: 1280px) {
-  .report-filter-panel,
-  .kpi-grid,
-  .report-grid {
-    grid-template-columns: repeat(2, minmax(0, 1fr));
-  }
-
-  .span-2,
-  .span-3 {
-    grid-column: span 2;
-  }
+  .report_grid { grid-template-columns: repeat(2, minmax(0, 1fr)); }
+  .report_panel_wide { grid-column: span 2; }
+  .report_panel_full { grid-column: span 2; }
 }
 
-@media (max-width: 760px) {
-  .topbar {
-    height: auto;
-    min-height: 64px;
-    padding: 12px 16px;
-    flex-wrap: wrap;
-  }
-
-  .page-title {
-    flex-basis: calc(100% - 52px);
-  }
-
-  .report-actions {
-    width: 100%;
-    margin-left: 52px;
-  }
-
-  .accounting-reports {
-    padding: 18px 16px 32px;
-  }
-
-  .report-filter-panel,
-  .kpi-grid,
-  .report-grid {
-    grid-template-columns: 1fr;
-  }
-
-  .span-2,
-  .span-3 {
-    grid-column: auto;
-  }
+@media (max-width: 768px) {
+  .report_grid { grid-template-columns: 1fr; }
+  .report_panel_wide,
+  .report_panel_full { grid-column: auto; }
 }

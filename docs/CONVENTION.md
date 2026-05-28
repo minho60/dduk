@@ -22,24 +22,19 @@
 | 구매/재고 | `inventory` | 김슬기 | 재고관리, 발주/입출고, 거래처 관리 등 |
 | 관리자/공통 | `admin` | 김민호 | 로그인/보안, 대시보드, 시스템 설정 등 |
 
-실제 백엔드 디렉터리는 계층형 구조(Layered Architecture)를 따른다.
+실제 디렉터리는 도메인 중심 구조를 따른다.
 
-- `backend/src/main/java/com/dduk/controller/[도메인]`
-- `backend/src/main/java/com/dduk/service/[도메인]`
-- `backend/src/main/java/com/dduk/repository/[도메인]`
+- `backend/src/main/java/com/dduk/domain/[도메인]/[기능]`
 - `frontend/pages/[도메인]`
 - `ai-server/services/[도메인]`
 
-새 백엔드 코드를 추가할 때는 역할(Controller, Service, Repository 등)에 맞는 최상단 패키지 하위의 도메인 폴더에 위치시킨다.
+새 코드를 추가할 때는 반드시 해당 도메인/기능 하위 패키지에 위치시킨다.
 
 ### 1.2 폴더 사용 규칙
 1. 본인 도메인이 아닌 코드도 수정할 수는 있지만, 공용 계약이나 다른 담당자 로직에 영향이 있으면 먼저 범위를 공유한다.
 2. 여러 도메인에서 같이 쓰는 코드는 `common` 또는 `shared` 성격의 경로에 둔다.
 3. 프론트엔드 경로는 구조 변경에 덜 깨지게 일관된 기준으로 관리한다. 절대 경로를 강제하기보다 프로젝트 내 라우팅 규칙 하나로 통일한다.
 4. 문서와 소스 파일은 기본적으로 UTF-8 인코딩으로 저장한다.
-5. 화면 HTML 파일은 기본적으로 `frontend/pages/[도메인]/` 아래에 둔다.
-6. `backend/src/main/resources/static`는 기존 공용 정적 자산을 유지하는 경우를 제외하고 새 UI 페이지의 기본 위치로 사용하지 않는다.
-7. 백엔드 계층형 구조는 Controller/Service/Repository 역할 분리를 뜻하며, 화면 파일 위치를 백엔드 경로로 옮기는 근거로 사용하지 않는다.
 
 ---
 

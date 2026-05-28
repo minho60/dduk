@@ -1,5 +1,5 @@
 (function () {
-  const API_BASE = "/api/v1/accounting/monthly-closing";
+  const API_PATH = '/api/v1/accounting/monthly-closing';
   const state = {
     periods: [],
     selected: null,
@@ -112,7 +112,7 @@
   async function validatePeriod(period) {
     const response = await api(`/periods/${period.fiscalYear}/${period.fiscalMonth}/validate`, {
       method: "POST",
-      body: JSON.stringify({ actor: "SYSTEM" })
+      body: { actor: "SYSTEM" }
     });
     state.lastValidation.set(period.periodKey, response.data);
     renderValidation(response.data);
@@ -130,7 +130,7 @@
     }
     await api(`/periods/${period.fiscalYear}/${period.fiscalMonth}/close`, {
       method: "POST",
-      body: JSON.stringify({ actor: "SYSTEM" })
+      body: { actor: "SYSTEM" }
     });
     toast(`${period.periodKey} 월 마감이 완료되었습니다.`);
     await loadAll();
@@ -139,7 +139,7 @@
   async function reopenPeriod(period) {
     await api(`/periods/${period.fiscalYear}/${period.fiscalMonth}/reopen`, {
       method: "POST",
-      body: JSON.stringify({ actor: "SYSTEM" })
+      body: { actor: "SYSTEM" }
     });
     toast(`${period.periodKey} 기간이 재오픈되었습니다.`);
     await loadAll();
@@ -175,7 +175,7 @@
       return;
     }
     try {
-      await api("/periods", { method: "POST", body: JSON.stringify(payload) });
+      await api("/periods", { method: "POST", body: payload });
       byId("periodDialog").close();
       toast("회계기간이 생성되었습니다.");
       await loadAll();
@@ -193,7 +193,7 @@
     try {
       await api("/periods/year", {
         method: "POST",
-        body: JSON.stringify({ fiscalYear, createdBy: "SYSTEM" })
+        body: { fiscalYear, createdBy: "SYSTEM" }
       });
       toast(`${fiscalYear}년 회계기간을 생성했습니다.`);
       await loadAll();
@@ -227,16 +227,26 @@
     renderIcons();
   }
 
+  /** Unified API helper – delegates to window.ddukApi (apiClient.js) */
   async function api(path, options = {}) {
-    const response = await fetch(`${API_BASE}${path}`, {
-      headers: { "Content-Type": "application/json" },
-      ...options
-    });
-    const payload = await response.json().catch(() => ({}));
-    if (!response.ok || payload.status === "error") {
+    const url = `${API_PATH}${path}`;
+    const method = (options.method || "GET").toUpperCase();
+    let payload;
+    if (method === "GET") {
+      payload = await window.ddukApi.get(url);
+    } else if (method === "POST") {
+      payload = await window.ddukApi.post(url, options.body);
+    } else if (method === "PUT") {
+      payload = await window.ddukApi.put(url, options.body);
+    } else if (method === "PATCH") {
+      payload = await window.ddukApi.patch(url, options.body);
+    } else if (method === "DELETE") {
+      payload = await window.ddukApi.delete(url);
+    }
+    if (payload && payload.status === "error") {
       throw new Error(payload.message || "요청 처리 중 오류가 발생했습니다.");
     }
-    return payload;
+    return payload || {};
   }
 
   function setDefaultDates() {

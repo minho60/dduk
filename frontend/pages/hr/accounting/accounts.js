@@ -1,5 +1,3 @@
-import { hrBackendApi } from '../../../services/hr/hr-backend-api.js';
-
 // State Management
 let rawAccountList = [];
 let accountTree = [];
@@ -41,8 +39,8 @@ async function loadAccounts() {
     showLoading();
     try {
         const [treeRes, listRes] = await Promise.all([
-            hrBackendApi.getAccountTree(),
-            hrBackendApi.getAccountList()
+            window.ddukApi.get('/api/v1/accounting/accounts/tree'),
+            window.ddukApi.get('/api/v1/accounting/accounts/list')
         ]);
         
         accountTree = treeRes.data || [];
@@ -314,7 +312,7 @@ window.filterByType = function(type) {
     currentTypeFilter = type;
     
     // Update active tab styling
-    document.querySelectorAll('.coa-tab').forEach(tab => {
+    document.querySelectorAll('.segmented_tab').forEach(tab => {
         const isTarget = tab.textContent.includes(type === 'ALL' ? '전체' : getKoreanTypeName(type));
         tab.classList.toggle('active', isTarget);
     });
@@ -386,7 +384,7 @@ window.openCreateModal = function() {
     document.getElementById('system_account_alert').classList.add('coa-row-hidden');
 
     populateParentSelect();
-    modal.classList.add('active');
+    modal.classList.add('is_active');
     handleTypeChange(); // Set default debit/credit direction
 };
 
@@ -436,11 +434,11 @@ function openEditModal(id) {
         document.getElementById('form_status').disabled = false;
     }
 
-    modal.classList.add('active');
+    modal.classList.add('is_active');
 }
 
 window.closeAccountModal = function() {
-    modal.classList.remove('active');
+    modal.classList.remove('is_active');
 };
 
 /**
@@ -478,10 +476,10 @@ async function handleFormSubmit(e) {
 
     try {
         if (isUpdate) {
-            await hrBackendApi.updateAccount(id, payload);
+            await window.ddukApi.put(`/api/v1/accounting/accounts/${id}`, payload);
             showToast('계정과목이 성공적으로 수정되었습니다.', 'success');
         } else {
-            await hrBackendApi.createAccount(payload);
+            await window.ddukApi.post('/api/v1/accounting/accounts', payload);
             showToast('새 계정과목이 등록되었습니다.', 'success');
         }
         
@@ -501,7 +499,7 @@ async function handleDelete(id) {
 
     if (confirm(`진짜로 계정과목 [${account.code}] ${account.name}을 삭제하시겠습니까?\n하위 노드가 있거나 기표된 내역이 있을 경우 삭제되지 않을 수 있습니다.`)) {
         try {
-            await hrBackendApi.deleteAccount(id);
+            await window.ddukApi.delete(`/api/v1/accounting/accounts/${id}`);
             showToast('계정과목이 정상적으로 삭제되었습니다.', 'success');
             loadAccounts();
         } catch (error) {
@@ -517,7 +515,7 @@ window.triggerCoaSeeding = async function() {
     if (confirm('모든 기본 표준 계정과목 시드 데이터를 서버에 새로 적재/복원하시겠습니까?\n(기존 수동 추가한 계정은 유지되며, 삭제된 기본 계정은 복원됩니다)')) {
         showLoading();
         try {
-            await hrBackendApi.seedAccounts();
+            await window.ddukApi.post('/api/v1/accounting/accounts/seed');
             showToast('표준 계정과목 150개가 성공적으로 적재/복원되었습니다.', 'success');
             loadAccounts();
         } catch (error) {
@@ -535,7 +533,15 @@ function showToast(message, type = 'success') {
     if (!container) return;
 
     const toast = document.createElement('div');
-    toast.className = `toast toast-${type}`;
+    
+    // erp_components toast class mapping
+    let toastType = type;
+    if (type === 'danger') toastType = 'error';
+    toast.className = `toast show ${toastType}`;
+    toast.style.position = 'static';
+    toast.style.display = 'flex';
+    toast.style.alignItems = 'center';
+    toast.style.gap = '8px';
     
     let iconName = 'check-circle';
     if (type === 'danger') iconName = 'x-circle';
@@ -550,7 +556,7 @@ function showToast(message, type = 'success') {
     if (window.lucide) lucide.createIcons();
 
     setTimeout(() => {
-        toast.style.animation = 'fadeOut 0.3s forwards';
+        toast.classList.remove('show');
         setTimeout(() => toast.remove(), 300);
     }, 3000);
 }

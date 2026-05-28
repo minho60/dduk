@@ -104,8 +104,15 @@ public class VoucherService {
     }
 
     @Transactional(readOnly = true)
-    public List<VoucherResponse> getVouchers(VoucherType voucherType) {
-        List<Voucher> vouchers = voucherRepository.findListWithLines(voucherType);
+    public List<VoucherResponse> getVouchers(
+            VoucherType voucherType,
+            VoucherStatus status,
+            LocalDate startDate,
+            LocalDate endDate,
+            String keyword
+    ) {
+        String kw = StringUtils.hasText(keyword) ? keyword.trim() : null;
+        List<Voucher> vouchers = voucherRepository.findWithFilters(voucherType, status, startDate, endDate, kw);
         return vouchers.stream().map(this::mapToResponse).collect(Collectors.toList());
     }
 

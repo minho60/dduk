@@ -1,5 +1,6 @@
 package com.dduk.entity.inventory;
 
+import com.fasterxml.jackson.annotation.JsonIgnore;
 import com.fasterxml.jackson.annotation.JsonIgnoreProperties;
 
 import com.dduk.entity.admin.Member;
@@ -44,10 +45,12 @@ public class Item {
     @Column(nullable = false)
     private String unit; // EA, KG, BOX, etc.
 
+    @JsonIgnore
     @ManyToOne(fetch = FetchType.LAZY)
     @JoinColumn(name = "default_vendor_id")
     private Vendor defaultVendor;
 
+    @JsonIgnore
     @ManyToOne(fetch = FetchType.LAZY)
     @JoinColumn(name = "registered_by_id")
     private Member registeredBy;

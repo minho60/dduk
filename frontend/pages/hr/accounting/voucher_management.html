@@ -1,66 +1,258 @@
-<div class="hr_card" id="voucher_management_card">
-  <div class="hr_card_header">
-    <h3>전표 입력 (매출 / 매입)</h3>
+<!doctype html>
+<html lang="ko">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>DDUK ERP - 전표 관리</title>
+  <script src="https://cdn.tailwindcss.com/3.4.17"></script>
+  <link href="https://fonts.googleapis.com/css2?family=DM+Sans:wght@400;500;600;700&display=swap" rel="stylesheet">
+  <script src="https://cdn.jsdelivr.net/npm/lucide@0.263.0/dist/umd/lucide.min.js"></script>
+  <link rel="stylesheet" href="../../../styles/common/dashboard.css">
+  <link rel="stylesheet" href="../../../styles/common/erp_components.css">
+  <link rel="stylesheet" href="../../../styles/accounting/voucher-management.css">
+  <style>
+    .erp_table_container { position: relative; max-height: 600px; overflow-y: auto; border-radius: 12px; border: 1px solid var(--border); background: var(--card-bg); }
+    .erp_table th { position: sticky; top: 0; background: #f1f5f9; z-index: 10; box-shadow: inset 0 -1px 0 var(--border); }
+    .table-loader-overlay { position: absolute; inset: 0; background: rgba(255,255,255,0.7); backdrop-filter: blur(2px); display: none; align-items: center; justify-content: center; z-index: 20; }
+    .spinner { width: 40px; height: 40px; border: 4px solid var(--border); border-top-color: var(--accent); border-radius: 50%; animation: spin 0.8s linear infinite; }
+    @keyframes spin { to { transform: rotate(360deg); } }
+    .empty-state { display: flex; flex-direction: column; align-items: center; justify-content: center; padding: 4rem 2rem; color: var(--text-secondary); text-align: center; }
+    .kpi_card { background: var(--card-bg); border-radius: 12px; padding: 20px 24px; border: 1px solid var(--border); transition: all 0.25s cubic-bezier(0.4,0,0.2,1); position: relative; overflow: hidden; }
+    .kpi_card:hover { transform: translateY(-4px); box-shadow: 0 10px 20px rgba(79,70,229,0.08); border-color: var(--accent); }
+    .kpi_card::after { content: ''; position: absolute; top: 0; left: 0; width: 4px; height: 100%; background: var(--accent); opacity: 0; transition: opacity 0.2s; }
+    .kpi_card:hover::after { opacity: 1; }
+  </style>
+</head>
+<body>
+  <aside data-dduk-sidebar></aside>
+  <div class="main_wrap">
+    <header class="topbar">
+      <button class="sidebar_icon_btn dduk-inline-027" onclick="toggleSidebar()" id="mobile_menu_btn" aria-label="메뉴">
+        <i class="dduk-inline-028" data-lucide="menu"></i>
+      </button>
+      <div class="dduk-inline-029">
+        <div class="dduk-inline-030">
+          <i class="dduk-inline-031" data-lucide="search"></i>
+          <input class="dduk-inline-032" type="text" placeholder="메뉴, 거래처, 문서 검색..." aria-label="검색">
+        </div>
+      </div>
+      <div class="dduk-inline-033">
+        <button class="sidebar_icon_btn" aria-label="알림"><i class="dduk-inline-034" data-lucide="bell"></i></button>
+        <button class="sidebar_icon_btn" aria-label="프로필"><i class="dduk-inline-034" data-lucide="user"></i></button>
+      </div>
+    </header>
+
+    <main class="content_area voucher_page">
+      <section class="page_header">
+        <div class="page_title_area">
+          <h2>전표 관리</h2>
+          <p>매출전표와 매입전표를 계정과목 기반으로 자동 분개합니다.</p>
+        </div>
+      </section>
+
+      <section class="kpi_grid" id="summaryCards">
+        <div class="kpi_card">
+          <div class="kpi_icon blue"><i data-lucide="file-text"></i></div>
+          <div class="kpi_content">
+            <div class="kpi_label">총 전표 수</div>
+            <div class="kpi_value" data-summary="totalVoucherCount">0</div>
+          </div>
+        </div>
+        <div class="kpi_card">
+          <div class="kpi_icon orange"><i data-lucide="file-edit"></i></div>
+          <div class="kpi_content">
+            <div class="kpi_label">DRAFT</div>
+            <div class="kpi_value" data-summary="draftCount">0</div>
+          </div>
+        </div>
+        <div class="kpi_card">
+          <div class="kpi_icon orange"><i data-lucide="clock"></i></div>
+          <div class="kpi_content">
+            <div class="kpi_label">REQUESTED</div>
+            <div class="kpi_value" data-summary="requestedCount">0</div>
+          </div>
+        </div>
+        <div class="kpi_card">
+          <div class="kpi_icon green"><i data-lucide="check-circle-2"></i></div>
+          <div class="kpi_content">
+            <div class="kpi_label">APPROVED</div>
+            <div class="kpi_value" data-summary="approvedCount">0</div>
+          </div>
+        </div>
+        <div class="kpi_card">
+          <div class="kpi_icon green"><i data-lucide="check-square"></i></div>
+          <div class="kpi_content">
+            <div class="kpi_label">POSTED</div>
+            <div class="kpi_value" data-summary="postedCount">0</div>
+          </div>
+        </div>
+        <div class="kpi_card">
+          <div class="kpi_icon blue"><i data-lucide="database"></i></div>
+          <div class="kpi_content">
+            <div class="kpi_label">합계금액</div>
+            <div class="kpi_value" style="font-size: 1.25rem;" data-summary-money="totalAmount">0</div>
+          </div>
+        </div>
+      </section>
+
+      <section class="segmented_tabs" role="tablist" aria-label="전표 유형">
+        <button class="segmented_tab active" type="button" data-voucher-type="SALES">매출전표</button>
+        <button class="segmented_tab" type="button" data-voucher-type="PURCHASE">매입전표</button>
+        <button class="segmented_tab" type="button" disabled style="opacity: 0.5; cursor: not-allowed;">일반전표</button>
+        <button class="segmented_tab" type="button" disabled style="opacity: 0.5; cursor: not-allowed;">수정전표</button>
+        <button class="segmented_tab" type="button" disabled style="opacity: 0.5; cursor: not-allowed;">반제전표</button>
+      </section>
+
+      <section class="voucher_workspace">
+        <form id="voucherForm" class="voucher_form">
+          <div class="form_grid">
+            <div class="erp_form_group">
+              <label class="erp_label" for="voucherDate">전표일자</label>
+              <input id="voucherDate" type="date" class="erp_input" required>
+            </div>
+            <div class="erp_form_group">
+              <label class="erp_label" for="vatType">부가세 유형</label>
+              <select id="vatType" class="erp_select" required>
+                <option value="TAX_INVOICE">세금계산서</option>
+                <option value="ZERO_TAX">영세율</option>
+                <option value="INVOICE">계산서</option>
+                <option value="RETAIL_SALES">소매매출</option>
+                <option value="EXPORT">수출</option>
+                <option value="CARD_SALES">카드매출</option>
+                <option value="CASH_RECEIPT">현금영수증</option>
+                <option value="TAX_FREE">면세</option>
+                <option value="PURCHASER_ISSUED_TAX_INVOICE">매입자발행세금계산서</option>
+                <option value="OTHER_SALES">기타매출</option>
+              </select>
+            </div>
+            <div class="erp_form_group">
+              <label class="erp_label">거래처</label>
+              <div class="lookup_field" style="display: flex; gap: 8px;">
+                <input id="vendorName" type="text" class="erp_input" readonly required placeholder="거래처 선택" style="flex: 1;">
+                <input id="vendorId" type="hidden">
+                <button type="button" class="erp_btn erp_btn_secondary erp_btn_icon" data-open-lookup="vendor" aria-label="거래처 검색"><i data-lucide="search"></i></button>
+              </div>
+            </div>
+            <div class="erp_form_group">
+              <label class="erp_label" for="supplyAmount">공급가액</label>
+              <input id="supplyAmount" class="erp_input" inputmode="decimal" required placeholder="0">
+            </div>
+            <div class="erp_form_group">
+              <label class="erp_label" for="vatAmount">부가세</label>
+              <input id="vatAmount" class="erp_input" inputmode="decimal" required placeholder="0">
+            </div>
+            <div class="erp_form_group">
+              <label class="erp_label" for="totalAmount">합계금액</label>
+              <input id="totalAmount" class="erp_input" inputmode="decimal" readonly placeholder="0" style="background-color: #f8fafc;">
+            </div>
+            <div class="erp_form_group">
+              <label class="erp_label" for="feeAmount">수수료</label>
+              <input id="feeAmount" class="erp_input" inputmode="decimal" placeholder="0">
+            </div>
+            <div class="erp_form_group">
+              <label class="erp_label" id="businessAccountLabel">매출계정</label>
+              <div class="lookup_field" style="display: flex; gap: 8px;">
+                <input id="businessAccountName" class="erp_input" type="text" required autocomplete="off" placeholder="계정코드/계정명 검색" style="flex: 1;">
+                <input id="businessAccountId" type="hidden">
+                <button type="button" class="erp_btn erp_btn_secondary erp_btn_icon" data-open-lookup="businessAccount" aria-label="계정과목 검색"><i data-lucide="search"></i></button>
+              </div>
+            </div>
+            <div class="erp_form_group">
+              <label class="erp_label" id="settlementAccountLabel">입금계좌</label>
+              <div class="lookup_field" style="display: flex; gap: 8px;">
+                <input id="settlementAccountName" class="erp_input" type="text" required autocomplete="off" placeholder="현금/예금 계정 검색" style="flex: 1;">
+                <input id="settlementAccountId" type="hidden">
+                <button type="button" class="erp_btn erp_btn_secondary erp_btn_icon" data-open-lookup="settlementAccount" aria-label="계좌 검색"><i data-lucide="search"></i></button>
+              </div>
+            </div>
+            <div class="erp_form_group form_full" style="grid-column: span 3;">
+              <label class="erp_label" for="description">적요</label>
+              <textarea id="description" class="erp_textarea" rows="3" placeholder="상품 판매, 원재료 매입, 카드 매출 발생"></textarea>
+            </div>
+          </div>
+
+          <div class="journal_preview" style="margin-top: 24px;">
+            <div class="preview_head" style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 12px;">
+              <h4 style="font-size: 0.875rem; font-weight: 600; color: var(--text-primary);">자동 분개 미리보기</h4>
+              <span id="balanceState" class="status_badge muted">차대 검증 대기</span>
+            </div>
+            <div class="erp_table_container">
+              <table class="erp_table">
+                <thead>
+                  <tr>
+                    <th>차대</th>
+                    <th>계정과목</th>
+                    <th class="amount">차변</th>
+                    <th class="amount">대변</th>
+                    <th>적요</th>
+                  </tr>
+                </thead>
+                <tbody id="journalPreviewBody"></tbody>
+              </table>
+            </div>
+          </div>
+
+          <div class="form_actions" style="margin-top: 24px; display: flex; justify-content: flex-end; gap: 8px;">
+            <button type="button" class="erp_btn erp_btn_secondary" id="resetFormButton">다시 작성</button>
+            <button type="button" class="erp_btn erp_btn_secondary" id="cancelButton">취소</button>
+            <button type="submit" class="erp_btn erp_btn_secondary" data-save-action="DRAFT">임시저장</button>
+            <button type="submit" class="erp_btn erp_btn_primary" data-save-action="REQUESTED">저장(기표)</button>
+          </div>
+        </form>
+
+        <section class="section_card" style="margin-top: 24px;">
+          <div class="section_card_header">
+            <h3>전표 리스트</h3>
+            <button type="button" class="erp_btn erp_btn_secondary erp_btn_icon" id="reloadButton"><i data-lucide="refresh-cw"></i></button>
+          </div>
+          <div class="erp_table_container">
+            <table class="erp_table">
+              <thead>
+                <tr>
+                  <th>전표번호</th>
+                  <th>유형</th>
+                  <th>전표일자</th>
+                  <th>거래처</th>
+                  <th class="amount">공급가액</th>
+                  <th class="amount">부가세</th>
+                  <th class="amount">합계</th>
+                  <th>상태</th>
+                  <th>작성자</th>
+                  <th>등록일시</th>
+                  <th>게시</th>
+                </tr>
+              </thead>
+              <tbody id="voucherListBody"></tbody>
+            </table>
+          </div>
+        </section>
+      </section>
+    </main>
   </div>
-  <form id="voucherForm">
-    <div class="form-row" style="display: flex; gap: 20px; margin-bottom: 15px;">
-      <div class="form-group" style="flex: 1;">
-        <label>전표 유형</label>
-        <select id="voucherType" class="hr_input hr_select" required>
-          <option value="SALES">매출전표</option>
-          <option value="PURCHASE">매입전표</option>
-        </select>
+
+  <!-- 검색 조회용 공통 모달 -->
+  <div id="lookupDialog" class="erp_modal_overlay">
+    <div class="erp_modal" style="width: 500px;">
+      <div class="erp_modal_header">
+        <h3 id="lookupTitle">검색</h3>
+        <button type="button" class="erp_modal_close" onclick="document.getElementById('lookupDialog').classList.remove('is_active')">
+          <i data-lucide="x" style="width: 18px; height: 18px;"></i>
+        </button>
       </div>
-      <div class="form-group" style="flex: 1;">
-        <label>전표 일자</label>
-        <input type="date" id="voucherDate" class="hr_input" required>
-      </div>
-      <div class="form-group" style="flex: 1;">
-        <label>부가세 유형</label>
-        <select id="vatType" class="hr_input hr_select" required>
-          <option value="TAX_INVOICE">세금계산서</option>
-          <option value="CARD_SALES">카드매출</option>
-          <option value="CASH_RECEIPT">현금영수증</option>
-          <option value="TAX_FREE">면세</option>
-        </select>
+      <div class="erp_modal_body">
+        <div class="account_lookup_search" style="display: flex; gap: 8px; margin-bottom: 16px;">
+          <input id="lookupKeyword" type="search" class="erp_input" placeholder="검색어 입력" style="flex: 1;">
+          <button type="button" class="erp_btn erp_btn_primary" id="lookupSearchButton"><i data-lucide="search"></i></button>
+        </div>
+        <div id="lookupResults" class="account_lookup_results"></div>
       </div>
     </div>
+  </div>
 
-    <div class="form-group" style="margin-bottom: 15px;">
-      <label>거래처 (Vendor)</label>
-      <input type="text" id="vendorName" class="hr_input" placeholder="거래처명 입력" required>
-      <!-- Hidden ID (can be mapped via search later) -->
-      <input type="hidden" id="vendorId" value="1"> 
-    </div>
+  <div id="toast" class="toast" role="status" aria-live="polite"></div>
 
-    <h3 style="margin: 20px 0 10px; font-size: 1.1rem;">전표 라인 (Voucher Lines)</h3>
-    <div style="overflow-x: auto; margin-bottom: 15px;">
-      <table class="transactions-table" id="voucherLinesTable">
-        <thead>
-          <tr>
-            <th>계정과목</th>
-            <th>차대구분</th>
-            <th>공급가액</th>
-            <th>부가세</th>
-            <th>합계금액</th>
-            <th>적요</th>
-            <th>작업</th>
-          </tr>
-        </thead>
-        <tbody id="voucherLinesBody">
-          <!-- Lines will be dynamically added here -->
-        </tbody>
-      </table>
-    </div>
-    
-    <div style="display: flex; gap: 10px; align-items: center; justify-content: space-between;">
-      <button type="button" class="btn-cancel" id="btn_add_voucher_line">+ 라인 추가</button>
-      <div id="voucher_balance_display" style="font-weight: bold; color: #666;">차변 0 - 대변 0</div>
-    </div>
-
-    <div class="form-actions" style="margin-top: 20px;">
-      <button type="button" class="btn-cancel" onclick="document.getElementById('voucher_management_card').style.display='none'">취소</button>
-      <button type="submit" class="btn-submit" id="btn_submit_voucher">저장 (기표)</button>
-    </div>
-  </form>
-</div>
+  <script src="../../../services/common/apiClient.js"></script>
+  <script src="../../../services/common/sidebar.js"></script>
+  <script src="../../../assets/js/accounting/voucher_management.js"></script>
+</body>
+</html>

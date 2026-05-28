@@ -31,9 +31,6 @@
 - 새 최상위 디렉터리는 임의로 만들지 않는다.
 - 가능하면 기존 구조를 재사용한다.
 - 새 파일이나 하위 구조는 현재 도메인/기술 스택 흐름 안에서 추가한다.
-- 화면 HTML 파일은 기본적으로 `frontend/pages/[도메인]/` 아래에 둔다.
-- `backend/src/main/resources/static`는 기존 공용 정적 자산을 유지하는 경우를 제외하고, 새 UI 페이지를 추가하는 기본 경로로 사용하지 않는다.
-- 백엔드 계층형 구조와 프론트 파일 배치는 별도 규칙으로 지키며, 구조 보정을 이유로 화면 파일을 백엔드 아래로 우회하지 않는다.
 
 ---
 
@@ -108,15 +105,12 @@ AI는 작업 요청 시:
 
 ## 5. Backend 규칙 (Spring Boot)
 
-구조 원칙 (Layered Architecture):
+구조 원칙 (Domain-Driven Structure):
 
-- 모든 백엔드 코드는 전통적인 계층형 구조를 따르며, 최상단 패키지를 역할에 따라 나눈다.
-- **Controller**: `com.dduk.controller` 하위에 도메인별로 위치하며 요청/응답 처리를 담당한다.
-- **Service**: `com.dduk.service` 하위에 도메인별로 위치한다.
-- **Repository**: `com.dduk.repository` 하위에 도메인별로 위치한다.
-- **Entity**: `com.dduk.entity` 하위에 위치한다. (com.dduk.domain 사용 금지)
-- **DTO**: `com.dduk.dto` 하위에 위치한다.
-- **Config**: `com.dduk.config` 하위에 전역 설정 파일들이 위치한다.
+- 모든 백엔드 코드는 `com.dduk.domain.[도메인].[기능]` 구조를 따른다.
+- **Controller**: `...[기능].api` 패키지에 위치하며 요청/응답 처리를 담당한다.
+- **Service/Repository/Entity**: `...[기능]` 패키지에 위치한다.
+- **DTO**: `...[기능].dto` 또는 `...[기능].api.dto` 패키지에 위치한다.
 - **역할 분리**: Controller에 비즈니스 로직 작성을 금지하며, 반드시 Service Layer를 거친다.
 
 네이밍:
@@ -129,7 +123,7 @@ AI는 작업 요청 시:
 - 가능하면 Service Layer 중심 구조를 유지한다.
 - 트랜잭션 경계를 고려한다.
 - 중복 코드를 줄인다.
-- 계층형(Layered) 표준 구조를 엄격히 준수한다.
+- 도메인 중심 표준 구조를 엄격히 준수한다.
 
 단:
 
@@ -141,9 +135,6 @@ AI는 작업 요청 시:
 ## 6. Frontend 규칙
 
 - HTML, CSS, Vanilla JS 기반을 유지한다.
-- 화면 파일은 `frontend/pages/[도메인]/`, 공통 JS/CSS/asset은 `frontend/services/`, `frontend/styles/`, `frontend/assets/`를 우선 사용한다.
-- 기본 작업 흐름은 `frontend/pages -> frontend/services|styles -> /api/v1/... -> backend controller/service/repository` 순서를 따른다.
-- 임시 경로 우회나 급한 수정 때문에도 새 화면 파일을 `backend/src/main/resources/static`에 추가하지 않는다.
 - **파일 분리 원칙**: HTML, JS, CSS는 상호 분리하여 관리한다.
   - HTML 내부에 `<style>` 태그나 대규모 `<script>` 인라인 로직 작성을 지양한다.
   - 공통 로직은 `services/common/` 또는 `styles/common/`에 위치시키고, 페이지 전용 로직은 별도 파일로 분리한다.
@@ -201,8 +192,6 @@ ERP 기본 규칙:
 - 컬럼 추가는 가능하지만, 기존 계약을 깨지 않는 방향으로 추가한다.
   - nullable 컬럼 또는 기본값 있는 컬럼을 우선한다.
   - `NOT NULL` 신규 컬럼은 기존 데이터, 시드 데이터, API 영향까지 같이 확인한다.
-- **공유 초기화 SQL 파일(`dduk_bootstrap_schema.sql`, `dduk_bootstrap_data.sql` 등)은 각 개발자가 개별적으로 직접 수정하여 푸시하지 않는다.**
-  - 스키마나 시드 데이터 변경이 필요한 경우, 직접 SQL 파일을 편집해 개별 커밋하기보다 **JPA 엔티티 레벨(예: `columnDefinition` 등을 통한 DB 기본값 설정)에서 안전하게 처리**하거나 **팀원들과 사전 협의 후 대표 1인이 조율하여 반영**함으로써 깃 머지 충돌을 원천 차단한다.
   - 계좌번호, 사업자번호, 전화번호처럼 형식이 고정되지 않은 값은 숫자형보다 문자열로 관리한다.
 - 민감하거나 운영상 중요한 정보는 특히 더 조심한다.
   - 비밀번호, 토큰, 시크릿은 DB 초안이나 시드에 평문으로 두지 않는다.

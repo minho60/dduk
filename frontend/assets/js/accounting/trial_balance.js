@@ -1,5 +1,4 @@
 (function () {
-  const API_BASE = "/api/v1/accounting/reports";
   const state = {
     rows: [],
     collapsed: new Set()
@@ -10,7 +9,6 @@
     setDefaultPeriod();
     bindEvents();
     loadTrialBalance();
-    renderIcons();
   });
 
   function bindEvents() {
@@ -30,17 +28,36 @@
   async function loadTrialBalance() {
     const query = buildQuery();
     if (!query) return;
+    
+    showLoader(true);
+    
     try {
-      const response = await fetch(`${API_BASE}/trial-balance?${query}`);
-      const payload = await response.json();
-      if (!response.ok || payload.status === "error") throw new Error(payload.message || "조회 중 오류가 발생했습니다.");
+      const payload = await window.ddukApi.get(`/accounting/reports/trial-balance?${query}`);
       state.rows = payload.data.rows || [];
       state.collapsed.clear();
       renderSummary(payload.data.summary);
-      byId("periodLabel").textContent = `${payload.data.startDate} ~ ${payload.data.endDate}`;
+      
+      const periodLabel = byId("periodLabel");
+      if (periodLabel) {
+        periodLabel.textContent = `${payload.data.startDate} ~ ${payload.data.endDate}`;
+      }
+      
       renderRows();
     } catch (error) {
-      toast(error.message);
+      toast(error.message || "조회 중 오류가 발생했습니다.");
+    } finally {
+      showLoader(false);
+    }
+  }
+
+  function showLoader(show) {
+    const loader = byId("tableLoader");
+    const container = document.querySelector(".erp_table_container");
+    if (loader) {
+      loader.style.display = show ? "flex" : "none";
+    }
+    if (container) {
+      container.style.opacity = show ? "0.5" : "1";
     }
   }
 
@@ -51,30 +68,48 @@
     setMoney("periodCreditTotal", summary?.periodCreditTotal || 0);
     setMoney("closingDebitTotal", summary?.closingDebitTotal || 0);
     setMoney("closingCreditTotal", summary?.closingCreditTotal || 0);
+    
     const status = document.querySelector('[data-summary="balanceStatus"]');
     if (status) {
       status.textContent = summary?.balanceStatus || "-";
       status.className = summary?.balanceStatus === "일치" ? "balance-ok" : "balance-warning";
     }
-    byId("trialTableFoot").innerHTML = `
-      <tr>
-        <td colspan="2">합계</td>
-        <td class="amount">${format(summary?.openingDebitTotal)}</td>
-        <td class="amount">${format(summary?.openingCreditTotal)}</td>
-        <td class="amount">${format(summary?.periodDebitTotal)}</td>
-        <td class="amount">${format(summary?.periodCreditTotal)}</td>
-        <td class="amount">${format(summary?.closingDebitTotal)}</td>
-        <td class="amount">${format(summary?.closingCreditTotal)}</td>
-      </tr>
-    `;
+    
+    const foot = byId("trialTableFoot");
+    if (foot) {
+      foot.innerHTML = `
+        <tr class="summary-row">
+          <td colspan="2">합계</td>
+          <td class="amount">${format(summary?.openingDebitTotal)}</td>
+          <td class="amount">${format(summary?.openingCreditTotal)}</td>
+          <td class="amount">${format(summary?.periodDebitTotal)}</td>
+          <td class="amount">${format(summary?.periodCreditTotal)}</td>
+          <td class="amount">${format(summary?.closingDebitTotal)}</td>
+          <td class="amount">${format(summary?.closingCreditTotal)}</td>
+        </tr>
+      `;
+    }
   }
 
   function renderRows() {
     const body = byId("trialTableBody");
+    if (!body) return;
+
     if (!state.rows.length) {
-      body.innerHTML = `<tr><td colspan="8">조회 결과가 없습니다.</td></tr>`;
+      body.innerHTML = `
+        <tr>
+          <td colspan="8">
+            <div class="empty-state">
+              <i data-lucide="info" style="width: 2rem; height: 2rem; color: var(--text-muted); margin-bottom: 0.5rem;"></i>
+              <p>조회된 회계 원장 및 합계잔액 데이터가 존재하지 않습니다.</p>
+            </div>
+          </td>
+        </tr>
+      `;
+      renderIcons();
       return;
     }
+    
     body.innerHTML = state.rows.map(row => {
       const hidden = isHidden(row);
       const children = hasChildren(row.accountId);
@@ -99,6 +134,7 @@
         </tr>
       `;
     }).join("");
+    
     body.querySelectorAll("[data-toggle]").forEach(button => {
       button.addEventListener("click", () => {
         const id = Number(button.dataset.toggle);
@@ -127,7 +163,8 @@
   function downloadExcel() {
     const query = buildQuery();
     if (!query) return;
-    window.location.href = `${API_BASE}/trial-balance/export?${query}`;
+    const baseUrl = window.ddukApi.getBaseUrl();
+    window.location.href = `${baseUrl}/api/v1/accounting/reports/trial-balance/export?${query}`;
   }
 
   function buildQuery() {
@@ -183,6 +220,7 @@
 
   function toast(message) {
     const element = byId("toast");
+    if (!element) return;
     element.textContent = message;
     element.classList.add("show");
     window.setTimeout(() => element.classList.remove("show"), 2800);

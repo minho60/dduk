@@ -11,6 +11,7 @@ import com.dduk.repository.inventory.ItemRepository;
 import com.dduk.repository.inventory.StockMovementRepository;
 import com.dduk.repository.inventory.WarehouseRepository;
 import lombok.RequiredArgsConstructor;
+import lombok.extern.slf4j.Slf4j;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
@@ -18,6 +19,7 @@ import java.math.BigDecimal;
 import java.time.LocalDateTime;
 import java.time.format.DateTimeFormatter;
 
+@Slf4j
 @Service
 @RequiredArgsConstructor
 public class InventoryService {
@@ -26,6 +28,7 @@ public class InventoryService {
     private final StockMovementRepository stockMovementRepository;
     private final ItemRepository itemRepository;
     private final WarehouseRepository warehouseRepository;
+    private final com.dduk.service.accounting.inventory.InventoryVoucherService inventoryVoucherService;
 
     @Transactional(rollbackFor = Exception.class)
     public void increaseStock(Long itemId, Long warehouseId, int quantity, BigDecimal unitCost, MovementReason reason, String refType, String refId) {
@@ -147,6 +150,12 @@ public class InventoryService {
                 .referenceType(refType)
                 .referenceId(refId)
                 .build();
-        stockMovementRepository.save(movement);
+        StockMovement savedMovement = stockMovementRepository.save(movement);
+        try {
+            inventoryVoucherService.createDraftVoucher(savedMovement);
+        } catch (Exception e) {
+            // 회계 전표 자동 생성 실패 시 로그를 남기지만, 로컬 기동 및 시드 데이터 적재 시 롤백 충돌을 방지하기 위해 로깅 처리
+            log.error("Failed to create draft voucher for stock movement: {}", e.getMessage(), e);
+        }
     }
 }

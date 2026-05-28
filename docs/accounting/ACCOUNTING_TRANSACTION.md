@@ -223,6 +223,31 @@ DDUK ERP 회계관리의 단순 입출금 입력 화면을 ERP 스타일 전표 
 - `Ledger` 반영 시점과 회계기간 마감 검증 강화
 - 일반전표, 수정전표, 반제전표 탭 활성화
 
+## 재고 ↔ 회계 자동 연동 (INVENTORY 전표)
+
+재고 도메인의 입출고 이벤트는 회계 전표를 자동으로 DRAFT 생성한다. 수동 전표 입력과는 별도의 흐름이다.
+
+### VoucherType.INVENTORY 전표 특성
+
+- `voucherType = INVENTORY`
+- `status = DRAFT` (자동 생성 전표는 절대 자동 POSTED 안 함)
+- `sourceType`: `VoucherSourceType` Enum (STOCK_INBOUND, STOCK_OUTBOUND, STOCK_ADJUSTMENT_IN, STOCK_ADJUSTMENT_OUT)
+- `sourceReferenceId`: 원천 `StockMovement.id`
+
+### 자동 생성 트리거 및 계정 흐름
+
+| 원천 이벤트 | sourceType | 차변 | 대변 |
+| :--- | :--- | :--- | :--- |
+| 재고 입고 완료 | STOCK_INBOUND | 재고자산(1003) | 외상매입금(2001) |
+| 재고 출고 | STOCK_OUTBOUND | 매출원가(5001) | 재고자산(1003) |
+| 조정 증가 | STOCK_ADJUSTMENT_IN | 재고자산(1003) | 외상매입금(2001) |
+| 조정 감소 | STOCK_ADJUSTMENT_OUT | 재고손실(5003) | 재고자산(1003) |
+| 창고 간 이동 | — | (미생성) | (미생성) |
+
+> 창고 간 이동(TRANSFER_IN/OUT)은 회사 내부 자산 이동으로 재고자산 총액에 변화가 없으므로 전표를 생성하지 않는다.
+
+자세한 내용은 `docs/inventory/INVENTORY_ACCOUNTING.md`를 참조한다.
+
 ## 테스트 방법
 
 백엔드 컴파일:

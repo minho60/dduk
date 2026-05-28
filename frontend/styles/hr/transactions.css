@@ -1,498 +1,76 @@
-/* 상태 배지 스타일 */
-.status-badge {
-  display: inline-flex;
-  align-items: center;
-  padding: 4px 10px;
-  border-radius: 4px;
-  font-size: 0.75rem;
-  font-weight: 600;
-}
+/* Transactions Page Specific Styles (Underscore Naming) */
 
-.status-posted {
-  background: #d4edda;
-  color: #155724;
-}
-
-.status-draft {
-  background: #fff3cd;
-  color: #856404;
-}
-
-.status-cancelled {
-  background: #f8d7da;
-  color: #721c24;
-}
-
-/* 토스트 컨테이너 */
-.toast-container {
-  position: fixed;
-  top: 20px;
-  right: 20px;
-  z-index: 9999;
-}
-
-.toast {
-  padding: 12px 20px;
-  margin-bottom: 10px;
-  border-radius: 4px;
-  color: white;
-  animation: slideIn 0.3s ease-out;
-}
-
-.toast-success {
-  background: #28a745;
-}
-
-.toast-error {
-  background: #dc3545;
-}
-
-.toast-info {
-  background: #17a2b8;
-}
-
-@keyframes slideIn {
-  from {
-    transform: translateX(100%);
-    opacity: 0;
-  }
-
-  to {
-    transform: translateX(0);
-    opacity: 1;
-  }
-}
-
-/* 폼 섹션 숨김 */
-.form-section {
-  display: none;
-}
-
-.form-section.active {
-  display: block;
-}
-
-/* 모달 스타일 */
-.hr_modal {
-  display: none;
-  position: fixed;
-  top: 0;
-  left: 0;
-  width: 100%;
-  height: 100%;
-  background: rgba(0, 0, 0, 0.5);
-  z-index: 1000;
-  align-items: center;
-  justify-content: center;
-}
-
-.hr_modal.active {
-  display: flex;
-}
-
-.hr_modal_content {
-  background: white;
-  border-radius: 12px;
-  max-width: 600px;
-  width: 90%;
-  max-height: 80vh;
-  overflow-y: auto;
-}
-
-.hr_modal_header {
-  display: flex;
-  align-items: center;
-  justify-content: space-between;
-  padding: 20px;
-  border-bottom: 1px solid var(--border);
-}
-
-.hr_modal_header h3 {
-  margin: 0;
-  font-size: 1.1rem;
-}
-
-.hr_close_btn {
-  background: none;
-  border: none;
-  font-size: 1.5rem;
-  cursor: pointer;
-  color: var(--text-secondary);
-}
-
-.hr_modal_body {
-  padding: 20px;
-}
-
-.hr_modal_footer {
-  padding: 20px;
-  border-top: 1px solid var(--border);
-  display: flex;
-  justify-content: flex-end;
-  gap: 8px;
-}
-
-.hr_detail_info {
-  display: grid;
-  gap: 12px;
-  margin-bottom: 20px;
-}
-
-.hr_detail_info p {
-  margin: 0;
-  font-size: 0.9rem;
-}
-
-/* KPI 카드 그리드 */
-.kpi-grid {
-  display: grid;
-  grid-template-columns: repeat(4, 1fr);
-  gap: 16px;
-  margin-bottom: 24px;
-}
-
-.kpi-card {
-  background: var(--card-bg);
-  border: 1px solid var(--border);
-  border-radius: 12px;
-  padding: 20px;
-  display: flex;
-  align-items: center;
-  gap: 16px;
-}
-
-.kpi-icon {
-  width: 40px;
-  height: 40px;
-  border-radius: 8px;
-  display: flex;
-  align-items: center;
-  justify-content: center;
-  font-size: 1.2rem;
-}
-
-.kpi-icon.blue {
-  background: rgba(99, 102, 241, 0.1);
-  color: #6366f1;
-}
-
-.kpi-icon.green {
-  background: rgba(16, 185, 129, 0.1);
-  color: #10b981;
-}
-
-.kpi-icon.orange {
-  background: rgba(245, 158, 11, 0.1);
-  color: #f59e0b;
-}
-
-.kpi-content {
-  display: flex;
-  flex-direction: column;
-  gap: 4px;
-}
-
-.kpi-label {
-  font-size: 0.75rem;
-  color: var(--text-secondary);
-  font-weight: 600;
-}
-
-.kpi-value {
-  font-size: 1.5rem;
-  font-weight: 700;
-  color: var(--text-primary);
-}
-
-/* 테이블 스타일 */
-.transactions-table {
-  width: 100%;
-  border-collapse: collapse;
-  font-size: 0.875rem;
-}
-
-.transactions-table thead {
-  background: #f8fafc;
-}
-
-.transactions-table th {
-  padding: 12px;
-  text-align: left;
-  font-weight: 600;
-  color: var(--text-secondary);
-  border-bottom: 1px solid var(--border);
-  font-size: 0.75rem;
-}
-
-.transactions-table td {
-  padding: 12px;
-  border-bottom: 1px solid var(--border);
-  color: var(--text-primary);
-}
-
-.transactions-table tr:hover {
-  background: rgba(0, 0, 0, 0.02);
-}
-
-.amount-cell {
-  text-align: right;
-  font-variant-numeric: tabular-nums;
-}
-
-.link-cell {
-  color: #6366f1;
-  text-decoration: none;
-  cursor: pointer;
-}
-
-.link-cell:hover {
-  text-decoration: underline;
-}
-
-/* 액션 버튼 */
-.action-menu {
-  background: none;
-  border: none;
-  cursor: pointer;
-  color: var(--text-secondary);
-  padding: 4px 8px;
-}
-
-.action-menu:hover {
-  color: var(--text-primary);
-}
-
+/* Account Lookup Modal Specific (Inside Voucher Creation if any) */
 .account_lookup_field {
-  display: grid;
-  grid-template-columns: minmax(160px, 1fr) 40px;
-  gap: 8px;
-  align-items: center;
+    display: grid;
+    grid-template-columns: minmax(160px, 1fr) 40px;
+    gap: 8px;
+    align-items: center;
 }
 
 .account_lookup_search {
-  display: grid;
-  grid-template-columns: minmax(0, 1fr) auto;
-  gap: 8px;
-  margin-bottom: 12px;
+    display: grid;
+    grid-template-columns: minmax(0, 1fr) auto;
+    gap: 8px;
+    margin-bottom: 12px;
 }
 
 .account_lookup_results {
-  display: grid;
-  gap: 8px;
-  max-height: 420px;
-  overflow-y: auto;
+    display: grid;
+    gap: 8px;
+    max-height: 420px;
+    overflow-y: auto;
 }
 
 .account_lookup_row {
-  display: grid;
-  grid-template-columns: 90px minmax(0, 1fr) 100px 90px;
-  gap: 10px;
-  align-items: center;
-  border: 1px solid var(--border);
-  border-radius: 8px;
-  background: var(--card-bg);
-  padding: 10px 12px;
-  text-align: left;
-  cursor: pointer;
+    display: grid;
+    grid-template-columns: 90px minmax(0, 1fr) 100px 90px;
+    gap: 10px;
+    align-items: center;
+    border: 1px solid var(--border);
+    border-radius: 8px;
+    background: var(--card-bg);
+    padding: 10px 12px;
+    text-align: left;
+    cursor: pointer;
+    font-size: 0.8125rem;
+    transition: border-color 0.15s, color 0.15s;
 }
 
 .account_lookup_row:hover {
-  border-color: var(--accent);
-  color: var(--accent);
+    border-color: var(--accent);
+    color: var(--accent);
 }
 
 .account_lookup_empty {
-  border: 1px dashed var(--border);
-  border-radius: 8px;
-  padding: 18px;
-  color: var(--text-secondary);
-  text-align: center;
+    border: 1px dashed var(--border);
+    border-radius: 8px;
+    padding: 18px;
+    color: var(--text-secondary);
+    text-align: center;
+    font-size: 0.8125rem;
+}
+
+.link_cell {
+    color: var(--accent);
+    text-decoration: none;
+    cursor: pointer;
+    font-weight: 600;
+}
+
+.link_cell:hover {
+    text-decoration: underline;
 }
 
 @media (max-width: 768px) {
-  .account_lookup_row {
-    grid-template-columns: 1fr 1fr;
-  }
+    .account_lookup_row {
+        grid-template-columns: 1fr 1fr;
+    }
 }
 
 @media (max-width: 576px) {
-  .account_lookup_search,
-  .account_lookup_row {
-    grid-template-columns: 1fr;
-  }
-}
-
-/* 반응형 */
-@media (max-width: 1200px) {
-  .kpi-grid {
-    grid-template-columns: repeat(2, 1fr);
-  }
-}
-
-@media (max-width: 768px) {
-  .kpi-grid {
-    grid-template-columns: 1fr;
-  }
-
-  .transactions-table {
-    font-size: 0.75rem;
-  }
-
-  .transactions-table th,
-  .transactions-table td {
-    padding: 8px;
-  }
-}
-
-/* 헤더 액션 버튼 */
-.header-actions {
-  display: flex;
-  align-items: center;
-  gap: 8px;
-}
-
-.btn-add {
-  width: 40px;
-  height: 40px;
-  border-radius: 50%;
-  background: #6366f1;
-  color: white;
-  border: none;
-  cursor: pointer;
-  display: flex;
-  align-items: center;
-  justify-content: center;
-  font-size: 1.2rem;
-  transition: background 0.2s;
-}
-
-.btn-add:hover {
-  background: #4f46e5;
-}
-
-.btn-download {
-  width: 40px;
-  height: 40px;
-  border-radius: 8px;
-  background: var(--card-bg);
-  border: 1px solid var(--border);
-  cursor: pointer;
-  display: flex;
-  align-items: center;
-  justify-content: center;
-  color: var(--text-secondary);
-  transition: all 0.2s;
-}
-
-.btn-download:hover {
-  border-color: var(--text-secondary);
-  color: var(--text-primary);
-}
-
-/* 폼 필드 스타일 */
-.form-row {
-  display: grid;
-  grid-template-columns: repeat(2, 1fr);
-  gap: 16px;
-  margin-bottom: 16px;
-}
-
-.form-row.full {
-  grid-template-columns: 1fr;
-}
-
-.form-group {
-  display: flex;
-  flex-direction: column;
-  gap: 6px;
-}
-
-.form-group label {
-  font-size: 0.75rem;
-  font-weight: 600;
-  color: var(--text-secondary);
-}
-
-.form-group input,
-.form-group select,
-.form-group textarea {
-  padding: 10px 12px;
-  border: 1px solid var(--border);
-  border-radius: 8px;
-  font-size: 0.9rem;
-  font-family: inherit;
-}
-
-.form-group textarea {
-  resize: vertical;
-  min-height: 80px;
-}
-
-.form-actions {
-  display: flex;
-  gap: 8px;
-  justify-content: flex-end;
-  margin-top: 20px;
-}
-
-.btn-cancel {
-  padding: 10px 16px;
-  border: 1px solid var(--border);
-  background: white;
-  border-radius: 8px;
-  cursor: pointer;
-  font-weight: 600;
-  color: var(--text-primary);
-  transition: all 0.2s;
-}
-
-.btn-cancel:hover {
-  background: #f8fafc;
-}
-
-.btn-submit {
-  padding: 10px 16px;
-  border: none;
-  background: #6366f1;
-  color: white;
-  border-radius: 8px;
-  cursor: pointer;
-  font-weight: 600;
-  transition: background 0.2s;
-}
-
-.btn-submit:hover {
-  background: #4f46e5;
-}
-
-.btn-submit:disabled {
-  background: #cbd5e1;
-  cursor: not-allowed;
-}
-
-/* 필터 영역 */
-.filter-area {
-  display: flex;
-  align-items: center;
-  gap: 12px;
-  margin-bottom: 16px;
-}
-
-.filter-area select,
-.filter-area input {
-  padding: 8px 12px;
-  border: 1px solid var(--border);
-  border-radius: 8px;
-  font-size: 0.875rem;
-}
-
-.filter-area input {
-  flex: 1;
-  max-width: 300px;
-}
-
-.summary-info {
-  font-size: 0.75rem;
-  color: var(--text-secondary);
-  margin-bottom: 16px;
+    .account_lookup_search,
+    .account_lookup_row {
+        grid-template-columns: 1fr;
+    }
 }
