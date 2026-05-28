@@ -41,9 +41,8 @@
         { 
             label: "문서/증빙",
             items: [
-                { href: "pages/docs/upload.html", label: "증빙 업로드", roles: ["ADMIN", "HR", "INVENTORY"] },
-                { href: "pages/docs/ocr-box.html", label: "OCR 문서함", roles: ["ADMIN"] },
-                { href: "pages/docs/contracts.html", label: "계약 문서", roles: ["ADMIN"] }
+                { href: "pages/ocr/upload.html", label: "증빙 업로드", roles: ["ADMIN", "HR", "INVENTORY"] },
+                { href: "pages/ocr/ocr-box.html", label: "OCR 문서함", roles: ["ADMIN"] }
             ]
         },
         { 

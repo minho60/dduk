@@ -94,6 +94,15 @@ function Get-PythonCommand {
     throw "Python executable not found. Install python or py first."
 }
 
+function Get-JavaCommand {
+    $java = Get-Command java -ErrorAction SilentlyContinue
+    if ($java) {
+        return $java.Source
+    }
+
+    throw "Java executable not found. Install Java or ensure it is available on PATH."
+}
+
 function Test-PythonImports {
     param(
         [string]$PythonExe,
@@ -184,6 +193,7 @@ try {
     $rpaUrl = "http://localhost:$rpaPort/health"
 
     $pythonCommand = Get-PythonCommand
+    $javaCommand = Get-JavaCommand
 
     $aiVenvPython = Join-Path $aiDir "venv\Scripts\python.exe"
     $aiPip = Join-Path $aiDir "venv\Scripts\pip.exe"
@@ -289,7 +299,27 @@ try {
         if (Test-PortListening -Port 8080) {
             throw "Port 8080 is busy but backend is not responding. Stop the old process first."
         }
-        $backendCommand = "cd /d ""$backendDir"" && call gradlew.bat bootRun 1>""$backendLog"" 2>""$backendErrLog"""
+        Write-Host ">>> Building backend boot jar..." -ForegroundColor Cyan
+        Push-Location $backendDir
+        try {
+            & .\gradlew.bat bootJar | Tee-Object -FilePath $backendLog
+            if ($LASTEXITCODE -ne 0) {
+                throw "Backend bootJar build failed. Check logs: $backendLog / $backendErrLog"
+            }
+        } finally {
+            Pop-Location
+        }
+
+        $backendJar = Get-ChildItem -Path (Join-Path $backendDir "build\libs") -Filter "*.jar" -File |
+            Where-Object { $_.Name -notlike "*-plain.jar" } |
+            Sort-Object LastWriteTime -Descending |
+            Select-Object -First 1
+
+        if ($null -eq $backendJar) {
+            throw "Backend boot jar not found under build\\libs after bootJar."
+        }
+
+        $backendCommand = "cd /d ""$backendDir"" && ""$javaCommand"" -jar ""$($backendJar.FullName)"" 1>""$backendLog"" 2>""$backendErrLog"""
         $backendProcess = Start-DetachedCommand -WorkingDirectory $backendDir -CommandLine $backendCommand
     }
 

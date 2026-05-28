@@ -90,7 +90,7 @@ body {
     padding: 24px;
 }
 
-.menu_item {
+aside.sidebar .menu_item {
     position: relative;
     padding: 8px 16px;
     border-radius: 8px;
@@ -98,25 +98,31 @@ body {
     display: flex;
     align-items: center;
     gap: 10px;
-    font-size: 0.875rem;
+    font-size: 0.8125rem;
+    font-weight: 500;
     color: var(--text-secondary);
     transition: all 0.15s;
     text-decoration: none;
 }
 
-.menu_item:hover {
+aside.sidebar .menu_item:hover {
     background: rgba(0, 0, 0, 0.03);
     color: var(--text-primary);
 }
 
-.menu_item.active {
+aside.sidebar .menu_item.active {
     background: var(--accent-light);
     color: var(--accent);
+    font-weight: 600;
+}
+
+aside.sidebar .menu_label {
+    font-size: 0.8125rem;
     font-weight: 500;
 }
 
-.menu_group_title {
-    font-size: 0.75rem;
+aside.sidebar .menu_group_title {
+    font-size: 0.6875rem;
     font-weight: 600;
     color: var(--text-muted);
     text-transform: uppercase;

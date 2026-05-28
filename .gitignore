@@ -53,6 +53,7 @@ playwright/.cache/
 .tmp/
 .temp/
 .local-run/
+backend/uploads/
 
 # AI Agent Internal
 STATE.md

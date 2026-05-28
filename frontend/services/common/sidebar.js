@@ -45,8 +45,8 @@
             id: 'docs',
             label: '문서/증빙',
             items: [
-                { label: '증빙 업로드', icon: 'upload', href: '#', roles: ['ADMIN', 'HR', 'INVENTORY'] },
-                { label: 'OCR 문서함', icon: 'scan', href: '#', roles: ['ADMIN'] },
+                { label: '증빙 업로드', icon: 'upload', href: 'pages/ocr/upload.html', roles: ['ADMIN', 'HR', 'INVENTORY'] },
+                { label: 'OCR 문서함', icon: 'scan', href: 'pages/ocr/ocr-box.html', roles: ['ADMIN'] },
                 { label: '계약 문서', icon: 'file-signature', href: '#', roles: ['ADMIN'] }
             ]
         },

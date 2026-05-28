@@ -24,6 +24,8 @@ import java.time.LocalDateTime;
 @Table(name = "task_history")
 public class TaskHistory {
 
+    private static final int MAX_ERROR_MESSAGE_LENGTH = 500;
+
     @Id
     @GeneratedValue(strategy = GenerationType.IDENTITY)
     private Long id;
@@ -43,11 +45,11 @@ public class TaskHistory {
     private TaskHistoryStatus status;
 
     @Lob
-    @Column(name = "request_payload")
+    @Column(name = "request_payload", columnDefinition = "LONGTEXT")
     private String requestPayload;
 
     @Lob
-    @Column(name = "response_payload")
+    @Column(name = "response_payload", columnDefinition = "LONGTEXT")
     private String responsePayload;
 
     @Column(name = "error_message", length = 500)
@@ -120,12 +122,19 @@ public class TaskHistory {
 
     public void markFailure(String errorMessage, String responsePayload) {
         this.status = TaskHistoryStatus.FAILED;
-        this.errorMessage = errorMessage;
+        this.errorMessage = abbreviate(errorMessage, MAX_ERROR_MESSAGE_LENGTH);
         this.responsePayload = responsePayload;
         this.callbackReceivedAt = LocalDateTime.now();
         this.completedAt = LocalDateTime.now();
         if (this.startedAt == null) {
             this.startedAt = this.callbackReceivedAt;
         }
+    }
+
+    private String abbreviate(String value, int maxLength) {
+        if (value == null || value.length() <= maxLength) {
+            return value;
+        }
+        return value.substring(0, maxLength);
     }
 }

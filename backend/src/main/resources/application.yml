@@ -7,7 +7,7 @@ spring:
 
   jpa:
     hibernate:
-      ddl-auto: ${JPA_DDL_AUTO:update}
+      ddl-auto: ${JPA_DDL_AUTO:none}
     show-sql: true
     properties:
       hibernate:
@@ -20,6 +20,7 @@ spring:
         - classpath:db/mysql/dduk_bootstrap_schema.sql
         - classpath:db/mysql/task_history_schema.sql
         - classpath:db/mysql/notice_schema.sql
+        - classpath:db/mysql/ocr_schema.sql
       data-locations:
         - classpath:db/mysql/dduk_bootstrap_data.sql
 
