@@ -305,7 +305,7 @@
             return;
         }
 
-        if (!window.ddukSession.requireRole(["ADMIN"])) {
+        if (!window.ddukSession.requireRole(["ADMIN", "HR", "INVENTORY"])) {
             return;
         }
 

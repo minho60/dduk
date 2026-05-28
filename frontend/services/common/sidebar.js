@@ -48,7 +48,7 @@
             label: '문서/증빙',
             items: [
                 { label: '증빙 업로드', icon: 'upload', href: 'pages/ocr/upload.html', roles: ['ADMIN', 'HR', 'INVENTORY'] },
-                { label: 'OCR 문서함', icon: 'scan', href: 'pages/ocr/ocr-box.html', roles: ['ADMIN'] },
+                { label: 'OCR 문서함', icon: 'scan', href: 'pages/ocr/ocr-box.html', roles: ['ADMIN', 'HR', 'INVENTORY'] },
                 { label: '계약 문서', icon: 'file-signature', href: '#', roles: ['ADMIN'] }
             ]
         },
@@ -57,8 +57,8 @@
             label: 'AI 업무지원',
             items: [
                 { label: 'AI 챗봇', icon: 'bot', href: '#', roles: ['ADMIN', 'HR', 'INVENTORY'] },
-                { label: '이상 탐지', icon: 'alert-triangle', href: '#', roles: ['ADMIN'] },
-                { label: '예측 분석', icon: 'brain', href: '#', roles: ['ADMIN'] }
+                { label: '이상 탐지', icon: 'alert-triangle', href: '#', roles: ['ADMIN', 'HR', 'INVENTORY'] },
+                { label: '예측 분석', icon: 'brain', href: '#', roles: ['ADMIN', 'HR', 'INVENTORY'] }
             ]
         },
         {

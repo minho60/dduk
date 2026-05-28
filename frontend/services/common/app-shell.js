@@ -1,12 +1,12 @@
 (function () {
     const GLOBAL_NAV_ITEMS = [
-        { 
+        {
             label: "대시보드",
             items: [
                 { href: "dashboard.html", label: "통합 대시보드", roles: ["ADMIN", "HR", "INVENTORY"] }
             ]
         },
-        { 
+        {
             label: "구매/발주",
             items: [
                 { href: "pages/inventory/purchase-dashboard.html", label: "구매/발주 대시보드", roles: ["ADMIN", "INVENTORY"] },
@@ -16,7 +16,7 @@
                 { href: "pages/inventory/vendors.html", label: "거래처 관리", roles: ["ADMIN", "INVENTORY"] }
             ]
         },
-        { 
+        {
             label: "재고관리",
             items: [
                 { href: "pages/inventory/stock-dashboard.html", label: "재고관리 대시보드", roles: ["ADMIN", "INVENTORY"] },
@@ -26,34 +26,34 @@
                 { href: "pages/inventory/auto-order.html", label: "자동 발주 추천", roles: ["ADMIN", "INVENTORY"] }
             ]
         },
-        { 
+        {
             label: "회계관리",
             items: [
-                { href: "pages/accounting/dashboard.html", label: "회계 대시보드", roles: ["ADMIN"] },
-                { href: "pages/accounting/tax-invoice.html", label: "세금계산서", roles: ["ADMIN"] },
-                { href: "pages/accounting/expenses.html", label: "비용 처리", roles: ["ADMIN"] },
-                { href: "pages/accounting/sales-purchase.html", label: "매입/매출", roles: ["ADMIN"] },
-                { href: "pages/accounting/monthly-settlement.html", label: "월별 정산", roles: ["ADMIN"] },
+                { href: "pages/accounting/dashboard.html", label: "회계 대시보드", roles: ["ADMIN", "HR"] },
+                { href: "pages/accounting/tax-invoice.html", label: "세금계산서", roles: ["ADMIN", "HR"] },
+                { href: "pages/accounting/expenses.html", label: "비용 처리", roles: ["ADMIN", "HR"] },
+                { href: "pages/accounting/sales-purchase.html", label: "매입/매출", roles: ["ADMIN", "HR"] },
+                { href: "pages/accounting/monthly-settlement.html", label: "월별 정산", roles: ["ADMIN", "HR"] },
                 { href: "pages/hr/payroll.html", label: "급여 계산", roles: ["ADMIN", "HR"] },
-                { href: "pages/accounting/report.html", label: "회계 리포트", roles: ["ADMIN"] }
+                { href: "pages/accounting/report.html", label: "회계 리포트", roles: ["ADMIN", "HR"] }
             ]
         },
-        { 
+        {
             label: "문서/증빙",
             items: [
                 { href: "pages/ocr/upload.html", label: "증빙 업로드", roles: ["ADMIN", "HR", "INVENTORY"] },
-                { href: "pages/ocr/ocr-box.html", label: "OCR 문서함", roles: ["ADMIN"] }
+                { href: "pages/ocr/ocr-box.html", label: "OCR 문서함", roles: ["ADMIN", "HR", "INVENTORY"] }
             ]
         },
-        { 
+        {
             label: "AI 업무지원",
             items: [
                 { href: "pages/ai/chatbot.html", label: "AI 챗봇", roles: ["ADMIN", "HR", "INVENTORY"] },
-                { href: "ai/anomaly-detection.html", label: "이상 탐지", roles: ["ADMIN"] },
-                { href: "ai/predictive-analysis.html", label: "예측 분석", roles: ["ADMIN"] }
+                { href: "ai/anomaly-detection.html", label: "이상 탐지", roles: ["ADMIN", "HR", "INVENTORY"] },
+                { href: "ai/predictive-analysis.html", label: "예측 분석", roles: ["ADMIN", "HR", "INVENTORY"] }
             ]
         },
-        { 
+        {
             label: "관리자",
             items: [
                 { href: "pages/admin/members.html", label: "사용자 관리", roles: ["ADMIN"] },
@@ -86,7 +86,7 @@
             const itemHtml = allowedItems.map(function (item) {
                 const href = item.href === "#" ? "#" : root + item.href;
                 const isCurrent = window.location.pathname.endsWith(item.href) ? ' aria-current="page"' : "";
-                
+
                 return `
                     <a href="${href}"${isCurrent}>
                         <span class="nav-label">${item.label}</span>
@@ -111,11 +111,9 @@
         const currentGroup = header.parentElement;
         const allGroups = document.querySelectorAll('.nav-group');
         const isExpanded = currentGroup.classList.contains('expanded');
-        
-        // Close all other groups
+
         allGroups.forEach(group => group.classList.remove('expanded'));
-        
-        // Toggle the clicked group
+
         if (!isExpanded) {
             currentGroup.classList.add('expanded');
         }

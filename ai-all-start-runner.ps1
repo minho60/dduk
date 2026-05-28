@@ -59,7 +59,7 @@ function Test-HttpReady {
 
     try {
         $response = Invoke-WebRequest -Uri $Url -UseBasicParsing -TimeoutSec 5
-        return $response.StatusCode -ge 200 -and $response.StatusCode -lt 500
+        return $response.StatusCode -eq 200
     } catch {
         return $false
     }
@@ -319,7 +319,7 @@ try {
             throw "Backend boot jar not found under build\\libs after bootJar."
         }
 
-        $backendCommand = "cd /d ""$backendDir"" && ""$javaCommand"" -jar ""$($backendJar.FullName)"" 1>""$backendLog"" 2>""$backendErrLog"""
+        $backendCommand = "cd /d ""$backendDir"" && ""$javaCommand"" -DAI_SERVER_URL=http://localhost:$aiPort -jar ""$($backendJar.FullName)"" 1>""$backendLog"" 2>""$backendErrLog"""
         $backendProcess = Start-DetachedCommand -WorkingDirectory $backendDir -CommandLine $backendCommand
     }
 

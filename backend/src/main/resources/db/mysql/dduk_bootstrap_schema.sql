@@ -387,6 +387,14 @@ CREATE TABLE IF NOT EXISTS journal_items (
     CONSTRAINT fk_journal_items_account FOREIGN KEY (account_id) REFERENCES accounts (id) ON DELETE RESTRICT
 ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci;
 
+-- Legacy local DBs can still carry the old `amount` column without a default,
+-- which breaks startup seed inserts because the current entity no longer writes it.
+ALTER TABLE journal_items
+    ADD COLUMN IF NOT EXISTS amount DECIMAL(15,2) NOT NULL DEFAULT 0.00 AFTER account_id;
+
+ALTER TABLE journal_items
+    MODIFY COLUMN amount DECIMAL(15,2) NOT NULL DEFAULT 0.00;
+
 -- Default Chart of Accounts Seeds
 INSERT INTO accounts (code, name, type, normal_balance, level, status, allow_posting, system_account, deleted, sort_order) VALUES
 ('1001', '현금', 'ASSET', 'DEBIT', 1, 'ACTIVE', 1, 1, 0, 10),
