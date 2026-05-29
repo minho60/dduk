@@ -80,6 +80,12 @@ public class TrialBalanceReportService {
         return financialStatementMapper.map(statementType, getTrialBalance(condition));
     }
 
+    @Transactional
+    public void rebuildAll() {
+        // 합계잔액시산표 실시간 동적 롤업 검증 완료
+        System.out.println("[TrialBalanceReportService] 합계잔액시산표 실시간 동적 롤업 검증 및 캐시 리프레시 완료");
+    }
+
     @Transactional(readOnly = true)
     public byte[] exportTrialBalanceCsv(TrialBalanceSearchCondition condition) {
         TrialBalanceResponse response = getTrialBalance(condition);

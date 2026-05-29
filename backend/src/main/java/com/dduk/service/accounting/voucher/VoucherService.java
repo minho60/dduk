@@ -171,7 +171,9 @@ public class VoucherService {
         voucher.updateStatus(nextStatus);
         if (nextStatus == VoucherStatus.POSTED && voucher.getJournalEntry() != null) {
             voucher.getJournalEntry().post();
+            journalEntryRepository.save(voucher.getJournalEntry());
         }
+        voucherRepository.save(voucher);
         return mapToResponse(voucher);
     }
 

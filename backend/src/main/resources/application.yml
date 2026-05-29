@@ -25,6 +25,11 @@ spring:
         - classpath:db/mysql/dduk_bootstrap_data.sql
         - classpath:db/mysql/dduk_sample_data.sql
 
+app:
+  accounting:
+    seed: true
+    seed-mode: true
+
 jwt:
   secret: ${JWT_SECRET}
   expiration: ${JWT_EXPIRATION:86400000}
