@@ -13,6 +13,7 @@ import org.junit.jupiter.api.DisplayName;
 import org.junit.jupiter.api.Test;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.boot.test.context.SpringBootTest;
+import org.springframework.jdbc.core.JdbcTemplate;
 import org.springframework.transaction.annotation.Transactional;
 
 import java.math.BigDecimal;
@@ -34,23 +35,14 @@ public class WarehouseTransferServiceTest {
     void printActualDbCounts() {
         System.out.println("==================================================");
         System.out.println("=== [DEBUG] START ACTUAL DB COUNT CHECK ===");
-        try (java.sql.Connection conn = java.sql.DriverManager.getConnection(
-                "jdbc:mysql://gateway01.ap-northeast-1.prod.aws.tidbcloud.com:4000/dduk_erp?useSSL=true",
-                "3UCLSyyYTzkXiNP.root",
-                "G7rPFFkfVMjTRv9c")) {
-            String[] tables = {"items", "inventories", "stock_movements", "purchase_orders"};
-            for (String table : tables) {
-                try (java.sql.Statement stmt = conn.createStatement();
-                     java.sql.ResultSet rs = stmt.executeQuery("SELECT COUNT(*) FROM " + table)) {
-                    if (rs.next()) {
-                        System.out.println("[DB_COUNT] " + table + " : " + rs.getInt(1));
-                    }
-                } catch (Exception ex) {
-                    System.out.println("[DB_COUNT] " + table + " failed: " + ex.getMessage());
-                }
+        String[] tables = {"items", "inventories", "stock_movements", "purchase_orders"};
+        for (String table : tables) {
+            try {
+                Integer count = jdbcTemplate.queryForObject("SELECT COUNT(*) FROM " + table, Integer.class);
+                System.out.println("[DB_COUNT] " + table + " : " + count);
+            } catch (Exception ex) {
+                System.out.println("[DB_COUNT] " + table + " failed: " + ex.getMessage());
             }
-        } catch (Exception e) {
-            System.err.println("DB Connection failed: " + e.getMessage());
         }
         System.out.println("=== [DEBUG] END ACTUAL DB COUNT CHECK ===");
         System.out.println("==================================================");
@@ -77,6 +69,9 @@ public class WarehouseTransferServiceTest {
     @Autowired
     private MemberRepository memberRepository;
 
+    @Autowired
+    private JdbcTemplate jdbcTemplate;
+
     private Warehouse whSource;
     private Warehouse whTarget;
     private Item testItem;
@@ -84,26 +79,6 @@ public class WarehouseTransferServiceTest {
 
     @BeforeEach
     void setUp() {
-        // [임시 마이그레이션] 이중 컬럼 (quantity, allocated_quantity) 제거
-        try (java.sql.Connection conn = java.sql.DriverManager.getConnection(
-                "jdbc:mysql://gateway01.ap-northeast-1.prod.aws.tidbcloud.com:4000/dduk_erp?useSSL=true",
-                "3UCLSyyYTzkXiNP.root",
-                "G7rPFFkfVMjTRv9c")) {
-            try (java.sql.Statement stmt = conn.createStatement()) {
-                stmt.execute("ALTER TABLE inventories DROP COLUMN IF EXISTS quantity");
-                stmt.execute("ALTER TABLE inventories DROP COLUMN IF EXISTS allocated_quantity");
-            } catch (Exception e) {
-                try (java.sql.Statement stmt2 = conn.createStatement()) {
-                    stmt2.execute("ALTER TABLE inventories DROP COLUMN quantity");
-                } catch (Exception ignored) {}
-                try (java.sql.Statement stmt2 = conn.createStatement()) {
-                    stmt2.execute("ALTER TABLE inventories DROP COLUMN allocated_quantity");
-                } catch (Exception ignored) {}
-            }
-        } catch (Exception e) {
-            System.err.println("Database migration failed: " + e.getMessage());
-        }
-
         // 1. 테스트용 창고 적재
         whSource = warehouseRepository.save(Warehouse.builder()
                 .warehouseCode("T-SRC")

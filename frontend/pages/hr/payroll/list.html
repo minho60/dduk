@@ -26,6 +26,39 @@
                 </div>
             </header>
 
+            <section class="hr_card" id="hr_reference_card">
+                <div class="hr_card_header">
+                    <h3>Stage 5 HR 기준 조회</h3>
+                    <span class="hr_badge warn" id="hr_reference_status_badge">대기</span>
+                </div>
+                <div class="hr_grid">
+                    <div class="hr_card span_3"><div class="hr_kpi_label">최저 시급</div><div class="hr_kpi_value" id="hr_reference_min_wage">-</div></div>
+                    <div class="hr_card span_3"><div class="hr_kpi_label">월 환산 최저임금</div><div class="hr_kpi_value" id="hr_reference_min_salary">-</div></div>
+                    <div class="hr_card span_3"><div class="hr_kpi_label">ERP 최저 시급</div><div class="hr_kpi_value" id="hr_reference_erp_hourly">-</div></div>
+                    <div class="hr_card span_3"><div class="hr_kpi_label">시급 차이</div><div class="hr_kpi_value" id="hr_reference_gap">-</div></div>
+                </div>
+                <table class="hr_table" style="margin-top: 16px;">
+                    <tbody>
+                        <tr><th>기준 출처</th><td id="hr_reference_source">-</td></tr>
+                        <tr><th>적용일</th><td id="hr_reference_effective_date">-</td></tr>
+                        <tr><th>최근 조회</th><td id="hr_reference_collected_at">-</td></tr>
+                        <tr><th>안내</th><td id="hr_reference_message">최근 HR 기준 정보를 불러오는 중이야.</td></tr>
+                    </tbody>
+                </table>
+                <pre class="hr_result" id="hr_reference_trace" style="margin-top: 16px;">세부 기준 정보가 여기에 표시됩니다.</pre>
+                <div class="hr_actions" style="margin-top: 16px;">
+                    <button class="hr_button" type="button" id="btn_refresh_hr_reference"><i data-lucide="refresh-cw"></i>새로고침</button>
+                    <button class="hr_button primary" type="button" id="btn_trigger_hr_reference"><i data-lucide="file-search"></i>기준 조회 실행</button>
+                </div>
+                <div style="margin-top: 16px;">
+                    <div class="hr_card_header">
+                        <h3>최근 실행 이력</h3>
+                        <button class="hr_button" type="button" id="btn_refresh_hr_reference_history"><i data-lucide="history"></i>새로고침</button>
+                    </div>
+                    <div class="hr_result" id="hr_reference_history" style="margin-top: 12px;">최근 실행 이력을 불러오는 중이야.</div>
+                </div>
+            </section>
+
             <section class="hr_grid">
                 <form class="hr_card span_4" id="payroll_form">
                     <div class="hr_card_header">

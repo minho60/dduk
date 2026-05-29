@@ -8,23 +8,19 @@
     <script src="https://cdn.jsdelivr.net/npm/lucide@0.263.0/dist/umd/lucide.min.js"></script>
     <link rel="stylesheet" href="../../styles/common/dashboard.css">
     <style>
-        .metric-card{background:#fff;border:1px solid #e5e7eb;border-radius:.5rem;padding:1.25rem;box-shadow:0 1px 2px rgba(15,23,42,.04)}
+        .metric-card{background:#fff;border:1px solid #e5e7eb;border-radius:.75rem;padding:1.25rem;box-shadow:0 1px 2px rgba(15,23,42,.05)}
         .metric-label{font-size:.8125rem;font-weight:800;color:#64748b}
         .metric-value{margin-top:.625rem;font-size:1.75rem;font-weight:900;color:#111827;line-height:1}
         .metric-sub{margin-top:.5rem;font-size:.8125rem;font-weight:700;color:#64748b}
-        .panel{background:#fff;border:1px solid #e5e7eb;border-radius:.5rem;box-shadow:0 1px 2px rgba(15,23,42,.04)}
+        .panel{background:#fff;border:1px solid #e5e7eb;border-radius:.75rem;box-shadow:0 1px 2px rgba(15,23,42,.05)}
         .status-pill{display:inline-flex;align-items:center;border-radius:999px;padding:.25rem .625rem;font-size:.75rem;font-weight:800;background:#f1f5f9;color:#334155;white-space:nowrap}
         .chart-bar{border-radius:.375rem .375rem 0 0;min-height:.25rem}
-        .progress-track{height:.5rem;border-radius:999px;background:#e5e7eb;overflow:hidden}
-        .progress-fill{height:100%;border-radius:999px}
-        .progress-gauge-list{display:grid;gap:1rem}
-        .progress-gauge-row{display:grid;grid-template-columns:4.25rem minmax(0,1fr);align-items:center;gap:1rem;padding-bottom:1rem;border-bottom:1px solid #f1f5f9}
+        .progress-gauge-row{display:grid;grid-template-columns:4.5rem minmax(0,1fr);align-items:center;gap:1rem;padding-bottom:1rem;border-bottom:1px solid #f1f5f9}
         .progress-gauge-row:last-child{padding-bottom:0;border-bottom:0}
-        .progress-gauge{width:4.25rem;height:4.25rem;border-radius:999px;display:grid;place-items:center;background:conic-gradient(var(--gauge-color) var(--gauge-stop), #e5e7eb 0);position:relative;box-shadow:inset 0 0 0 1px rgba(15,23,42,.06)}
-        .progress-gauge::after{content:"";position:absolute;inset:.55rem;border-radius:999px;background:#fff;box-shadow:0 1px 2px rgba(15,23,42,.06)}
+        .progress-gauge{width:4.5rem;height:4.5rem;border-radius:999px;display:grid;place-items:center;background:conic-gradient(var(--gauge-color) var(--gauge-stop), #e5e7eb 0);position:relative;box-shadow:inset 0 0 0 1px rgba(15,23,42,.06)}
+        .progress-gauge::after{content:"";position:absolute;inset:.55rem;border-radius:999px;background:#fff}
         .progress-gauge strong{position:relative;z-index:1;font-size:.9rem;font-weight:900;color:#0f172a}
-        .progress-caption{font-size:.75rem;font-weight:800;color:#64748b}
-        .progress-title{margin-top:.125rem;font-size:.95rem;font-weight:900;color:#111827}
+        .progress-title{font-size:.95rem;font-weight:900;color:#111827}
         .progress-note{margin-top:.35rem;font-size:.78rem;font-weight:700;color:#64748b}
         .status-stack{display:flex;height:1.05rem;border-radius:999px;overflow:hidden;background:#e5e7eb;box-shadow:inset 0 0 0 1px rgba(15,23,42,.05)}
         .status-stack-segment{height:100%;min-width:.25rem}
@@ -35,6 +31,21 @@
         .status-count-text{font-size:.8rem;font-weight:900;color:#475569;white-space:nowrap}
         .status-mini-track{height:.35rem;border-radius:999px;background:#eef2f7;overflow:hidden;margin-top:.3rem}
         .status-mini-fill{height:100%;border-radius:999px}
+        .rpa-shell{background:linear-gradient(135deg,#fffdf8 0%,#fff7ed 55%,#fffbeb 100%);border:1px solid #fed7aa}
+        .rpa-chip{display:inline-flex;align-items:center;gap:.4rem;border-radius:999px;padding:.3rem .7rem;font-size:.75rem;font-weight:900}
+        .rpa-chip.ready{background:#dcfce7;color:#166534}
+        .rpa-chip.waiting{background:#fef3c7;color:#92400e}
+        .rpa-chip.missing{background:#fee2e2;color:#b91c1c}
+        .rpa-stat-grid{display:grid;grid-template-columns:repeat(3,minmax(0,1fr));gap:.75rem}
+        .rpa-stat{border-radius:.75rem;background:rgba(255,255,255,.78);border:1px solid rgba(251,146,60,.25);padding:1rem}
+        .rpa-stat-label{font-size:.75rem;font-weight:900;color:#9a3412}
+        .rpa-stat-value{margin-top:.45rem;font-size:1.4rem;font-weight:900;color:#111827}
+        .rpa-stat-note{margin-top:.3rem;font-size:.75rem;font-weight:700;color:#7c2d12}
+        .rpa-table{width:100%;border-collapse:collapse}
+        .rpa-table th,.rpa-table td{padding:.8rem .75rem;border-top:1px solid #ffedd5;font-size:.84rem}
+        .rpa-table th{font-size:.74rem;font-weight:900;color:#9a3412;background:rgba(255,255,255,.55);text-align:left}
+        .rpa-empty{padding:1.2rem;border-radius:.75rem;background:rgba(255,255,255,.75);border:1px dashed #fdba74;color:#9a3412;font-size:.85rem;font-weight:700}
+        @media (max-width: 1024px){.rpa-stat-grid{grid-template-columns:1fr}}
     </style>
 </head>
 <body class="bg-slate-50 min-h-screen">
@@ -42,10 +53,12 @@
     <div class="main_wrap">
         <header class="topbar px-6 py-4 flex justify-between items-center bg-white border-b sticky top-0 z-10">
             <div class="flex items-center gap-4">
-                <button id="mobile_menu_btn" class="lg:hidden p-2 hover:bg-gray-100 rounded-lg"><i data-lucide="menu"></i></button>
+                <button id="mobile_menu_btn" class="lg:hidden p-2 hover:bg-gray-100 rounded-lg">
+                    <i data-lucide="menu"></i>
+                </button>
                 <div>
                     <h1 class="text-xl font-bold text-gray-900">구매/발주 대시보드</h1>
-                    <p id="message" class="text-sm text-gray-500 mt-1">발주, 입고, 외상 흐름을 집계 중입니다.</p>
+                    <p id="message" class="text-sm text-gray-500 mt-1">발주 현황, 단가 비교, 최근 주문 흐름을 한 번에 본다.</p>
                 </div>
             </div>
             <div id="base-date" class="text-sm font-bold text-slate-500"></div>
@@ -55,15 +68,15 @@
             <section class="grid grid-cols-1 sm:grid-cols-2 xl:grid-cols-5 gap-4 mb-6">
                 <article class="metric-card">
                     <div class="flex items-center justify-between">
-                        <p class="metric-label">발주건수</p>
+                        <p class="metric-label">발주 건수</p>
                         <i data-lucide="clipboard-list" class="w-5 h-5 text-indigo-500"></i>
                     </div>
                     <p id="order-count" class="metric-value">-</p>
-                    <p class="metric-sub">전체 발주서</p>
+                    <p class="metric-sub">전체 발주 기준</p>
                 </article>
                 <article class="metric-card">
                     <div class="flex items-center justify-between">
-                        <p class="metric-label">발주완료</p>
+                        <p class="metric-label">발주 완료</p>
                         <i data-lucide="send" class="w-5 h-5 text-emerald-500"></i>
                     </div>
                     <p id="completed-order-count" class="metric-value">-</p>
@@ -71,15 +84,15 @@
                 </article>
                 <article class="metric-card">
                     <div class="flex items-center justify-between">
-                        <p class="metric-label">입고중</p>
+                        <p class="metric-label">입고 중</p>
                         <i data-lucide="package-plus" class="w-5 h-5 text-sky-500"></i>
                     </div>
                     <p id="receiving-count" class="metric-value">-</p>
-                    <p class="metric-sub">입고중 상태 기준</p>
+                    <p class="metric-sub">입고 진행 상태 기준</p>
                 </article>
                 <article class="metric-card">
                     <div class="flex items-center justify-between">
-                        <p class="metric-label">입고지연</p>
+                        <p class="metric-label">입고 지연</p>
                         <i data-lucide="clock-alert" class="w-5 h-5 text-rose-500"></i>
                     </div>
                     <p id="delay-count" class="metric-value text-rose-600">-</p>
@@ -87,11 +100,88 @@
                 </article>
                 <article class="metric-card">
                     <div class="flex items-center justify-between">
-                        <p class="metric-label">입고완료</p>
+                        <p class="metric-label">입고 완료</p>
                         <i data-lucide="package-check" class="w-5 h-5 text-teal-500"></i>
                     </div>
                     <p id="received-count" class="metric-value">-</p>
                     <p id="received-rate" class="metric-sub">-</p>
+                </article>
+            </section>
+
+            <section class="mb-6">
+                <article class="panel rpa-shell p-5">
+                    <div class="flex flex-col gap-4 xl:flex-row xl:items-start xl:justify-between">
+                        <div class="min-w-0">
+                            <div class="flex flex-wrap items-center gap-3">
+                                <h2 class="text-lg font-black text-slate-900">Stage 2 구매 단가 비교</h2>
+                                <span id="rpa-status-chip" class="rpa-chip waiting">대기</span>
+                            </div>
+                            <p id="rpa-message" class="mt-2 text-sm font-semibold text-amber-900">최신 수집 결과를 불러오는 중이야.</p>
+                            <div class="mt-3 flex flex-wrap items-center gap-4 text-sm font-bold text-slate-700">
+                                <span>공급처: <strong id="rpa-vendor-name" class="text-slate-900">-</strong></span>
+                                <span>최근 수집: <strong id="rpa-collected-at" class="text-slate-900">-</strong></span>
+                                <span>비교 행수: <strong id="rpa-compared-count" class="text-slate-900">-</strong></span>
+                            </div>
+                        </div>
+                        <div class="flex flex-wrap items-center gap-3">
+                            <button id="rpa-trigger-button" type="button" class="inline-flex items-center gap-2 rounded-xl bg-slate-900 px-4 py-2.5 text-sm font-black text-white hover:bg-slate-700 disabled:cursor-not-allowed disabled:bg-slate-400">
+                                <i data-lucide="bot" class="w-4 h-4"></i>
+                                단가 수집 실행
+                            </button>
+                            <a href="../admin/system-admin.html" class="inline-flex items-center gap-2 rounded-xl border border-amber-200 bg-white/70 px-4 py-2.5 text-sm font-black text-amber-900 hover:bg-white">
+                                <i data-lucide="square-arrow-out-up-right" class="w-4 h-4"></i>
+                                관리자 추적
+                            </a>
+                        </div>
+                    </div>
+
+                    <div class="rpa-stat-grid mt-5">
+                        <div class="rpa-stat">
+                            <div class="rpa-stat-label">최근 수집 평균 단가</div>
+                            <div id="rpa-collected-price" class="rpa-stat-value">-</div>
+                            <div id="rpa-collected-note" class="rpa-stat-note">RPA 결과 기준</div>
+                        </div>
+                        <div class="rpa-stat">
+                            <div class="rpa-stat-label">ERP 기준 평균 단가</div>
+                            <div id="rpa-erp-price" class="rpa-stat-value">-</div>
+                            <div id="rpa-erp-note" class="rpa-stat-note">기본 공급처 단가 기준</div>
+                        </div>
+                        <div class="rpa-stat">
+                            <div class="rpa-stat-label">평균 단가 차이</div>
+                            <div id="rpa-delta-price" class="rpa-stat-value">-</div>
+                            <div id="rpa-delta-note" class="rpa-stat-note">수집 평균 - ERP 평균</div>
+                        </div>
+                    </div>
+
+                    <div class="mt-5 overflow-x-auto">
+                        <table class="rpa-table">
+                            <thead>
+                                <tr>
+                                    <th>품목</th>
+                                    <th>수집 단가</th>
+                                    <th>ERP 단가</th>
+                                    <th>차이</th>
+                                    <th>매칭</th>
+                                </tr>
+                            </thead>
+                            <tbody id="rpa-items-body">
+                                <tr>
+                                    <td colspan="5">
+                                        <div class="rpa-empty">비교 데이터를 불러오는 중이야.</div>
+                                    </td>
+                                </tr>
+                            </tbody>
+                        </table>
+                    </div>
+                    <div class="mt-5">
+                        <div class="flex items-center justify-between gap-3">
+                            <h3 class="text-sm font-black text-slate-900">최근 실행 이력</h3>
+                            <button id="rpa-history-refresh" type="button" class="rounded-lg border border-amber-200 bg-white/70 px-3 py-1.5 text-xs font-black text-amber-900 hover:bg-white">새로고침</button>
+                        </div>
+                        <div id="rpa-history-list" class="mt-3 space-y-2">
+                            <div class="rpa-empty">최근 실행 이력을 불러오는 중이야.</div>
+                        </div>
+                    </div>
                 </article>
             </section>
 
@@ -100,7 +190,7 @@
                     <div class="flex items-center justify-between mb-5">
                         <div>
                             <h2 class="text-base font-extrabold text-gray-900">월별 발주 추이</h2>
-                            <p class="text-sm text-gray-500 mt-1">최근 6개월 발주 건수와 금액 흐름입니다.</p>
+                            <p class="text-sm text-gray-500 mt-1">최근 6개월 발주 건수와 금액 흐름이야.</p>
                         </div>
                         <i data-lucide="bar-chart-3" class="w-5 h-5 text-indigo-500"></i>
                     </div>
@@ -111,7 +201,7 @@
                     <div class="flex items-center justify-between mb-5">
                         <div>
                             <h2 class="text-base font-extrabold text-gray-900">진행률</h2>
-                            <p class="text-sm text-gray-500 mt-1">완료와 지연 비율을 빠르게 확인합니다.</p>
+                            <p class="text-sm text-gray-500 mt-1">완료와 지연 비율을 빠르게 본다.</p>
                         </div>
                         <i data-lucide="gauge" class="w-5 h-5 text-emerald-500"></i>
                     </div>
@@ -129,11 +219,11 @@
                     <div class="p-5 border-b border-slate-100 flex items-start justify-between gap-3">
                         <div>
                             <h2 class="text-base font-extrabold text-gray-900">최근 발주</h2>
-                            <p class="text-sm text-gray-500 mt-1">최근 등록된 발주서 6건입니다.</p>
+                            <p class="text-sm text-gray-500 mt-1">가장 최근에 등록된 발주 6건이야.</p>
                         </div>
                         <button type="button" onclick="location.href='purchase-orders.html'" class="inline-flex items-center gap-2 rounded-lg border border-slate-200 bg-white px-3 py-2 text-sm font-extrabold text-slate-700 hover:bg-slate-50 whitespace-nowrap">
                             <i data-lucide="list-plus" class="w-4 h-4"></i>
-                            더보기
+                            전체 보기
                         </button>
                     </div>
                     <div class="overflow-x-auto">
@@ -143,7 +233,7 @@
                                     <th class="text-left p-3">발주번호</th>
                                     <th class="text-left p-3">거래처</th>
                                     <th class="text-left p-3">상태</th>
-                                    <th class="text-left p-3">납기</th>
+                                    <th class="text-left p-3">예정일</th>
                                     <th class="text-right p-3">금액</th>
                                 </tr>
                             </thead>
@@ -158,9 +248,23 @@
     <script src="../../services/common/session.js"></script>
     <script src="../../services/common/sidebar.js"></script>
     <script>
+        const apiOrigin = location.protocol === 'file:' ? 'http://localhost:8080' : location.origin;
+        let session = null;
+        let rpaTriggerPending = false;
+
         document.addEventListener('DOMContentLoaded', () => {
-            const session = window.ddukSession?.requireRole?.(['ADMIN', 'INVENTORY', 'HR'], { redirectToLogin: true });
+            session = window.ddukSession?.requireRole?.(['ADMIN', 'INVENTORY', 'HR'], { redirectToLogin: true });
             if (!session) return;
+
+            document.getElementById('rpa-trigger-button').addEventListener('click', triggerPurchasePriceRpa);
+            document.getElementById('rpa-history-refresh').addEventListener('click', loadRpaHistory);
+            if (session.role !== 'ADMIN') {
+                const button = document.getElementById('rpa-trigger-button');
+                button.disabled = true;
+                button.title = 'RPA 실행은 관리자만 가능해.';
+                document.getElementById('rpa-history-list').innerHTML = '<div class="rpa-empty">최근 RPA 실행 이력은 관리자만 볼 수 있어.</div>';
+            }
+
             if (window.lucide) lucide.createIcons();
             loadDashboard();
             setInterval(loadDashboard, 10000);
@@ -169,14 +273,16 @@
             });
         });
 
-        const apiOrigin = location.protocol === 'file:' ? 'http://localhost:8080' : location.origin;
-
-        function headers() {
+        function headers(extra = {}) {
             const token = localStorage.getItem('token');
-            return token ? { Authorization: `Bearer ${token}` } : {};
+            return {
+                ...(token ? { Authorization: `Bearer ${token}` } : {}),
+                ...extra
+            };
         }
 
         function money(value) {
+            if (value === null || value === undefined || value === '') return '-';
             return Number(value || 0).toLocaleString('ko-KR', { style: 'currency', currency: 'KRW', maximumFractionDigits: 0 });
         }
 
@@ -184,24 +290,28 @@
             return Number(value || 0).toLocaleString('ko-KR');
         }
 
-        function statusText(status) {
-            return {
-                DRAFT: '초안',
-                ORDERED: '발주요청',
-                PENDING: '발주요청',
-                REQUESTED: '발주요청',
-                APPROVED: '승인 완료',
-                SENT_TO_VENDOR: '거래처 발송',
-                INBOUND_DELAY: '입고지연',
-                RECEIVING: '입고중',
-                RECEIVED: '입고 완료',
-                COMPLETED: '발주완료',
-                CANCELLED: '취소'
-            }[status] || status || '-';
+        function percent(value) {
+            return `${Number(value || 0)}%`;
         }
 
         function escapeHtml(value) {
             return String(value ?? '').replace(/[&<>"']/g, char => ({ '&': '&amp;', '<': '&lt;', '>': '&gt;', '"': '&quot;', "'": '&#039;' }[char]));
+        }
+
+        function statusText(status) {
+            return {
+                DRAFT: '초안',
+                ORDERED: '발주 요청',
+                PENDING: '발주 요청',
+                REQUESTED: '발주 요청',
+                APPROVED: '승인 완료',
+                SENT_TO_VENDOR: '거래처 발송',
+                INBOUND_DELAY: '입고 지연',
+                RECEIVING: '입고 중',
+                RECEIVED: '입고 완료',
+                COMPLETED: '발주 완료',
+                CANCELLED: '취소'
+            }[status] || status || '-';
         }
 
         function setMetric(id, value) {
@@ -228,44 +338,40 @@
             }[status] || { color: '#475569', bg: '#f1f5f9' };
         }
 
+        function rpaChipMeta(status) {
+            switch (status) {
+                case 'READY':
+                    return { label: '비교 가능', className: 'rpa-chip ready' };
+                case 'ERP_BASELINE_ONLY':
+                    return { label: '부분 비교', className: 'rpa-chip waiting' };
+                case 'NO_ERP_BASELINE':
+                case 'MISSING_FILE':
+                    return { label: '기준 부족', className: 'rpa-chip missing' };
+                case 'EMPTY_RESULT':
+                    return { label: '결과 비어 있음', className: 'rpa-chip missing' };
+                default:
+                    return { label: rpaTriggerPending ? '실행 요청 중' : '대기', className: 'rpa-chip waiting' };
+            }
+        }
+
         function renderProgress(stats) {
             const items = [
                 ['발주 완료율', stats.orderCompletionRate || 0, '#16a34a', `${number(stats.completedOrderCount)}건 완료`],
                 ['입고 완료율', stats.receivingCompletionRate || 0, '#0284c7', `${number(stats.receivedCount)}건 완료`],
                 ['입고 지연율', stats.delayRate || 0, '#e11d48', `${number(stats.delayedReceivingCount)}건 지연`]
             ];
-            document.getElementById('progress-list').innerHTML = items.map(([label, value, color, note]) => {
-                const percent = clampPercent(value);
-                return `
-                <div class="progress-gauge-row">
-                    <div class="progress-gauge" style="--gauge-color:${color};--gauge-stop:${percent}%">
-                        <strong>${percent}%</strong>
-                    </div>
-                    <div>
-                        <div class="progress-title">${label}</div>
-                        <div class="progress-note">${note}</div>
-                    </div>
-                </div>
-            `;
-            }).join('');
-        }
 
-        function renderMonthlyChart(rows) {
-            rows = buildDisplayMonths(rows);
-            const chart = document.getElementById('monthly-chart');
-            if (!rows || rows.length === 0) {
-                chart.innerHTML = '<div class="self-center w-full text-center text-sm font-bold text-slate-400">표시할 발주 데이터가 없습니다.</div>';
-                return;
-            }
-            const max = Math.max(...rows.map(row => Number(row.count || 0)), 1);
-            chart.innerHTML = rows.map(row => {
-                const height = Math.max(8, Number(row.count || 0) / max * 210);
+            document.getElementById('progress-list').innerHTML = items.map(([label, value, color, note]) => {
+                const rate = clampPercent(value);
                 return `
-                    <div class="flex-1 h-full flex flex-col justify-end items-center gap-2 min-w-[4rem]">
-                        <div class="text-xs font-bold text-slate-500">${number(row.count)}건</div>
-                        <div class="chart-bar w-full bg-indigo-500" style="height:${height}px"></div>
-                        <div class="text-xs font-extrabold text-slate-600">${escapeHtml(row.month)}</div>
-                        <div class="text-[11px] font-bold text-slate-400">${money(row.amount)}${row.demo ? ' · 예시' : ''}</div>
+                    <div class="progress-gauge-row">
+                        <div class="progress-gauge" style="--gauge-color:${color};--gauge-stop:${rate}%">
+                            <strong>${rate}%</strong>
+                        </div>
+                        <div>
+                            <div class="progress-title">${label}</div>
+                            <div class="progress-note">${note}</div>
+                        </div>
                     </div>
                 `;
             }).join('');
@@ -293,10 +399,32 @@
             });
         }
 
+        function renderMonthlyChart(rows) {
+            rows = buildDisplayMonths(rows);
+            const chart = document.getElementById('monthly-chart');
+            if (!rows.length) {
+                chart.innerHTML = '<div class="self-center w-full text-center text-sm font-bold text-slate-400">표시할 발주 데이터가 없어.</div>';
+                return;
+            }
+
+            const max = Math.max(...rows.map(row => Number(row.count || 0)), 1);
+            chart.innerHTML = rows.map(row => {
+                const height = Math.max(8, Number(row.count || 0) / max * 210);
+                return `
+                    <div class="flex-1 h-full flex flex-col justify-end items-center gap-2 min-w-[4rem]">
+                        <div class="text-xs font-bold text-slate-500">${number(row.count)}건</div>
+                        <div class="chart-bar w-full bg-indigo-500" style="height:${height}px"></div>
+                        <div class="text-xs font-extrabold text-slate-600">${escapeHtml(row.month)}</div>
+                        <div class="text-[11px] font-bold text-slate-400">${money(row.amount)}${row.demo ? ' · 예시' : ''}</div>
+                    </div>
+                `;
+            }).join('');
+        }
+
         function renderStatusList(statusCounts, total) {
             const entries = Object.entries(statusCounts || {});
-            if (entries.length === 0) {
-                document.getElementById('status-list').innerHTML = '<p class="text-sm font-bold text-slate-400">상태 데이터가 없습니다.</p>';
+            if (!entries.length) {
+                document.getElementById('status-list').innerHTML = '<p class="text-sm font-bold text-slate-400">상태 데이터가 없어.</p>';
                 return;
             }
 
@@ -329,10 +457,11 @@
 
         function renderRecentOrders(rows) {
             const target = document.getElementById('recent-orders');
-            if (!rows || rows.length === 0) {
-                target.innerHTML = '<tr><td colspan="5" class="p-6 text-center text-sm font-bold text-slate-400">최근 발주가 없습니다.</td></tr>';
+            if (!Array.isArray(rows) || !rows.length) {
+                target.innerHTML = '<tr><td colspan="5" class="p-6 text-center text-sm font-bold text-slate-400">최근 발주가 아직 없어.</td></tr>';
                 return;
             }
+
             target.innerHTML = rows.map(order => `
                 <tr class="border-t border-slate-100">
                     <td class="p-3 font-extrabold text-indigo-700">${escapeHtml(order.purchaseOrderNo)}</td>
@@ -342,6 +471,157 @@
                     <td class="p-3 text-right font-extrabold text-slate-900">${money(order.totalAmount)}</td>
                 </tr>
             `).join('');
+        }
+
+        function renderRpaComparison(block) {
+            const comparison = block || {};
+            const chip = document.getElementById('rpa-status-chip');
+            const chipMeta = rpaChipMeta(comparison.status);
+            chip.className = chipMeta.className;
+            chip.textContent = chipMeta.label;
+
+            document.getElementById('rpa-message').textContent = comparison.message || '아직 비교할 결과가 없어.';
+            document.getElementById('rpa-vendor-name').textContent = comparison.vendorName || '-';
+            document.getElementById('rpa-collected-at').textContent = formatDateTime(comparison.latestCollectedAt);
+            document.getElementById('rpa-compared-count').textContent = number(comparison.comparedItemsCount || comparison.collectedItemsCount || 0);
+            document.getElementById('rpa-collected-price').textContent = money(comparison.latestCollectedAveragePrice);
+            document.getElementById('rpa-erp-price').textContent = money(comparison.erpBaselineAveragePrice);
+            document.getElementById('rpa-delta-price').textContent = signedMoney(comparison.priceDelta);
+            document.getElementById('rpa-collected-note').textContent = `${number(comparison.collectedItemsCount || 0)}건 수집 기준`;
+            document.getElementById('rpa-erp-note').textContent = comparison.erpBaselineAveragePrice == null ? '기준 단가 없음' : '기본 공급처 단가 평균';
+            document.getElementById('rpa-delta-note').textContent = comparison.priceDelta == null ? '차이 계산 대기' : '수집 평균 - ERP 평균';
+
+            const body = document.getElementById('rpa-items-body');
+            const items = Array.isArray(comparison.items) ? comparison.items : [];
+            if (!items.length) {
+                body.innerHTML = `
+                    <tr>
+                        <td colspan="5">
+                            <div class="rpa-empty">최근 수집 결과가 아직 없거나 ERP 기준 단가가 부족해.</div>
+                        </td>
+                    </tr>
+                `;
+                return;
+            }
+
+            body.innerHTML = items.map(item => `
+                <tr>
+                    <td class="font-bold text-slate-900">${escapeHtml(item.productName || '-')}</td>
+                    <td class="font-black text-slate-900">${money(item.collectedPrice)}</td>
+                    <td class="font-bold text-slate-700">${money(item.erpPrice)}</td>
+                    <td class="font-black ${Number(item.priceDelta || 0) > 0 ? 'text-rose-600' : 'text-emerald-700'}">${signedMoney(item.priceDelta)}</td>
+                    <td class="font-bold text-slate-600">${escapeHtml(matchTypeText(item.matchType))}</td>
+                </tr>
+            `).join('');
+        }
+
+        function formatDateTime(value) {
+            if (!value) return '-';
+            const date = new Date(value);
+            if (Number.isNaN(date.getTime())) return value;
+            return date.toLocaleString('ko-KR');
+        }
+
+        function signedMoney(value) {
+            if (value === null || value === undefined || value === '') return '-';
+            const numeric = Number(value || 0);
+            const prefix = numeric > 0 ? '+' : '';
+            return `${prefix}${money(numeric)}`;
+        }
+
+        function matchTypeText(value) {
+            return {
+                EXACT: '정확 매칭',
+                LOOSE: '유사 매칭',
+                COLLECTED_ONLY: '수집만 있음'
+            }[value] || '비교'
+        }
+
+        function renderRpaHistory(items) {
+            const target = document.getElementById('rpa-history-list');
+            if (!Array.isArray(items) || !items.length) {
+                target.innerHTML = '<div class="rpa-empty">아직 최근 실행 이력이 없어.</div>';
+                return;
+            }
+
+            target.innerHTML = items.map(item => `
+                <div class="rounded-xl border border-amber-100 bg-white/80 px-3 py-3">
+                    <div class="flex items-start justify-between gap-3">
+                        <div class="min-w-0">
+                            <div class="font-mono text-xs font-black text-slate-700">${escapeHtml(item.taskId || '-')}</div>
+                            <div class="mt-1 text-xs font-bold text-slate-500">${escapeHtml(item.status || '-')} · ${escapeHtml(formatDateTime(item.requestedAt))}</div>
+                            <div class="mt-1 text-xs font-semibold text-rose-600">${escapeHtml(item.errorMessage || '')}</div>
+                        </div>
+                        <button type="button" class="rounded-lg border border-amber-200 px-2.5 py-1 text-[11px] font-black text-amber-900 hover:bg-amber-50" onclick="triggerPurchasePriceRpa()">재실행</button>
+                    </div>
+                </div>
+            `).join('');
+        }
+
+        async function loadRpaHistory() {
+            if (!session || session.role !== 'ADMIN') {
+                document.getElementById('rpa-history-list').innerHTML = '<div class="rpa-empty">최근 RPA 실행 이력은 관리자만 볼 수 있어.</div>';
+                return;
+            }
+
+            try {
+                const url = new URL(`${apiOrigin}/api/v1/admin/tasks`);
+                url.searchParams.set('taskType', 'RPA');
+                url.searchParams.set('actionName', 'collect_purchase_orders');
+                url.searchParams.set('size', '5');
+                url.searchParams.set('sort', 'requestedAt,desc');
+                const response = await fetch(url, { headers: headers(), cache: 'no-store' });
+                if (!response.ok) throw new Error(`HTTP ${response.status}`);
+                const payload = await response.json();
+                renderRpaHistory(payload.data?.content || []);
+            } catch (error) {
+                document.getElementById('rpa-history-list').innerHTML = `<div class="rpa-empty">최근 실행 이력을 불러오지 못했어: ${escapeHtml(error.message)}</div>`;
+            }
+        }
+
+        async function triggerPurchasePriceRpa() {
+            const message = document.getElementById('message');
+            if (!session || session.role !== 'ADMIN') {
+                message.textContent = 'RPA 실행은 관리자만 가능해.';
+                message.className = 'text-sm text-amber-700 mt-1 font-semibold';
+                return;
+            }
+
+            const button = document.getElementById('rpa-trigger-button');
+            rpaTriggerPending = true;
+            button.disabled = true;
+            button.innerHTML = '<i data-lucide="loader-circle" class="w-4 h-4"></i> 실행 요청 중';
+            if (window.lucide) lucide.createIcons();
+
+            try {
+                const response = await fetch(`${apiOrigin}/api/v1/admin/rpa/trigger`, {
+                    method: 'POST',
+                    headers: headers({ 'Content-Type': 'application/json' }),
+                    body: JSON.stringify({ taskType: 'PURCHASE_PRICE' })
+                });
+                const payload = await response.json().catch(() => ({}));
+                if (!response.ok || payload.status !== 'success') {
+                    throw new Error(payload.message || `HTTP ${response.status}`);
+                }
+
+                message.textContent = `구매 단가 수집을 요청했어. Task ID: ${payload.data?.taskId || '-'}`;
+                message.className = 'text-sm text-amber-700 mt-1 font-semibold';
+                renderRpaComparison({
+                    status: 'WAITING',
+                    vendorName: '아망티',
+                    message: 'RPA 실행을 요청했어. 완료되면 자동으로 비교 카드가 갱신돼.',
+                    items: []
+                });
+                window.setTimeout(loadDashboard, 2000);
+            } catch (error) {
+                message.textContent = `RPA 실행 요청 실패: ${error.message}`;
+                message.className = 'text-sm text-red-600 mt-1 font-semibold';
+            } finally {
+                rpaTriggerPending = false;
+                button.disabled = false;
+                button.innerHTML = '<i data-lucide="bot" class="w-4 h-4"></i> 단가 수집 실행';
+                if (window.lucide) lucide.createIcons();
+            }
         }
 
         async function loadDashboard() {
@@ -359,16 +639,21 @@
                 setMetric('receiving-count', number(stats.receivingCount));
                 setMetric('delay-count', number(stats.delayedReceivingCount));
                 setMetric('received-count', number(stats.receivedCount));
-                setMetric('order-rate', `완료율 ${stats.orderCompletionRate || 0}%`);
-                setMetric('delay-rate', `지연율 ${stats.delayRate || 0}%`);
-                setMetric('received-rate', `완료율 ${stats.receivingCompletionRate || 0}%`);
+                setMetric('order-rate', `완료율 ${percent(stats.orderCompletionRate)}`);
+                setMetric('delay-rate', `지연율 ${percent(stats.delayRate)}`);
+                setMetric('received-rate', `완료율 ${percent(stats.receivingCompletionRate)}`);
                 document.getElementById('base-date').textContent = `기준일 ${stats.baseDate || '-'}`;
 
                 renderProgress(stats);
                 renderMonthlyChart(stats.monthlyOrders);
                 renderStatusList(stats.statusCounts, Number(stats.orderCount || 0));
                 renderRecentOrders(stats.recentOrders);
-                message.textContent = '구매/발주 지표가 최신 데이터로 갱신되었습니다.';
+                renderRpaComparison(stats.rpaComparison);
+                if (session.role === 'ADMIN') {
+                    loadRpaHistory();
+                }
+
+                message.textContent = '구매/발주 지표와 RPA 비교 상태를 최신 데이터로 갱신했어.';
                 message.className = 'text-sm text-emerald-600 mt-1 font-semibold';
             } catch (error) {
                 message.textContent = `대시보드 조회 실패: ${error.message}`;

@@ -57,7 +57,7 @@
             label: 'AI 업무지원',
             items: [
                 { label: 'AI 챗봇', icon: 'bot', href: '#', roles: ['ADMIN', 'HR', 'INVENTORY'] },
-                { label: '이상 탐지', icon: 'alert-triangle', href: '#', roles: ['ADMIN', 'HR', 'INVENTORY'] },
+                { label: '이상 탐지', icon: 'alert-triangle', href: 'pages/admin/anomaly-detection.html', roles: ['ADMIN'] },
                 { label: '예측 분석', icon: 'brain', href: '#', roles: ['ADMIN', 'HR', 'INVENTORY'] }
             ]
         },

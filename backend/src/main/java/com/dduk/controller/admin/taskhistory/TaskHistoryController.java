@@ -1,10 +1,10 @@
 package com.dduk.controller.admin.taskhistory;
 
-import com.dduk.service.admin.taskhistory.TaskHistoryService;
 import com.dduk.dto.admin.TaskHistoryDetailDto;
 import com.dduk.dto.admin.TaskHistoryListDto;
 import com.dduk.dto.common.ApiResponse;
 import com.dduk.entity.admin.TaskHistory;
+import com.dduk.service.admin.taskhistory.TaskHistoryService;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.data.domain.Page;
@@ -15,6 +15,7 @@ import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.GetMapping;
 import org.springframework.web.bind.annotation.PathVariable;
 import org.springframework.web.bind.annotation.RequestMapping;
+import org.springframework.web.bind.annotation.RequestParam;
 import org.springframework.web.bind.annotation.RestController;
 
 @Slf4j
@@ -27,8 +28,11 @@ public class TaskHistoryController {
 
     @GetMapping
     public ResponseEntity<ApiResponse<Page<TaskHistoryListDto>>> getTaskHistoryList(
-            @PageableDefault(size = 20, sort = "createdAt", direction = Sort.Direction.DESC) Pageable pageable) {
-        Page<TaskHistory> page = taskHistoryService.getTaskHistoryList(pageable);
+            @RequestParam(required = false) String taskType,
+            @RequestParam(required = false) String actionName,
+            @PageableDefault(size = 20, sort = "createdAt", direction = Sort.Direction.DESC) Pageable pageable
+    ) {
+        Page<TaskHistory> page = taskHistoryService.getTaskHistoryList(taskType, actionName, pageable);
         Page<TaskHistoryListDto> dtoPage = page.map(TaskHistoryListDto::fromEntity);
         return ResponseEntity.ok(ApiResponse.success(dtoPage, "작업 이력 목록을 조회했습니다."));
     }

@@ -10,12 +10,14 @@ import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
+import org.springframework.web.server.ResponseStatusException;
 
 import java.time.LocalDateTime;
 import java.util.EnumSet;
 
 import org.springframework.data.domain.Page;
 import org.springframework.data.domain.Pageable;
+import org.springframework.http.HttpStatus;
 
 @Slf4j
 @Service
@@ -152,8 +154,33 @@ public class TaskHistoryService {
     }
 
     @Transactional(readOnly = true)
+    public Page<TaskHistory> getTaskHistoryList(String taskType, String actionName, Pageable pageable) {
+        TaskHistoryType normalizedTaskType = normalizeTaskType(taskType);
+        String normalizedActionName = normalizeActionName(actionName);
+        return taskHistoryRepository.findRecentByTaskScope(normalizedTaskType, normalizedActionName, pageable);
+    }
+
+    @Transactional(readOnly = true)
     public TaskHistory getTaskHistoryDetail(String taskId) {
         return taskHistoryRepository.findByTaskId(taskId).orElse(null);
+    }
+
+    private TaskHistoryType normalizeTaskType(String taskType) {
+        if (taskType == null || taskType.isBlank()) {
+            return null;
+        }
+        try {
+            return TaskHistoryType.valueOf(taskType.trim().toUpperCase());
+        } catch (IllegalArgumentException exception) {
+            throw new ResponseStatusException(HttpStatus.BAD_REQUEST, "지원하지 않는 taskType입니다: " + taskType);
+        }
+    }
+
+    private String normalizeActionName(String actionName) {
+        if (actionName == null || actionName.isBlank()) {
+            return null;
+        }
+        return actionName.trim();
     }
 
     private String extractErrorMessage(Object errorPayload) {

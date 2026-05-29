@@ -4,6 +4,7 @@ import lombok.*;
 
 import java.math.BigDecimal;
 import java.util.List;
+import java.util.Map;
 
 @Getter
 @Setter
@@ -18,4 +19,5 @@ public class InventoryDashboardResponseDto {
     private Long pendingTransferCount;
     private List<WarehouseDistributionDto> warehouseDistribution;
     private List<RecentMovementDto> recentMovements;
+    private Map<String, Object> inventoryShortageRpa;
 }

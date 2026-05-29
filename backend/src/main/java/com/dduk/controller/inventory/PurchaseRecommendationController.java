@@ -25,7 +25,7 @@ public class PurchaseRecommendationController {
         Map<String, Object> response = new HashMap<>();
         response.put("status", "success");
         response.put("data", Map.of("items", items));
-        response.put("message", "발주 추천 목록 조회 완료");
+        response.put("message", "추천 발주 목록 조회 완료");
         return ResponseEntity.ok(response);
     }
 }

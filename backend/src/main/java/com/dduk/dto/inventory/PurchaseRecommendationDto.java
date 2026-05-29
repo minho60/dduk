@@ -21,11 +21,19 @@ public class PurchaseRecommendationDto {
     private int allocatedStock;
     private int availableStock;
     private BigDecimal averageCost;
-    // 추천 계산 결과
-    private double avgMonthlyUsage;  // 최근 30일 평균 출고량
-    private int recommendedOrderQty; // 권장발주수량
-    private String urgency;          // CRITICAL(품절), HIGH(안전재고이하), MEDIUM(임박), LOW
-    private int daysUntilStockout;   // 예상 소진일
-    private String defaultVendorName; // 기본 공급처
-    private int leadTimeDays;         // 리드타임(고정값 7일, 향후 확장)
+    private double avgMonthlyUsage;
+    private int recommendedOrderQty;
+    private String urgency;
+    private int daysUntilStockout;
+    private String defaultVendorName;
+    private int leadTimeDays;
+    private String recommendationStatus;
+    private boolean orderable;
+    private String statusReason;
+    private String reviewMessage;
+    private long outboundQuantityLast30Days;
+    private int outboundHistoryDays;
+    private int recentPurchaseOrderCount;
+    private boolean leadTimeReliable;
+    private String evidenceSummary;
 }

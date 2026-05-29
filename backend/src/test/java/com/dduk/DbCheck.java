@@ -1,6 +1,7 @@
 package com.dduk;
 
 import org.junit.jupiter.api.Test;
+import org.junit.jupiter.api.Assumptions;
 import java.sql.Connection;
 import java.sql.DriverManager;
 import java.sql.ResultSet;
@@ -17,10 +18,11 @@ public class DbCheck {
             System.err.println("Driver not found: " + e.getMessage());
         }
 
-        try (Connection conn = DriverManager.getConnection(
-                "jdbc:mysql://gateway01.ap-northeast-1.prod.aws.tidbcloud.com:4000/dduk_erp?useSSL=true",
-                "3UCLSyyYTzkXiNP.root",
-                "G7rPFFkfVMjTRv9c")) {
+        String dbUrl = requiredEnv("DB_URL");
+        String dbUsername = requiredEnv("DB_USERNAME");
+        String dbPassword = requiredEnv("DB_PASSWORD");
+
+        try (Connection conn = DriverManager.getConnection(dbUrl, dbUsername, dbPassword)) {
             
             String[] tables = {"journal_entries", "journal_items", "accounts", "vouchers", "voucher_lines"};
             for (String table : tables) {
@@ -38,5 +40,11 @@ public class DbCheck {
         }
         System.out.println("=== [DEBUG] END ACTUAL DB COUNT CHECK ===");
         System.out.println("==================================================");
+    }
+
+    private String requiredEnv(String name) {
+        String value = System.getenv(name);
+        Assumptions.assumeTrue(value != null && !value.isBlank(), name + " is required for external DB check");
+        return value;
     }
 }

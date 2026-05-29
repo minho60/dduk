@@ -10,301 +10,538 @@
     <link href="https://fonts.googleapis.com/css2?family=Outfit:wght@300;400;500;600;700;800&family=Noto+Sans+KR:wght@300;400;500;700;900&display=swap" rel="stylesheet">
     <link rel="stylesheet" href="../../styles/common/dashboard.css">
     <style>
-        body { font-family: 'Outfit', 'Noto Sans KR', sans-serif; }
-        .kpi_grid { display: grid; grid-template-columns: repeat(auto-fit, minmax(200px, 1fr)); gap: 1.25rem; margin-bottom: 2rem; }
-        .kpi_card { background: white; padding: 1.5rem; border-radius: 1.25rem; box-shadow: 0 4px 20px -2px rgba(0, 0, 0, 0.05); border: 1px solid #f3f4f6; transition: all 0.2s; }
-        .kpi_card:hover { transform: translateY(-3px); box-shadow: 0 8px 30px -2px rgba(0, 0, 0, 0.08); }
-        .kpi_label { color: #6b7280; font-size: 0.8rem; font-weight: 700; margin-bottom: 0.5rem; text-transform: uppercase; letter-spacing: 0.05em; }
-        .kpi_value { font-size: 1.75rem; font-weight: 800; color: #111827; }
-        .kpi_trend { font-size: 0.75rem; margin-top: 0.5rem; display: flex; align-items: center; gap: 0.25rem; }
-        .trend_up { color: #10b981; font-weight: 600; }
-        .trend_down { color: #ef4444; font-weight: 600; }
-        .section_grid { display: grid; grid-template-columns: 2fr 1fr; gap: 1.5rem; margin-bottom: 2rem; }
-        .section_card { background: white; padding: 1.75rem; border-radius: 1.25rem; box-shadow: 0 4px 20px -2px rgba(0, 0, 0, 0.05); border: 1px solid #f3f4f6; }
-        .section_title { font-size: 1.1rem; font-weight: 700; color: #1f2937; margin-bottom: 1.5rem; display: flex; align-items: center; gap: 0.5rem; border-b: 1px solid #f3f4f6; padding-bottom: 0.75rem; }
+        body{font-family:'Outfit','Noto Sans KR',sans-serif}
+        .kpi-grid{display:grid;grid-template-columns:repeat(auto-fit,minmax(200px,1fr));gap:1.25rem}
+        .kpi-card,.section-card{background:#fff;border:1px solid #f1f5f9;border-radius:1.25rem;box-shadow:0 4px 20px -2px rgba(0,0,0,.05)}
+        .kpi-card{padding:1.5rem}
+        .section-card{padding:1.5rem}
+        .kpi-label{color:#6b7280;font-size:.8rem;font-weight:800;letter-spacing:.04em;text-transform:uppercase}
+        .kpi-value{margin-top:.55rem;font-size:1.8rem;font-weight:900;color:#111827}
+        .kpi-sub{margin-top:.45rem;font-size:.76rem;font-weight:700;color:#64748b}
+        .section-title{font-size:1rem;font-weight:900;color:#111827;display:flex;align-items:center;gap:.5rem}
+        .rpa-shell{background:linear-gradient(135deg,#fffdf8 0%,#fff7ed 58%,#fffbeb 100%);border-color:#fed7aa}
+        .rpa-chip{display:inline-flex;align-items:center;gap:.4rem;border-radius:999px;padding:.28rem .72rem;font-size:.75rem;font-weight:900}
+        .rpa-chip.ready{background:#dcfce7;color:#166534}
+        .rpa-chip.waiting{background:#fef3c7;color:#92400e}
+        .rpa-chip.missing{background:#fee2e2;color:#b91c1c}
+        .rpa-grid{display:grid;grid-template-columns:repeat(3,minmax(0,1fr));gap:.8rem}
+        .rpa-stat{border-radius:1rem;background:rgba(255,255,255,.82);border:1px solid rgba(251,146,60,.24);padding:1rem}
+        .rpa-stat-label{font-size:.74rem;font-weight:900;color:#9a3412}
+        .rpa-stat-value{margin-top:.35rem;font-size:1.35rem;font-weight:900;color:#111827}
+        .rpa-stat-note{margin-top:.28rem;font-size:.74rem;font-weight:700;color:#7c2d12}
+        .warn-table{width:100%;border-collapse:collapse}
+        .warn-table th,.warn-table td{padding:.8rem .7rem;border-top:1px solid #ffedd5;font-size:.82rem;text-align:left}
+        .warn-table th{font-size:.72rem;font-weight:900;color:#9a3412;background:rgba(255,255,255,.6)}
+        .warn-empty{padding:1.15rem;border-radius:.9rem;background:rgba(255,255,255,.75);border:1px dashed #fdba74;color:#9a3412;font-size:.84rem;font-weight:700}
+        .dist-card{display:flex;align-items:center;justify-content:space-between;padding:1rem;background:#f8fafc;border:1px solid #eef2f7;border-radius:1rem}
+        .movement-card{display:flex;align-items:center;justify-content:space-between;padding:.85rem 1rem;background:#f8fafc;border:1px solid #eef2f7;border-radius:1rem}
+        @media (max-width:1024px){.rpa-grid{grid-template-columns:1fr}.main-grid{grid-template-columns:1fr!important}}
     </style>
 </head>
-<body class="bg-gray-50 min-h-screen">
+<body class="bg-slate-50 min-h-screen">
     <aside data-dduk-sidebar></aside>
     <div class="main_wrap">
         <header class="topbar px-6 py-4 flex justify-between items-center bg-white border-b">
             <div class="flex items-center gap-4">
                 <button id="mobile_menu_btn" class="lg:hidden p-2 hover:bg-gray-100 rounded-lg"><i data-lucide="menu"></i></button>
-                <h1 class="text-xl font-bold text-gray-800 tracking-tight flex items-center gap-2">
-                    <i data-lucide="layout-dashboard" class="w-6 h-6 text-indigo-600"></i> 재고관리 대시보드
-                </h1>
+                <div>
+                    <h1 class="text-xl font-black text-gray-900 flex items-center gap-2">
+                        <i data-lucide="layout-dashboard" class="w-6 h-6 text-indigo-600"></i>
+                        재고 대시보드
+                    </h1>
+                    <p id="page-message" class="mt-1 text-sm font-semibold text-slate-500">재고 현황과 Stage 3 부족 조회를 함께 본다.</p>
+                </div>
             </div>
-            <div class="flex items-center gap-3">
-                <button class="p-2 hover:bg-gray-100 rounded-lg text-gray-400 relative"><i data-lucide="bell" class="w-5 h-5"></i><span class="absolute top-1 right-1 w-2 h-2 bg-indigo-600 rounded-full"></span></button>
-                <button class="p-2 hover:bg-gray-100 rounded-lg text-gray-400"><i data-lucide="user" class="w-5 h-5"></i></button>
-            </div>
+            <div id="base-time" class="text-sm font-bold text-slate-500"></div>
         </header>
 
         <main class="content_area p-6 space-y-6">
-            <!-- KPI Section (5 Cards) -->
-            <div id="kpi-container" class="kpi_grid">
-                <div class="kpi_card">
-                    <p class="kpi_label">총 재고 수량</p>
-                    <p id="total-qty" class="kpi_value text-indigo-600">0</p>
-                    <p class="kpi_trend trend_up"><i data-lucide="trending-up" class="w-4 h-4"></i> 실시간 재고 집계</p>
-                </div>
-                <div class="kpi_card">
-                    <p class="kpi_label">총 재고 자산 가치</p>
-                    <p id="total-value" class="kpi_value text-indigo-600">₩0</p>
-                    <p class="kpi_trend trend_up"><i data-lucide="trending-up" class="w-4 h-4"></i> 이동평균가 총합</p>
-                </div>
-                <div class="kpi_card">
-                    <p class="kpi_label">부족 품목 (안전재고 하회)</p>
-                    <p id="low-stock-count" class="kpi_value text-red-500">0</p>
-                    <p class="kpi_trend text-red-500 font-semibold"><i data-lucide="alert-triangle" class="w-4 h-4"></i> 즉시 조치 요망</p>
-                </div>
-                <div class="kpi_card">
-                    <p class="kpi_label">이동 대기 (결재 필요)</p>
-                    <p id="pending-transfer-count" class="kpi_value text-amber-500">0</p>
-                    <p class="kpi_trend text-amber-500 font-semibold"><i data-lucide="git-compare" class="w-4 h-4"></i> 결재 승인대기</p>
-                </div>
-                <div class="kpi_card">
-                    <p class="kpi_label">최근 30일 출고량</p>
-                    <p id="outbound-volume" class="kpi_value text-indigo-600">0</p>
-                    <p class="kpi_trend trend_down"><i data-lucide="trending-down" class="w-4 h-4"></i> 원장 로그 누적치</p>
-                </div>
-            </div>
+            <section class="kpi-grid">
+                <article class="kpi-card">
+                    <p class="kpi-label">총 재고 수량</p>
+                    <p id="total-qty" class="kpi-value text-indigo-600">0</p>
+                    <p class="kpi-sub">실시간 재고 집계</p>
+                </article>
+                <article class="kpi-card">
+                    <p class="kpi-label">총 재고 자산 가치</p>
+                    <p id="total-value" class="kpi-value text-indigo-600">-</p>
+                    <p class="kpi-sub">이동평균가 기준</p>
+                </article>
+                <article class="kpi-card">
+                    <p class="kpi-label">부족 품목</p>
+                    <p id="low-stock-count" class="kpi-value text-rose-600">0</p>
+                    <p class="kpi-sub">안전 재고 이하</p>
+                </article>
+                <article class="kpi-card">
+                    <p class="kpi-label">대기 중 이동</p>
+                    <p id="pending-transfer-count" class="kpi-value text-amber-500">0</p>
+                    <p class="kpi-sub">결재 필요 요청</p>
+                </article>
+                <article class="kpi-card">
+                    <p class="kpi-label">최근 30일 출고량</p>
+                    <p id="outbound-volume" class="kpi-value text-sky-600">0</p>
+                    <p class="kpi-sub">출고 이동 기준</p>
+                </article>
+            </section>
 
-            <!-- Visualization Row -->
-            <div class="grid grid-cols-1 lg:grid-cols-3 gap-6">
-                <div class="bg-white p-5 rounded-2xl border border-gray-100 shadow-xs lg:col-span-2">
-                    <h3 class="text-sm font-bold text-gray-700 mb-4 flex items-center gap-1.5"><i data-lucide="trending-up" class="w-4 h-4 text-indigo-500"></i> 최근 30일 입출고 변동 추이</h3>
-                    <div class="h-56 relative"><canvas id="outbound-trend-chart"></canvas></div>
-                </div>
-                <div class="bg-white p-5 rounded-2xl border border-gray-100 shadow-xs">
-                    <h3 class="text-sm font-bold text-gray-700 mb-4 flex items-center gap-1.5"><i data-lucide="pie-chart" class="w-4 h-4 text-indigo-500"></i> 자산 가치별 창고 비중</h3>
-                    <div class="h-56 relative"><canvas id="asset-ratio-chart"></canvas></div>
-                </div>
-            </div>
-
-            <div class="section_grid">
-                <!-- Left Column: Distribution & Pending Approvals -->
-                <div class="space-y-6">
-                    <!-- Warehouse Distribution -->
-                    <div class="section_card">
-                        <h3 class="section_title"><i data-lucide="pie-chart" class="w-5 h-5 text-indigo-500"></i> 창고별 재고 현황</h3>
-                        <div id="distribution-list" class="grid grid-cols-1 md:grid-cols-2 gap-4">
-                            <!-- JS handles injection -->
-                        </div>
-                    </div>
-
-                    <!-- Pending Approval Widget (Direct Actionable UI) -->
-                    <div class="section_card">
-                        <h3 class="section_title flex justify-between items-center">
-                            <span class="flex items-center gap-2"><i data-lucide="shield-alert" class="w-5 h-5 text-amber-500"></i> 결재 대기 중인 이동 요청</span>
-                            <button onclick="location.href='transfers.html'" class="text-xs text-indigo-600 font-bold hover:underline flex items-center gap-1">전체 보기 <i data-lucide="chevron-right" class="w-3 h-3"></i></button>
-                        </h3>
-                        <div class="overflow-x-auto">
-                            <table class="w-full text-sm text-left">
-                                <thead>
-                                    <tr class="text-gray-400 border-b">
-                                        <th class="pb-2 font-semibold">이동 번호</th>
-                                        <th class="pb-2 font-semibold">이동 경로</th>
-                                        <th class="pb-2 font-semibold">요청자</th>
-                                        <th class="pb-2 font-semibold text-center">결재</th>
-                                    </tr>
-                                </thead>
-                                <tbody id="pending-transfer-list">
-                                    <!-- Injected by JS -->
-                                </tbody>
-                            </table>
-                            <div id="pending-empty" class="hidden py-8 text-center text-gray-400">
-                                <i data-lucide="check-circle" class="w-8 h-8 text-green-500 mx-auto mb-2 opacity-50"></i>
-                                <p class="text-xs font-semibold">결재 대기 중인 창고 이동이 없습니다.</p>
+            <section>
+                <article class="section-card rpa-shell">
+                    <div class="flex flex-col gap-4 xl:flex-row xl:items-start xl:justify-between">
+                        <div class="min-w-0">
+                            <div class="flex flex-wrap items-center gap-3">
+                                <h2 class="section-title">Stage 3 재고 부족 조회</h2>
+                                <span id="rpa-status-chip" class="rpa-chip waiting">대기</span>
+                            </div>
+                            <p id="rpa-message" class="mt-2 text-sm font-semibold text-amber-900">최신 부족 조회 결과를 불러오는 중이야.</p>
+                            <div class="mt-3 flex flex-wrap items-center gap-4 text-sm font-bold text-slate-700">
+                                <span>공급처: <strong id="rpa-vendor-name" class="text-slate-900">-</strong></span>
+                                <span>최근 조회: <strong id="rpa-collected-at" class="text-slate-900">-</strong></span>
+                                <span>매칭 건수: <strong id="rpa-matched-count" class="text-slate-900">-</strong></span>
                             </div>
                         </div>
+                        <div class="flex flex-wrap items-center gap-3">
+                            <button id="rpa-trigger-button" type="button" class="inline-flex items-center gap-2 rounded-xl bg-slate-900 px-4 py-2.5 text-sm font-black text-white hover:bg-slate-700 disabled:cursor-not-allowed disabled:bg-slate-400">
+                                <i data-lucide="radar" class="w-4 h-4"></i>
+                                부족 조회 실행
+                            </button>
+                            <a href="../admin/system-admin.html" class="inline-flex items-center gap-2 rounded-xl border border-amber-200 bg-white/70 px-4 py-2.5 text-sm font-black text-amber-900 hover:bg-white">
+                                <i data-lucide="square-arrow-out-up-right" class="w-4 h-4"></i>
+                                관리자 추적
+                            </a>
+                        </div>
                     </div>
-                </div>
 
-                <!-- Right Column: Quick Actions & Recent Activities -->
+                    <div class="rpa-grid mt-5">
+                        <div class="rpa-stat">
+                            <div class="rpa-stat-label">ERP 부족 품목 수</div>
+                            <div id="rpa-erp-count" class="rpa-stat-value">-</div>
+                            <div class="rpa-stat-note">안전 재고 이하 기준</div>
+                        </div>
+                        <div class="rpa-stat">
+                            <div class="rpa-stat-label">RPA 경고 품목 수</div>
+                            <div id="rpa-alert-count" class="rpa-stat-value">-</div>
+                            <div class="rpa-stat-note">외부 조회 결과 기준</div>
+                        </div>
+                        <div class="rpa-stat">
+                            <div class="rpa-stat-label">ERP와 매칭된 품목 수</div>
+                            <div id="rpa-match-count-card" class="rpa-stat-value">-</div>
+                            <div class="rpa-stat-note">품목명 기준 단순 매칭</div>
+                        </div>
+                    </div>
+
+                    <div class="mt-5 overflow-x-auto">
+                        <table class="warn-table">
+                            <thead>
+                                <tr>
+                                    <th>품목</th>
+                                    <th>창고</th>
+                                    <th>가용/안전</th>
+                                    <th>외부 상태</th>
+                                    <th>권장 조치</th>
+                                </tr>
+                            </thead>
+                            <tbody id="rpa-items-body">
+                                <tr>
+                                    <td colspan="5"><div class="warn-empty">부족 조회 데이터를 불러오는 중이야.</div></td>
+                                </tr>
+                            </tbody>
+                        </table>
+                    </div>
+                    <div class="mt-5">
+                        <div class="flex items-center justify-between gap-3">
+                            <h3 class="text-sm font-black text-slate-900">최근 실행 이력</h3>
+                            <button id="rpa-history-refresh" type="button" class="rounded-lg border border-amber-200 bg-white/70 px-3 py-1.5 text-xs font-black text-amber-900 hover:bg-white">새로고침</button>
+                        </div>
+                        <div id="rpa-history-list" class="mt-3 space-y-2">
+                            <div class="warn-empty">최근 실행 이력을 불러오는 중이야.</div>
+                        </div>
+                    </div>
+                </article>
+            </section>
+
+            <section class="grid grid-cols-1 lg:grid-cols-3 gap-6">
+                <article class="section-card lg:col-span-2">
+                    <h3 class="section-title"><i data-lucide="trending-up" class="w-4 h-4 text-indigo-500"></i> 최근 30일 입출고 추이</h3>
+                    <div class="h-56 relative"><canvas id="outbound-trend-chart"></canvas></div>
+                </article>
+                <article class="section-card">
+                    <h3 class="section-title"><i data-lucide="pie-chart" class="w-4 h-4 text-indigo-500"></i> 창고별 자산 비중</h3>
+                    <div class="h-56 relative"><canvas id="asset-ratio-chart"></canvas></div>
+                </article>
+            </section>
+
+            <section class="main-grid grid grid-cols-[minmax(0,2fr)_minmax(340px,1fr)] gap-6">
                 <div class="space-y-6">
-                    <!-- Quick Actions -->
-                    <div class="section_card">
-                        <h3 class="section_title"><i data-lucide="zap" class="w-5 h-5 text-yellow-500"></i> 빠른 작업</h3>
-                        <div class="grid grid-cols-1 gap-3">
-                            <button onclick="location.href='list.html'" class="flex items-center gap-3 p-3 bg-gray-50 hover:bg-indigo-50 rounded-xl transition-all text-left group">
-                                <div class="p-2.5 bg-indigo-100 text-indigo-600 rounded-lg group-hover:scale-105 transition-all"><i data-lucide="package" class="w-5 h-5"></i></div>
-                                <div>
-                                    <p class="font-bold text-gray-800 text-sm">재고 현황 조회</p>
-                                    <p class="text-xs text-gray-500">전체 품목 및 창고별 재고 확인</p>
-                                </div>
-                            </button>
-                            <button onclick="location.href='transfers.html'" class="flex items-center gap-3 p-3 bg-gray-50 hover:bg-green-50 rounded-xl transition-all text-left group">
-                                <div class="p-2.5 bg-green-100 text-green-600 rounded-lg group-hover:scale-105 transition-all"><i data-lucide="move" class="w-5 h-5"></i></div>
-                                <div>
-                                    <p class="font-bold text-gray-800 text-sm">창고 이동 결재</p>
-                                    <p class="text-xs text-gray-500">창고 간 재고 이동 결재/통제</p>
-                                </div>
-                            </button>
-                            <button onclick="location.href='reorder.html'" class="flex items-center gap-3 p-3 bg-gray-50 hover:bg-orange-50 rounded-xl transition-all text-left group">
-                                <div class="p-2.5 bg-orange-100 text-orange-600 rounded-lg group-hover:scale-105 transition-all"><i data-lucide="alert-triangle" class="w-5 h-5"></i></div>
-                                <div>
-                                    <p class="font-bold text-gray-800 text-sm">자동 발주 추천</p>
-                                    <p class="text-xs text-gray-500">부족 재고 확인 및 발주 추천</p>
-                                </div>
-                            </button>
-                            <button onclick="location.href='movements.html'" class="flex items-center gap-3 p-3 bg-gray-50 hover:bg-blue-50 rounded-xl transition-all text-left group">
-                                <div class="p-2.5 bg-blue-100 text-blue-600 rounded-lg group-hover:scale-105 transition-all"><i data-lucide="history" class="w-5 h-5"></i></div>
-                                <div>
-                                    <p class="font-bold text-gray-800 text-sm">재고 변동 원장</p>
-                                    <p class="text-xs text-gray-500">모든 재고 변동 내역 추적</p>
-                                </div>
-                            </button>
-                        </div>
-                    </div>
+                    <article class="section-card">
+                        <h3 class="section-title"><i data-lucide="warehouse" class="w-5 h-5 text-indigo-500"></i> 창고별 재고 현황</h3>
+                        <div id="distribution-list" class="grid grid-cols-1 md:grid-cols-2 gap-4"></div>
+                    </article>
 
-                    <!-- Recent Activities Widget -->
-                    <div class="section_card">
-                        <h3 class="section_title"><i data-lucide="history" class="w-5 h-5 text-indigo-500"></i> 최근 재고 변동 이력</h3>
-                        <div id="recent-movements" class="space-y-3.5">
-                            <!-- Injected by JS -->
+                    <article class="section-card">
+                        <div class="flex items-center justify-between gap-3 mb-4">
+                            <h3 class="section-title mb-0"><i data-lucide="shield-alert" class="w-5 h-5 text-amber-500"></i> 결재 대기 중인 이동 요청</h3>
+                            <button type="button" onclick="location.href='transfers.html'" class="text-xs font-black text-indigo-600 hover:underline">전체 보기</button>
                         </div>
-                    </div>
+                        <div class="overflow-x-auto">
+                            <table class="w-full text-sm">
+                                <thead>
+                                    <tr class="text-slate-500 text-xs font-black border-b">
+                                        <th class="pb-2 text-left">이동 번호</th>
+                                        <th class="pb-2 text-left">이동 경로</th>
+                                        <th class="pb-2 text-left">요청자</th>
+                                        <th class="pb-2 text-center">결재</th>
+                                    </tr>
+                                </thead>
+                                <tbody id="pending-transfer-list"></tbody>
+                            </table>
+                            <div id="pending-empty" class="hidden py-8 text-center text-slate-400">
+                                <p class="text-xs font-bold">결재 대기 중인 창고 이동 요청이 없어.</p>
+                            </div>
+                        </div>
+                    </article>
                 </div>
-            </div>
+
+                <div class="space-y-6">
+                    <article class="section-card">
+                        <h3 class="section-title"><i data-lucide="zap" class="w-5 h-5 text-amber-500"></i> 빠른 작업</h3>
+                        <div class="grid gap-3">
+                            <button onclick="location.href='list.html'" class="flex items-center gap-3 rounded-xl bg-slate-50 p-3 text-left hover:bg-indigo-50">
+                                <span class="rounded-lg bg-indigo-100 p-2.5 text-indigo-600"><i data-lucide="package" class="w-5 h-5"></i></span>
+                                <span>
+                                    <span class="block text-sm font-black text-slate-800">재고 현황 조회</span>
+                                    <span class="block text-xs font-semibold text-slate-500">전체 품목과 창고별 재고 확인</span>
+                                </span>
+                            </button>
+                            <button onclick="location.href='transfers.html'" class="flex items-center gap-3 rounded-xl bg-slate-50 p-3 text-left hover:bg-emerald-50">
+                                <span class="rounded-lg bg-emerald-100 p-2.5 text-emerald-600"><i data-lucide="move" class="w-5 h-5"></i></span>
+                                <span>
+                                    <span class="block text-sm font-black text-slate-800">창고 이동 결재</span>
+                                    <span class="block text-xs font-semibold text-slate-500">창고 간 재고 이동 승인과 완료</span>
+                                </span>
+                            </button>
+                            <button onclick="location.href='reorder.html'" class="flex items-center gap-3 rounded-xl bg-slate-50 p-3 text-left hover:bg-orange-50">
+                                <span class="rounded-lg bg-orange-100 p-2.5 text-orange-600"><i data-lucide="alert-triangle" class="w-5 h-5"></i></span>
+                                <span>
+                                    <span class="block text-sm font-black text-slate-800">자동 발주 추천</span>
+                                    <span class="block text-xs font-semibold text-slate-500">부족 재고 확인과 발주 추천</span>
+                                </span>
+                            </button>
+                            <button onclick="location.href='movements.html'" class="flex items-center gap-3 rounded-xl bg-slate-50 p-3 text-left hover:bg-sky-50">
+                                <span class="rounded-lg bg-sky-100 p-2.5 text-sky-600"><i data-lucide="history" class="w-5 h-5"></i></span>
+                                <span>
+                                    <span class="block text-sm font-black text-slate-800">재고 변경 이력</span>
+                                    <span class="block text-xs font-semibold text-slate-500">모든 재고 이동 내역 추적</span>
+                                </span>
+                            </button>
+                        </div>
+                    </article>
+
+                    <article class="section-card">
+                        <h3 class="section-title"><i data-lucide="history" class="w-5 h-5 text-indigo-500"></i> 최근 재고 변경 이력</h3>
+                        <div id="recent-movements" class="space-y-3"></div>
+                    </article>
+                </div>
+            </section>
         </main>
     </div>
 
+    <script src="../../services/common/session.js"></script>
     <script src="../../services/common/apiClient.js"></script>
     <script src="../../services/inventory/inventory-service.js"></script>
     <script src="../../services/common/sidebar.js"></script>
     <script>
         let assetChartInstance = null;
         let trendChartInstance = null;
+        let session = null;
+        let rpaTriggerPending = false;
 
         document.addEventListener('DOMContentLoaded', async () => {
-            lucide.createIcons();
-            await loadStats();
+            session = window.ddukSession?.requireRole?.(['ADMIN', 'INVENTORY', 'HR']);
+            if (!session) return;
+
+            document.getElementById('rpa-trigger-button').addEventListener('click', triggerInventoryShortageRpa);
+            document.getElementById('rpa-history-refresh').addEventListener('click', loadRpaHistory);
+            if (session.role !== 'ADMIN') {
+                const button = document.getElementById('rpa-trigger-button');
+                button.disabled = true;
+                button.title = 'RPA 실행은 관리자만 가능해.';
+                document.getElementById('rpa-history-list').innerHTML = '<div class="warn-empty">최근 RPA 실행 이력은 관리자만 볼 수 있어.</div>';
+            }
+
+            if (window.lucide) lucide.createIcons();
+            await loadDashboard();
             await loadPendingTransfers();
+            setInterval(loadDashboard, 10000);
         });
 
-        async function loadStats() {
-            // KPI 카드 로딩 상태 표시
-            ['total-qty','total-value','low-stock-count','pending-transfer-count','outbound-volume'].forEach(id => {
-                const el = document.getElementById(id);
-                if (el) el.textContent = '...';
-            });
+        function number(value) {
+            return Number(value || 0).toLocaleString('ko-KR');
+        }
+
+        function money(value) {
+            if (value === null || value === undefined || value === '') return '-';
+            return Number(value || 0).toLocaleString('ko-KR', { style: 'currency', currency: 'KRW', maximumFractionDigits: 0 });
+        }
+
+        function escapeHtml(value) {
+            return String(value ?? '').replace(/[&<>"']/g, char => ({ '&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#039;' }[char]));
+        }
+
+        function formatDateTime(value) {
+            if (!value) return '-';
+            const date = new Date(value);
+            return Number.isNaN(date.getTime()) ? value : date.toLocaleString('ko-KR');
+        }
+
+        function rpaChipMeta(status) {
+            switch (status) {
+                case 'READY':
+                    return { label: '경고 확인 가능', className: 'rpa-chip ready' };
+                case 'ERP_ONLY':
+                    return { label: 'ERP 기준만 있음', className: 'rpa-chip waiting' };
+                case 'MISSING_FILE':
+                case 'EMPTY_RESULT':
+                    return { label: '결과 부족', className: 'rpa-chip missing' };
+                default:
+                    return { label: rpaTriggerPending ? '실행 요청 중' : '대기', className: 'rpa-chip waiting' };
+            }
+        }
+
+        async function loadDashboard() {
+            const pageMessage = document.getElementById('page-message');
             try {
                 const response = await InventoryService.getDashboardStats();
-                if (response && response.status === 'success') {
-                    const stats = response.data;
-                    document.getElementById('total-qty').textContent = (stats.totalQuantity || 0).toLocaleString();
-                    document.getElementById('total-value').textContent = '₩' + (stats.totalValue || 0).toLocaleString();
-                    document.getElementById('low-stock-count').textContent = stats.lowStockCount || 0;
-                    document.getElementById('pending-transfer-count').textContent = stats.pendingTransferCount || 0;
-                    document.getElementById('outbound-volume').textContent = (stats.outboundVolume30Days || 0).toLocaleString();
-
-                    // 1. Warehouse Distribution List
-                    const distList = document.getElementById('distribution-list');
-                    distList.innerHTML = stats.warehouseDistribution.map(item => `
-                        <div class="flex items-center justify-between p-4 bg-gray-50 rounded-2xl border border-gray-100 transition-all hover:bg-indigo-50">
-                            <div class="flex items-center gap-3">
-                                <div class="w-2.5 h-10 bg-indigo-500 rounded-full"></div>
-                                <div>
-                                    <p class="font-bold text-gray-800 text-sm">${item.warehouseName}</p>
-                                    <p class="text-xs text-gray-400">보유 자산: ₩${(item.totalValue || 0).toLocaleString()}</p>
-                                </div>
-                            </div>
-                            <div class="text-right">
-                                <p class="text-base font-extrabold text-indigo-600">${(item.totalStock || 0).toLocaleString()}</p>
-                                <p class="text-[10px] text-gray-400 font-bold uppercase">수량</p>
-                            </div>
-                        </div>
-                    `).join('');
-
-                    // 2. Chart.js 시각화 렌더링 (메모리 누수 방지 적용)
-                    renderDashboardCharts(stats);
-
-                    // 3. Recent Movements List (최근 5건만 노출)
-                    const recentList = document.getElementById('recent-movements');
-                    if (stats.recentMovements && stats.recentMovements.length > 0) {
-                        recentList.innerHTML = stats.recentMovements.slice(0, 5).map(m => `
-                            <div class="flex items-center justify-between p-3 bg-gray-50 rounded-xl text-xs border border-gray-100 transition-all hover:bg-indigo-50">
-                                <div>
-                                    <p class="font-bold text-gray-800">${m.itemName}</p>
-                                    <p class="text-[10px] text-gray-400 font-semibold">${m.warehouseName} | ${m.referenceNo || '-'}</p>
-                                </div>
-                                <div class="text-right">
-                                    <span class="font-bold ${m.movementType.includes('OUT') ? 'text-red-500' : 'text-green-500'}">
-                                        ${m.movementType.includes('OUT') ? '-' : '+'}${m.quantity.toLocaleString()}
-                                    </span>
-                                    <p class="text-[10px] text-gray-400 font-bold uppercase">${translateType(m.movementType)}</p>
-                                </div>
-                            </div>
-                        `).join('');
-                    } else {
-                        recentList.innerHTML = '<p class="text-xs text-gray-400 text-center py-4">최근 변동 이력이 없습니다.</p>';
-                    }
+                if (!response || response.status !== 'success') {
+                    throw new Error(response?.message || '재고 대시보드를 불러오지 못했어.');
                 }
+
+                const stats = response.data || {};
+                document.getElementById('base-time').textContent = `기준 ${new Date().toLocaleString('ko-KR')}`;
+                document.getElementById('total-qty').textContent = number(stats.totalQuantity);
+                document.getElementById('total-value').textContent = money(stats.totalValue);
+                document.getElementById('low-stock-count').textContent = number(stats.lowStockCount);
+                document.getElementById('pending-transfer-count').textContent = number(stats.pendingTransferCount);
+                document.getElementById('outbound-volume').textContent = number(stats.outboundVolume30Days);
+
+                renderDistribution(stats.warehouseDistribution || []);
+                renderRecentMovements(stats.recentMovements || []);
+                renderDashboardCharts(stats);
+                renderShortageRpa(stats.inventoryShortageRpa || {});
+                if (session.role === 'ADMIN') {
+                    loadRpaHistory();
+                }
+
+                pageMessage.textContent = '재고 지표와 Stage 3 부족 조회 상태를 최신 데이터로 갱신했어.';
+                pageMessage.className = 'mt-1 text-sm font-semibold text-emerald-600';
             } catch (error) {
-                // 상태별 분기 UX
-                const isUnauthorized = error && (error.type === 'unauthorized' || error.status === 401);
-                const isNetwork = error && error.type === 'network';
-
-                if (!isUnauthorized) {
-                    const msg = isNetwork
-                        ? '네트워크 오류: 서버에 연결할 수 없습니다.'
-                        : (error.message || '대시보드 데이터를 불러오지 못했습니다.');
-                    if (window.ddukApi && window.ddukApi.showToast) {
-                        window.ddukApi.showToast(msg, 'error');
-                    }
-                }
-
-                // KPI 카드 에러 표시 (빈 칸 방지)
+                pageMessage.textContent = error.message || '재고 대시보드를 불러오지 못했어.';
+                pageMessage.className = 'mt-1 text-sm font-semibold text-rose-600';
                 ['total-qty','total-value','low-stock-count','pending-transfer-count','outbound-volume'].forEach(id => {
                     const el = document.getElementById(id);
                     if (el) el.textContent = '-';
                 });
+            } finally {
+                if (window.lucide) lucide.createIcons();
             }
         }
 
-        function translateType(type) {
-            const map = {
-                'INBOUND': '입고(IN)',
-                'OUTBOUND': '출고(OUT)',
-                'TRANSFER_IN': '이동입고',
-                'TRANSFER_OUT': '이동출고',
-                'ADJUSTMENT_IN': '조정입고',
-                'ADJUSTMENT_OUT': '조정출고'
-            };
-            return map[type] || type;
+        function renderDistribution(items) {
+            const target = document.getElementById('distribution-list');
+            if (!items.length) {
+                target.innerHTML = '<div class="dist-card"><div class="text-sm font-bold text-slate-400">표시할 창고 재고가 없어.</div></div>';
+                return;
+            }
+
+            target.innerHTML = items.map(item => `
+                <div class="dist-card">
+                    <div class="flex items-center gap-3">
+                        <div class="h-10 w-2.5 rounded-full bg-indigo-500"></div>
+                        <div>
+                            <p class="text-sm font-black text-slate-800">${escapeHtml(item.warehouseName)}</p>
+                            <p class="text-xs font-semibold text-slate-400">자산 ${money(item.totalValue)}</p>
+                        </div>
+                    </div>
+                    <div class="text-right">
+                        <p class="text-base font-black text-indigo-600">${number(item.totalStock)}</p>
+                        <p class="text-[10px] font-black uppercase text-slate-400">수량</p>
+                    </div>
+                </div>
+            `).join('');
+        }
+
+        function renderRecentMovements(items) {
+            const target = document.getElementById('recent-movements');
+            if (!items.length) {
+                target.innerHTML = '<p class="py-4 text-center text-xs font-bold text-slate-400">최근 재고 변경 이력이 없어.</p>';
+                return;
+            }
+
+            target.innerHTML = items.slice(0, 5).map(item => `
+                <div class="movement-card">
+                    <div>
+                        <p class="text-sm font-black text-slate-800">${escapeHtml(item.itemName)}</p>
+                        <p class="text-[11px] font-semibold text-slate-400">${escapeHtml(item.warehouseName)} | ${escapeHtml(item.referenceNo || '-')}</p>
+                    </div>
+                    <div class="text-right">
+                        <p class="text-sm font-black ${String(item.movementType || '').includes('OUT') ? 'text-rose-600' : 'text-emerald-600'}">
+                            ${String(item.movementType || '').includes('OUT') ? '-' : '+'}${number(item.quantity)}
+                        </p>
+                        <p class="text-[10px] font-black uppercase text-slate-400">${escapeHtml(translateType(item.movementType))}</p>
+                    </div>
+                </div>
+            `).join('');
+        }
+
+        function renderShortageRpa(block) {
+            const chip = document.getElementById('rpa-status-chip');
+            const chipMeta = rpaChipMeta(block.status);
+            chip.className = chipMeta.className;
+            chip.textContent = chipMeta.label;
+
+            document.getElementById('rpa-message').textContent = block.message || '부족 조회 결과가 아직 없어.';
+            document.getElementById('rpa-vendor-name').textContent = block.vendorName || '-';
+            document.getElementById('rpa-collected-at').textContent = formatDateTime(block.latestCollectedAt);
+            document.getElementById('rpa-matched-count').textContent = number(block.matchedLowStockCount || 0);
+            document.getElementById('rpa-erp-count').textContent = number(block.erpLowStockCount || 0);
+            document.getElementById('rpa-alert-count').textContent = number(block.rpaAlertCount || 0);
+            document.getElementById('rpa-match-count-card').textContent = number(block.matchedLowStockCount || 0);
+
+            const target = document.getElementById('rpa-items-body');
+            const items = Array.isArray(block.items) ? block.items : [];
+            if (!items.length) {
+                target.innerHTML = '<tr><td colspan="5"><div class="warn-empty">ERP 부족 재고나 외부 경고 결과가 아직 없어.</div></td></tr>';
+                return;
+            }
+
+            target.innerHTML = items.map(item => `
+                <tr>
+                    <td class="font-black text-slate-900">${escapeHtml(item.itemName || '-')}</td>
+                    <td class="font-bold text-slate-600">${escapeHtml(item.warehouseName || '-')}</td>
+                    <td class="font-bold text-slate-700">${item.availableStock == null ? '-' : `${number(item.availableStock)} / ${number(item.safetyStock)}`}</td>
+                    <td class="font-bold ${item.matchType === 'MATCHED' ? 'text-rose-600' : 'text-amber-700'}">${escapeHtml(item.rpaStockStatus || '-')}</td>
+                    <td class="font-bold text-slate-700">${escapeHtml(item.recommendedAction || '-')}</td>
+                </tr>
+            `).join('');
+        }
+
+        function renderRpaHistory(items) {
+            const target = document.getElementById('rpa-history-list');
+            if (!target) return;
+
+            if (!Array.isArray(items) || !items.length) {
+                target.innerHTML = '<div class="warn-empty">최근 실행 이력이 아직 없어.</div>';
+                return;
+            }
+
+            target.innerHTML = items.map(item => `
+                <div class="flex items-start justify-between gap-3 rounded-xl border border-amber-100 bg-white/80 px-4 py-3">
+                    <div class="min-w-0">
+                        <div class="flex flex-wrap items-center gap-2">
+                            <span class="text-xs font-black text-slate-900">${escapeHtml(item.status || '-')}</span>
+                            <span class="text-[11px] font-bold text-slate-500">${escapeHtml(item.taskId || '-')}</span>
+                        </div>
+                        <p class="mt-1 text-xs font-semibold text-slate-600">${escapeHtml(formatDateTime(item.requestedAt))}</p>
+                        <p class="mt-1 text-xs font-semibold text-rose-600">${escapeHtml(item.errorMessage || '')}</p>
+                    </div>
+                    <button type="button" onclick="triggerInventoryShortageRpa()" class="rounded-lg border border-amber-200 bg-white px-3 py-1.5 text-xs font-black text-amber-900 hover:bg-amber-50">재실행</button>
+                </div>
+            `).join('');
+        }
+
+        async function loadRpaHistory() {
+            const target = document.getElementById('rpa-history-list');
+            if (!session || session.role !== 'ADMIN') {
+                if (target) {
+                    target.innerHTML = '<div class="warn-empty">최근 RPA 실행 이력은 관리자만 볼 수 있어.</div>';
+                }
+                return;
+            }
+
+            if (target) {
+                target.innerHTML = '<div class="warn-empty">최근 실행 이력을 불러오는 중이야.</div>';
+            }
+
+            try {
+                const response = await window.ddukApi.get('/api/v1/admin/tasks?taskType=RPA&actionName=check_inventory_shortage&size=5&sort=requestedAt,desc');
+                const page = response?.data;
+                const items = Array.isArray(page?.content) ? page.content : [];
+                renderRpaHistory(items);
+            } catch (error) {
+                if (target) {
+                    target.innerHTML = `<div class="warn-empty">${escapeHtml(error.message || '최근 실행 이력을 불러오지 못했어.')}</div>`;
+                }
+            }
+        }
+
+        async function triggerInventoryShortageRpa() {
+            if (!session || session.role !== 'ADMIN') {
+                window.ddukApi?.showToast?.('RPA 실행은 관리자만 가능해.', 'warning');
+                return;
+            }
+
+            const button = document.getElementById('rpa-trigger-button');
+            const pageMessage = document.getElementById('page-message');
+            rpaTriggerPending = true;
+            button.disabled = true;
+            button.innerHTML = '<i data-lucide="loader-circle" class="w-4 h-4"></i> 실행 요청 중';
+            if (window.lucide) lucide.createIcons();
+
+            try {
+                const response = await window.ddukApi.post('/api/v1/admin/rpa/trigger', { taskType: 'INVENTORY_SHORTAGE' });
+                pageMessage.textContent = `재고 부족 조회를 요청했어. Task ID: ${response.data?.taskId || '-'}`;
+                pageMessage.className = 'mt-1 text-sm font-semibold text-amber-700';
+                renderShortageRpa({
+                    status: 'WAITING',
+                    vendorName: '아망티',
+                    message: 'RPA 실행을 요청했어. 완료되면 자동으로 부족 조회 카드가 갱신돼.',
+                    items: []
+                });
+                loadRpaHistory();
+                window.setTimeout(loadDashboard, 2000);
+            } catch (error) {
+                pageMessage.textContent = error.message || '재고 부족 조회 실행 요청에 실패했어.';
+                pageMessage.className = 'mt-1 text-sm font-semibold text-rose-600';
+            } finally {
+                rpaTriggerPending = false;
+                button.disabled = session.role !== 'ADMIN';
+                button.innerHTML = '<i data-lucide="radar" class="w-4 h-4"></i> 부족 조회 실행';
+                if (window.lucide) lucide.createIcons();
+            }
         }
 
         function renderDashboardCharts(stats) {
-            // 기존 차트 안전 파괴 — canvas 재사용 시 warning 방지
-            if (assetChartInstance) { assetChartInstance.destroy(); assetChartInstance = null; }
-            if (trendChartInstance) { trendChartInstance.destroy(); trendChartInstance = null; }
+            if (assetChartInstance) {
+                assetChartInstance.destroy();
+                assetChartInstance = null;
+            }
+            if (trendChartInstance) {
+                trendChartInstance.destroy();
+                trendChartInstance = null;
+            }
 
-            // canvas 요소가 없으면 skip
             const assetCanvas = document.getElementById('asset-ratio-chart');
             const trendCanvas = document.getElementById('outbound-trend-chart');
             if (!assetCanvas || !trendCanvas) return;
 
-            // 1. 창고별 자산 비중 도넛 차트
-            const whNames = stats.warehouseDistribution.map(w => w.warehouseName);
-            const whValues = stats.warehouseDistribution.map(w => w.totalValue);
+            const distribution = Array.isArray(stats.warehouseDistribution) ? stats.warehouseDistribution : [];
+            const whNames = distribution.map(item => item.warehouseName);
+            const whValues = distribution.map(item => Number(item.totalValue || 0));
 
-            const ctxAsset = assetCanvas.getContext('2d');
-            assetChartInstance = new Chart(ctxAsset, {
+            assetChartInstance = new Chart(assetCanvas.getContext('2d'), {
                 type: 'doughnut',
                 data: {
-                    labels: whNames.length > 0 ? whNames : ['보유 재고 없음'],
+                    labels: whNames.length ? whNames : ['재고 없음'],
                     datasets: [{
-                        data: whValues.length > 0 ? whValues : [0],
+                        data: whValues.length ? whValues : [0],
                         backgroundColor: [
-                            'rgba(79, 70, 229, 0.8)',
-                            'rgba(16, 185, 129, 0.8)',
-                            'rgba(245, 158, 11, 0.8)',
-                            'rgba(239, 68, 68, 0.8)',
-                            'rgba(107, 114, 128, 0.8)'
+                            'rgba(79, 70, 229, 0.82)',
+                            'rgba(16, 185, 129, 0.82)',
+                            'rgba(245, 158, 11, 0.82)',
+                            'rgba(239, 68, 68, 0.82)',
+                            'rgba(107, 114, 128, 0.82)'
                         ],
-                        borderWidth: 2,
-                        borderColor: '#ffffff'
+                        borderColor: '#ffffff',
+                        borderWidth: 2
                     }]
                 },
                 options: {
@@ -316,54 +553,47 @@
                 }
             });
 
-            // 2. 최근 30일 거래 추이 집계 (최근 변동 이력 데이터 기반 동적 집계)
             const dateStats = {};
-            // 최근 7일 날짜를 뼈대로 잡고 수불로그에서 갯수를 카운팅
-            for (let i = 29; i >= 0; i--) {
+            for (let i = 29; i >= 0; i -= 1) {
                 const d = new Date();
                 d.setDate(d.getDate() - i);
-                const dStr = d.toISOString().split('T')[0];
-                dateStats[dStr] = { inbound: 0, outbound: 0 };
+                const key = d.toISOString().split('T')[0];
+                dateStats[key] = { inbound: 0, outbound: 0 };
             }
 
-            if (stats.recentMovements) {
-                stats.recentMovements.forEach(m => {
-                    const dStr = m.createdAt.split('T')[0];
-                    if (dateStats[dStr]) {
-                        if (m.movementType.includes('IN') || m.movementType === 'INBOUND') {
-                            dateStats[dStr].inbound += m.quantity;
-                        } else {
-                            dateStats[dStr].outbound += m.quantity;
-                        }
-                    }
-                });
-            }
+            (stats.recentMovements || []).forEach(item => {
+                const key = String(item.createdAt || '').split('T')[0];
+                if (!dateStats[key]) return;
+                if (String(item.movementType || '').includes('IN')) {
+                    dateStats[key].inbound += Number(item.quantity || 0);
+                } else {
+                    dateStats[key].outbound += Number(item.quantity || 0);
+                }
+            });
 
-            const dates = Object.keys(dateStats);
-            const inData = dates.map(d => dateStats[d].inbound);
-            const outData = dates.map(d => dateStats[d].outbound);
-            const shortLabels = dates.map(d => d.substring(5)); // MM-DD
+            const labels = Object.keys(dateStats).map(key => key.slice(5));
+            const inboundData = Object.values(dateStats).map(value => value.inbound);
+            const outboundData = Object.values(dateStats).map(value => value.outbound);
 
-            const ctxTrend = trendCanvas.getContext('2d');
-            trendChartInstance = new Chart(ctxTrend, {
+            trendChartInstance = new Chart(trendCanvas.getContext('2d'), {
                 type: 'line',
                 data: {
-                    labels: shortLabels,
+                    labels,
                     datasets: [
                         {
-                            label: '입고량(IN)',
-                            data: inData,
+                            label: '입고',
+                            data: inboundData,
                             borderColor: 'rgb(16, 185, 129)',
-                            backgroundColor: 'rgba(16, 185, 129, 0.05)',
+                            backgroundColor: 'rgba(16, 185, 129, 0.06)',
                             tension: 0.3,
                             fill: true,
                             pointRadius: 2
                         },
                         {
-                            label: '출고량(OUT)',
-                            data: outData,
+                            label: '출고',
+                            data: outboundData,
                             borderColor: 'rgb(239, 68, 68)',
-                            backgroundColor: 'rgba(239, 68, 68, 0.05)',
+                            backgroundColor: 'rgba(239, 68, 68, 0.06)',
                             tension: 0.3,
                             fill: true,
                             pointRadius: 2
@@ -373,12 +603,8 @@
                 options: {
                     responsive: true,
                     maintainAspectRatio: false,
-                    scales: {
-                        y: { beginAtZero: true, grid: { drawBorder: false } }
-                    },
-                    plugins: {
-                        legend: { position: 'top', labels: { boxWidth: 12 } }
-                    }
+                    scales: { y: { beginAtZero: true } },
+                    plugins: { legend: { position: 'top', labels: { boxWidth: 12 } } }
                 }
             });
         }
@@ -386,53 +612,57 @@
         async function loadPendingTransfers() {
             const list = document.getElementById('pending-transfer-list');
             const empty = document.getElementById('pending-empty');
-            if (list) list.innerHTML = '<tr><td colspan="4" style="text-align:center;padding:1.5rem;color:#9ca3af;font-size:0.8rem">로딩 중...</td></tr>';
+            list.innerHTML = '<tr><td colspan="4" class="py-6 text-center text-xs font-bold text-slate-400">로딩 중...</td></tr>';
 
             try {
                 const response = await InventoryService.getTransfers({ status: 'PENDING' });
-                if (response.status === 'success' && response.data.length > 0) {
-                    list.innerHTML = response.data.slice(0, 5).map(t => `
-                        <tr class="border-b border-gray-50 hover:bg-gray-50 transition-colors">
-                            <td class="py-2.5 font-bold text-indigo-600">${t.transferNo}</td>
-                            <td class="py-2.5 text-xs text-gray-600">${t.sourceWarehouseName} ➔ ${t.targetWarehouseName}</td>
-                            <td class="py-2.5 text-gray-500">${t.requestedByName}</td>
-                            <td class="py-2.5 text-center">
-                                <button onclick="approveTransfer(${t.id})" class="px-2 py-1 bg-amber-500 hover:bg-amber-600 text-white rounded-md text-[10px] font-bold shadow-xs">승인</button>
-                            </td>
-                        </tr>
-                    `).join('');
-                    list.parentElement.classList.remove('hidden');
-                    empty.classList.add('hidden');
-                } else {
+                const items = Array.isArray(response.data) ? response.data : [];
+                if (!items.length) {
                     list.innerHTML = '';
-                    list.parentElement.classList.add('hidden');
                     empty.classList.remove('hidden');
+                    return;
                 }
-                lucide.createIcons();
+
+                empty.classList.add('hidden');
+                list.innerHTML = items.slice(0, 5).map(item => `
+                    <tr class="border-b border-slate-100">
+                        <td class="py-3 text-sm font-black text-indigo-600">${escapeHtml(item.transferNo)}</td>
+                        <td class="py-3 text-sm text-slate-600">${escapeHtml(item.sourceWarehouseName)} → ${escapeHtml(item.targetWarehouseName)}</td>
+                        <td class="py-3 text-sm text-slate-500">${escapeHtml(item.requestedByName)}</td>
+                        <td class="py-3 text-center">
+                            <button type="button" onclick="approveTransfer(${item.id})" class="rounded-md bg-amber-500 px-2 py-1 text-[11px] font-black text-white hover:bg-amber-600">승인</button>
+                        </td>
+                    </tr>
+                `).join('');
             } catch (error) {
-                const isUnauthorized = error && (error.type === 'unauthorized' || error.status === 401);
-                if (!isUnauthorized && window.ddukApi && window.ddukApi.showToast) {
-                    window.ddukApi.showToast('창고 이동 목록을 불러오지 못했습니다.', 'warning');
-                }
-                if (empty) empty.classList.remove('hidden');
-                if (list) list.innerHTML = '';
+                list.innerHTML = '';
+                empty.classList.remove('hidden');
             }
         }
 
         async function approveTransfer(id) {
-            if (!confirm('해당 창고 이동 요청을 승인하시겠습니까?')) return;
+            if (!confirm('해당 창고 이동 요청을 승인할까?')) return;
             try {
-                const res = await InventoryService.approveTransfer(id);
-                if (res.status === 'success') {
-                    alert('승인되었습니다.');
-                    await loadStats();
+                const response = await InventoryService.approveTransfer(id);
+                if (response.status === 'success') {
+                    window.ddukApi?.showToast?.('이동 요청을 승인했어.', 'success');
+                    await loadDashboard();
                     await loadPendingTransfers();
-                } else {
-                    alert('실패: ' + res.message);
                 }
             } catch (error) {
-                alert('오류가 발생했습니다.');
+                window.ddukApi?.showToast?.(error.message || '이동 승인에 실패했어.', 'error');
             }
+        }
+
+        function translateType(type) {
+            return {
+                INBOUND: '입고',
+                OUTBOUND: '출고',
+                TRANSFER_IN: '이동 입고',
+                TRANSFER_OUT: '이동 출고',
+                ADJUSTMENT_IN: '조정 입고',
+                ADJUSTMENT_OUT: '조정 출고'
+            }[type] || type || '-';
         }
     </script>
 </body>

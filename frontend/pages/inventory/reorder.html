@@ -3,412 +3,397 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <meta name="description" content="DDUK ERP 자동 발주 추천 - 안전재고 기반 규칙 엔진">
-    <title>자동 발주 추천 | DDUK ERP</title>
+    <meta name="description" content="DDUK ERP 추천 발주 목록">
+    <title>추천 발주 | DDUK ERP</title>
     <script src="https://cdn.tailwindcss.com/3.4.17"></script>
     <script src="https://cdn.jsdelivr.net/npm/lucide@0.263.0/dist/umd/lucide.min.js"></script>
-    <link href="https://fonts.googleapis.com/css2?family=DM+Sans:wght@400;500;600;700&display=swap" rel="stylesheet">
+    <link href="https://fonts.googleapis.com/css2?family=DM+Sans:wght@400;500;600;700;800&display=swap" rel="stylesheet">
     <link rel="stylesheet" href="../../styles/common/dashboard.css">
     <style>
-        .rec-table { width: 100%; border-collapse: separate; border-spacing: 0; }
-        .rec-table th { background: #f9fafb; padding: 0.875rem 1rem; text-align: left; font-size: 0.7rem; font-weight: 700; color: #6b7280; text-transform: uppercase; letter-spacing: 0.05em; border-bottom: 2px solid #e5e7eb; }
-        .rec-table td { padding: 1rem; font-size: 0.875rem; color: #374151; border-bottom: 1px solid #f3f4f6; vertical-align: middle; }
-        .rec-table tr:hover td { background: #f8faff; }
-        .rec-table tr:last-child td { border-bottom: none; }
-
-        /* 긴급도 뱃지 */
-        .urgency-badge { display: inline-flex; align-items: center; gap: 0.3rem; padding: 0.3rem 0.65rem; border-radius: 9999px; font-size: 0.7rem; font-weight: 700; text-transform: uppercase; letter-spacing: 0.04em; }
-        .urgency-CRITICAL { background: #fef2f2; color: #dc2626; border: 1px solid #fecaca; }
-        .urgency-HIGH { background: #fff7ed; color: #c2410c; border: 1px solid #fed7aa; }
-        .urgency-MEDIUM { background: #fffbeb; color: #b45309; border: 1px solid #fde68a; }
-        .urgency-LOW { background: #f0fdf4; color: #166534; border: 1px solid #bbf7d0; }
-
-        /* 재고 게이지 */
-        .stock-gauge-wrap { background: #f3f4f6; border-radius: 9999px; height: 5px; width: 80px; overflow: hidden; }
-        .stock-gauge-bar { height: 100%; border-radius: 9999px; }
-
-        /* 스켈레톤 */
-        .skeleton { background: linear-gradient(90deg, #f3f4f6 25%, #e5e7eb 50%, #f3f4f6 75%); background-size: 200% 100%; animation: skeleton-shimmer 1.4s infinite; border-radius: 0.375rem; }
-        @keyframes skeleton-shimmer { 0% { background-position: 200% 0; } 100% { background-position: -200% 0; } }
-
-        /* 요약 카드 */
-        .summary-cards { display: grid; grid-template-columns: repeat(auto-fit, minmax(160px, 1fr)); gap: 1rem; margin-bottom: 1.5rem; }
-        .summary-card { background: #fff; border: 1px solid #e5e7eb; border-radius: 1rem; padding: 1.25rem 1.5rem; }
-        .summary-card-icon { width: 2.25rem; height: 2.25rem; border-radius: 0.6rem; display: flex; align-items: center; justify-content: center; margin-bottom: 0.75rem; }
-        .summary-card-value { font-size: 1.6rem; font-weight: 800; line-height: 1; color: #111827; }
-        .summary-card-label { font-size: 0.7rem; font-weight: 600; color: #9ca3af; text-transform: uppercase; letter-spacing: 0.06em; margin-top: 0.3rem; }
-
-        /* 필터 섹션 */
-        .filter-bar { display: flex; align-items: center; gap: 0.75rem; margin-bottom: 1rem; flex-wrap: wrap; }
-        .filter-btn { padding: 0.4rem 0.9rem; border-radius: 9999px; font-size: 0.75rem; font-weight: 600; border: 1.5px solid transparent; cursor: pointer; transition: all 0.15s; }
-        .filter-btn.active { border-color: #6366f1; background: #eef2ff; color: #4338ca; }
-        .filter-btn:not(.active) { border-color: #e5e7eb; background: #fff; color: #6b7280; }
-        .filter-btn:hover:not(.active) { border-color: #d1d5db; background: #f9fafb; }
-
-        /* 발주 요청 버튼 */
-        .order-btn { padding: 0.4rem 0.85rem; border-radius: 0.5rem; font-size: 0.75rem; font-weight: 700; cursor: pointer; transition: all 0.15s; }
-        .order-btn-primary { background: #eef2ff; color: #4338ca; border: 1.5px solid #c7d2fe; }
-        .order-btn-primary:hover { background: #e0e7ff; }
-        .order-btn-urgent { background: #fef2f2; color: #dc2626; border: 1.5px solid #fecaca; }
-        .order-btn-urgent:hover { background: #fee2e2; }
-
-        /* 예상 소진일 색상 */
-        .stockout-red { color: #dc2626; font-weight: 700; }
-        .stockout-orange { color: #c2410c; font-weight: 600; }
-        .stockout-gray { color: #6b7280; font-weight: 500; }
+        body { font-family: "DM Sans", sans-serif; }
+        .summary-grid { display: grid; grid-template-columns: repeat(auto-fit, minmax(170px, 1fr)); gap: 1rem; }
+        .summary-card { background: #fff; border: 1px solid #e5e7eb; border-radius: 1rem; padding: 1.2rem 1.3rem; box-shadow: 0 14px 32px rgba(15, 23, 42, 0.04); }
+        .summary-icon { width: 2.5rem; height: 2.5rem; border-radius: 0.85rem; display: flex; align-items: center; justify-content: center; }
+        .summary-value { font-size: 1.7rem; font-weight: 800; color: #111827; line-height: 1; margin-top: 0.9rem; }
+        .summary-label { margin-top: 0.35rem; font-size: 0.75rem; font-weight: 700; color: #6b7280; letter-spacing: 0.05em; text-transform: uppercase; }
+        .filter-chip { border: 1px solid #d1d5db; border-radius: 999px; padding: 0.45rem 0.9rem; font-size: 0.78rem; font-weight: 700; color: #4b5563; background: #fff; transition: all 0.16s ease; }
+        .filter-chip.active { border-color: #0f766e; background: #ccfbf1; color: #115e59; }
+        .status-badge, .urgency-badge { display: inline-flex; align-items: center; gap: 0.35rem; border-radius: 999px; padding: 0.35rem 0.72rem; font-size: 0.72rem; font-weight: 700; }
+        .status-READY { color: #065f46; background: #d1fae5; }
+        .status-REVIEW { color: #9a3412; background: #ffedd5; }
+        .status-DISABLED { color: #374151; background: #f3f4f6; }
+        .urgency-CRITICAL { color: #b91c1c; background: #fee2e2; }
+        .urgency-HIGH { color: #c2410c; background: #ffedd5; }
+        .urgency-MEDIUM { color: #a16207; background: #fef3c7; }
+        .urgency-LOW { color: #166534; background: #dcfce7; }
+        .data-table { width: 100%; border-collapse: collapse; }
+        .data-table th { text-align: left; font-size: 0.74rem; font-weight: 700; color: #6b7280; padding: 0.95rem 1rem; border-bottom: 1px solid #e5e7eb; text-transform: uppercase; letter-spacing: 0.05em; background: #f9fafb; }
+        .data-table td { padding: 1rem; border-bottom: 1px solid #f3f4f6; vertical-align: top; font-size: 0.88rem; color: #1f2937; }
+        .data-table tr:hover td { background: #fcfffe; }
+        .metric { font-size: 0.82rem; color: #6b7280; }
+        .metric strong { color: #111827; font-weight: 700; }
+        .action-btn { border-radius: 0.7rem; padding: 0.6rem 0.9rem; font-size: 0.78rem; font-weight: 700; transition: all 0.16s ease; }
+        .action-btn-ready { background: #0f766e; color: #fff; }
+        .action-btn-ready:hover { background: #115e59; }
+        .action-btn-muted { background: #e5e7eb; color: #6b7280; cursor: not-allowed; }
+        .skeleton { background: linear-gradient(90deg, #f3f4f6 25%, #e5e7eb 50%, #f3f4f6 75%); background-size: 200% 100%; animation: shimmer 1.4s infinite; border-radius: 0.45rem; }
+        @keyframes shimmer { 0% { background-position: 200% 0; } 100% { background-position: -200% 0; } }
     </style>
 </head>
 <body class="bg-gray-50 min-h-screen">
-    <aside data-dduk-sidebar></aside>
-    <div class="main_wrap">
-        <header class="topbar px-6 py-4 bg-white border-b flex items-center justify-between">
-            <div class="flex items-center gap-4">
-                <button id="mobile_menu_btn" class="lg:hidden p-2 hover:bg-gray-100 rounded-lg"><i data-lucide="menu"></i></button>
+<aside data-dduk-sidebar></aside>
+<div class="main_wrap">
+    <header class="topbar px-6 py-4 bg-white border-b flex items-center justify-between">
+        <div class="flex items-center gap-4">
+            <button id="mobile_menu_btn" class="lg:hidden p-2 hover:bg-gray-100 rounded-lg">
+                <i data-lucide="menu"></i>
+            </button>
+            <div>
+                <h1 class="text-xl font-extrabold text-gray-900">추천 발주</h1>
+                <p class="text-sm text-gray-500 mt-1">재고, 최근 출고, 발주 리드타임 근거를 함께 보는 Phase 3 MVP</p>
+            </div>
+        </div>
+        <div class="flex items-center gap-3">
+            <span id="last-updated" class="text-xs text-gray-400 font-medium"></span>
+            <button id="refresh-btn" class="inline-flex items-center gap-2 rounded-xl border border-teal-200 bg-teal-50 px-3 py-2 text-sm font-bold text-teal-700 hover:bg-teal-100">
+                <i data-lucide="refresh-cw" class="w-4 h-4"></i>
+                새로고침
+            </button>
+        </div>
+    </header>
+
+    <main class="content_area p-6 space-y-6">
+        <section class="summary-grid">
+            <article class="summary-card">
+                <div class="summary-icon bg-emerald-100 text-emerald-700"><i data-lucide="badge-check" class="w-5 h-5"></i></div>
+                <div class="summary-value" id="cnt-ready">-</div>
+                <div class="summary-label">추천 가능</div>
+            </article>
+            <article class="summary-card">
+                <div class="summary-icon bg-orange-100 text-orange-700"><i data-lucide="shield-alert" class="w-5 h-5"></i></div>
+                <div class="summary-value" id="cnt-review">-</div>
+                <div class="summary-label">수동 검토</div>
+            </article>
+            <article class="summary-card">
+                <div class="summary-icon bg-gray-200 text-gray-700"><i data-lucide="pause-circle" class="w-5 h-5"></i></div>
+                <div class="summary-value" id="cnt-disabled">-</div>
+                <div class="summary-label">비활성</div>
+            </article>
+            <article class="summary-card">
+                <div class="summary-icon bg-rose-100 text-rose-700"><i data-lucide="alert-octagon" class="w-5 h-5"></i></div>
+                <div class="summary-value" id="cnt-critical">-</div>
+                <div class="summary-label">긴급 품목</div>
+            </article>
+        </section>
+
+        <section class="bg-white border border-gray-200 rounded-2xl p-4 md:p-5">
+            <div class="flex flex-col gap-4 md:flex-row md:items-center md:justify-between">
                 <div>
-                    <h1 class="text-xl font-bold text-gray-800">자동 발주 추천</h1>
-                    <p class="text-xs text-gray-400 font-medium">안전재고 + 최근 30일 출고 기반 규칙 엔진</p>
+                    <h2 class="text-sm font-extrabold text-gray-900">필터</h2>
+                    <p class="text-xs text-gray-500 mt-1">추천 상태와 긴급도를 기준으로 바로 걸러볼 수 있어.</p>
+                </div>
+                <div class="flex flex-wrap gap-2">
+                    <button class="filter-chip active" data-filter-type="status" data-filter-value="">전체 상태</button>
+                    <button class="filter-chip" data-filter-type="status" data-filter-value="READY">추천 가능</button>
+                    <button class="filter-chip" data-filter-type="status" data-filter-value="REVIEW">수동 검토</button>
+                    <button class="filter-chip" data-filter-type="status" data-filter-value="DISABLED">비활성</button>
+                    <button class="filter-chip" data-filter-type="urgency" data-filter-value="CRITICAL">긴급만</button>
                 </div>
             </div>
-            <div class="flex items-center gap-2">
-                <span id="last-updated" class="text-xs text-gray-400 font-medium"></span>
-                <button id="refresh-btn" class="p-2 hover:bg-indigo-50 rounded-lg text-indigo-600 transition-colors" title="새로고침">
-                    <i data-lucide="refresh-cw" class="w-5 h-5"></i>
-                </button>
+        </section>
+
+        <section class="bg-white border border-gray-200 rounded-2xl overflow-hidden">
+            <div class="overflow-x-auto">
+                <table class="data-table">
+                    <thead>
+                    <tr>
+                        <th>품목</th>
+                        <th>상태</th>
+                        <th>재고 / 발주량</th>
+                        <th>근거</th>
+                        <th>공급처</th>
+                        <th>액션</th>
+                    </tr>
+                    </thead>
+                    <tbody id="recommendation-list"></tbody>
+                </table>
             </div>
-        </header>
-
-        <main class="content_area p-6">
-            <!-- 요약 카드 -->
-            <div class="summary-cards" id="summary-cards">
-                <div class="summary-card">
-                    <div class="summary-card-icon bg-red-50"><i data-lucide="alert-circle" class="w-4 h-4 text-red-500"></i></div>
-                    <div class="summary-card-value text-red-600" id="cnt-critical">-</div>
-                    <div class="summary-card-label">품절 위기</div>
+            <div id="empty-state" class="hidden px-6 py-16 text-center">
+                <div class="mx-auto mb-4 flex h-16 w-16 items-center justify-center rounded-full bg-emerald-100 text-emerald-700">
+                    <i data-lucide="inbox" class="w-8 h-8"></i>
                 </div>
-                <div class="summary-card">
-                    <div class="summary-card-icon bg-orange-50"><i data-lucide="alert-triangle" class="w-4 h-4 text-orange-500"></i></div>
-                    <div class="summary-card-value text-orange-600" id="cnt-high">-</div>
-                    <div class="summary-card-label">긴급 발주</div>
-                </div>
-                <div class="summary-card">
-                    <div class="summary-card-icon bg-yellow-50"><i data-lucide="clock" class="w-4 h-4 text-yellow-500"></i></div>
-                    <div class="summary-card-value text-yellow-600" id="cnt-medium">-</div>
-                    <div class="summary-card-label">발주 필요</div>
-                </div>
-                <div class="summary-card">
-                    <div class="summary-card-icon bg-indigo-50"><i data-lucide="package" class="w-4 h-4 text-indigo-500"></i></div>
-                    <div class="summary-card-value text-indigo-600" id="cnt-total">-</div>
-                    <div class="summary-card-label">추천 품목 수</div>
-                </div>
+                <p class="text-lg font-extrabold text-gray-900">표시할 추천 항목이 없어.</p>
+                <p class="mt-2 text-sm text-gray-500">현재 필터 기준으로는 발주 검토 대상이 잡히지 않았어.</p>
             </div>
+        </section>
 
-            <!-- 필터 바 -->
-            <div class="filter-bar">
-                <span class="text-xs text-gray-500 font-bold mr-1">긴급도:</span>
-                <button class="filter-btn active" data-urgency="">전체</button>
-                <button class="filter-btn" data-urgency="CRITICAL">🔴 품절위기</button>
-                <button class="filter-btn" data-urgency="HIGH">🟠 긴급</button>
-                <button class="filter-btn" data-urgency="MEDIUM">🟡 주의</button>
-                <button class="filter-btn" data-urgency="LOW">🟢 여유</button>
-            </div>
+        <section class="rounded-2xl border border-teal-200 bg-teal-50 px-5 py-4 text-sm text-teal-900">
+            <p class="font-extrabold">Phase 3 fallback 규칙</p>
+            <p class="mt-2">최근 30일 출고 근거가 부족하면 비활성, 리드타임 근거가 없으면 비활성, 재고나 계산값이 비정상이면 수동 검토로 돌린다. 추천 가능 상태만 발주 요청 버튼을 열어둔다.</p>
+        </section>
+    </main>
+</div>
 
-            <!-- 추천 테이블 -->
-            <div class="bg-white rounded-2xl shadow-sm border border-gray-100 overflow-hidden">
-                <div class="overflow-x-auto">
-                    <table class="rec-table">
-                        <thead>
-                            <tr>
-                                <th>긴급도</th>
-                                <th>품목 정보</th>
-                                <th>창고</th>
-                                <th class="text-center">현재고</th>
-                                <th class="text-center">안전재고</th>
-                                <th class="text-center">월 평균 출고</th>
-                                <th class="text-center">리드타임</th>
-                                <th class="text-center">권장 발주 수량</th>
-                                <th class="text-center">예상 소진일</th>
-                                <th>공급처</th>
-                                <th>액션</th>
-                            </tr>
-                        </thead>
-                        <tbody id="recommendation-list">
-                            <!-- Data rows -->
-                        </tbody>
-                    </table>
-                </div>
-                <div id="empty-state" class="hidden p-20 text-center">
-                    <div class="w-20 h-20 bg-green-50 text-green-500 rounded-full flex items-center justify-center mx-auto mb-4">
-                        <i data-lucide="check-circle" class="w-10 h-10"></i>
-                    </div>
-                    <p class="text-lg font-bold text-gray-800">모든 재고가 안정적입니다.</p>
-                    <p class="text-sm text-gray-500 mt-1">현재 발주가 필요한 품목이 없습니다.</p>
-                </div>
-            </div>
+<script src="../../services/common/apiClient.js"></script>
+<script src="../../services/inventory/inventory-service.js"></script>
+<script src="../../services/common/sidebar.js"></script>
+<script>
+    let allRecommendations = [];
+    let currentStatusFilter = '';
+    let currentUrgencyFilter = '';
 
-            <!-- 안내 패널 -->
-            <div class="mt-4 bg-indigo-50 border border-indigo-100 rounded-xl p-4 flex gap-3">
-                <i data-lucide="info" class="w-4 h-4 text-indigo-400 mt-0.5 flex-shrink-0"></i>
-                <div class="text-xs text-indigo-700">
-                    <strong>추천 로직:</strong> 권장발주수량 = (최근30일평균일사용량 × 리드타임) + 안전재고 - 현재고.
-                    현재 리드타임 기본값은 <strong>7일</strong>입니다.
-                    향후 품목/거래처 마스터 연동 시 개별 리드타임을 적용할 수 있습니다.
-                </div>
-            </div>
-        </main>
-    </div>
-
-    <script src="../../services/common/apiClient.js"></script>
-    <script src="../../services/inventory/inventory-service.js"></script>
-    <script src="../../services/common/sidebar.js"></script>
-    <script>
-        let allRecommendations = [];
-        let currentUrgencyFilter = '';
-
-        document.addEventListener('DOMContentLoaded', async () => {
-            lucide.createIcons();
+    document.addEventListener('DOMContentLoaded', async () => {
+        lucide.createIcons();
+        bindFilters();
+        document.getElementById('refresh-btn').addEventListener('click', async () => {
             await loadRecommendations();
+        });
+        await loadRecommendations();
+    });
 
-            // 필터 버튼 이벤트
-            document.querySelectorAll('.filter-btn').forEach(btn => {
-                btn.addEventListener('click', () => {
-                    document.querySelectorAll('.filter-btn').forEach(b => b.classList.remove('active'));
-                    btn.classList.add('active');
-                    currentUrgencyFilter = btn.dataset.urgency;
-                    renderTable(allRecommendations);
-                });
-            });
+    function bindFilters() {
+        document.querySelectorAll('.filter-chip').forEach((button) => {
+            button.addEventListener('click', () => {
+                const filterType = button.dataset.filterType;
+                const filterValue = button.dataset.filterValue || '';
 
-            // 새로고침
-            document.getElementById('refresh-btn').addEventListener('click', async () => {
-                const btn = document.getElementById('refresh-btn');
-                btn.querySelector('i').style.animation = 'spin 0.6s linear 1';
-                await loadRecommendations();
-                setTimeout(() => { btn.querySelector('i').style.animation = ''; }, 700);
+                const isToggleOff = filterType === 'urgency' && currentUrgencyFilter === filterValue;
+
+                document.querySelectorAll(`.filter-chip[data-filter-type="${filterType}"]`)
+                    .forEach((chip) => chip.classList.remove('active'));
+
+                if (filterType === 'status') {
+                    button.classList.add('active');
+                    currentStatusFilter = filterValue;
+                } else if (filterType === 'urgency') {
+                    currentUrgencyFilter = isToggleOff ? '' : filterValue;
+                    if (!isToggleOff) {
+                        button.classList.add('active');
+                    }
+                }
+
+                renderRecommendations();
             });
         });
+    }
 
-        async function loadRecommendations() {
-            const list = document.getElementById('recommendation-list');
-            const empty = document.getElementById('empty-state');
-
-            // 로딩 스켈레톤
-            list.innerHTML = Array(5).fill(0).map(() => `
-                <tr>
-                    ${Array(11).fill(0).map(() => `<td><div class="skeleton h-4 w-full" style="min-width:48px"></div></td>`).join('')}
-                </tr>
-            `).join('');
-            empty.classList.add('hidden');
-
+    async function loadRecommendations() {
+        renderSkeleton();
+        try {
+            let recommendations = [];
             try {
-                // 신규 추천 API 우선 시도, 실패 시 레거시 폴백
-                let recommendations = [];
-                try {
-                    const response = await InventoryService.getPurchaseRecommendations();
-                    if (response.status === 'success' && response.data && response.data.items) {
-                        recommendations = response.data.items;
-                    }
-                } catch (e) {
-                    // 신규 API 없으면 레거시 reorder-recommendations 폴백
-                    console.warn('신규 추천 API 실패, 레거시 API 폴백:', e.message);
-                    const legacyResponse = await InventoryService.getReorderRecommendations();
-                    if (legacyResponse.status === 'success') {
-                        recommendations = mapLegacyToRecommendations(legacyResponse.data);
-                    }
+                const response = await InventoryService.getPurchaseRecommendations();
+                if (response.status === 'success' && response.data && Array.isArray(response.data.items)) {
+                    recommendations = response.data.items;
                 }
-
-                allRecommendations = recommendations;
-                updateSummaryCards(recommendations);
-                renderTable(recommendations);
-
-                const now = new Date().toLocaleString('ko-KR');
-                document.getElementById('last-updated').textContent = `최종 갱신: ${now}`;
-
             } catch (error) {
-                const isUnauthorized = error && (error.type === 'unauthorized' || error.status === 401);
-                const isNetwork = error && error.type === 'network';
-                const msg = isNetwork ? '네트워크 오류: 서버에 연결할 수 없습니다.'
-                    : isUnauthorized ? '로그인 후 이용하세요.'
-                    : '발주 추천 데이터 로드 실패: ' + (error.message || '알 수 없는 오류');
-
-                list.innerHTML = `
-                    <tr><td colspan="11" style="text-align:center;padding:3rem;color:#ef4444;font-size:0.85rem;font-weight:600">
-                        🔥 ${msg}
-                    </td></tr>`;
-
-                if (!isUnauthorized && window.ddukApi && window.ddukApi.showToast) {
-                    window.ddukApi.showToast(msg, isNetwork ? 'warning' : 'error');
+                const legacyResponse = await InventoryService.getReorderRecommendations();
+                if (legacyResponse.status === 'success' && Array.isArray(legacyResponse.data)) {
+                    recommendations = mapLegacyToRecommendations(legacyResponse.data);
+                } else {
+                    throw error;
                 }
             }
+
+            allRecommendations = recommendations;
+            updateSummary(recommendations);
+            renderRecommendations();
+            document.getElementById('last-updated').textContent = `마지막 갱신 ${new Date().toLocaleString('ko-KR')}`;
+        } catch (error) {
+            renderError(error);
         }
+    }
 
-        // 레거시 API 응답 → 추천 DTO 형태로 변환 (fallback용)
-        function mapLegacyToRecommendations(inventories) {
-            return inventories.map(inv => {
-                const shortage = inv.safetyStock - inv.currentStock;
-                return {
-                    inventoryId: inv.id,
-                    itemId: inv.item?.id,
-                    itemCode: inv.item?.itemCode || '-',
-                    itemName: inv.item?.name || '-',
-                    itemCategory: inv.item?.category || '-',
-                    unit: inv.item?.unit || '-',
-                    warehouseId: inv.warehouse?.id,
-                    warehouseName: inv.warehouse?.warehouseName || '-',
-                    currentStock: inv.currentStock || 0,
-                    safetyStock: inv.safetyStock || 0,
-                    allocatedStock: inv.allocatedStock || 0,
-                    availableStock: (inv.currentStock || 0) - (inv.allocatedStock || 0),
-                    averageCost: inv.averageCost || 0,
-                    avgMonthlyUsage: 0,
-                    recommendedOrderQty: Math.max(shortage, 1),
-                    urgency: calcUrgencyFront(inv.currentStock, inv.safetyStock),
-                    daysUntilStockout: inv.currentStock <= 0 ? 0 : 999,
-                    defaultVendorName: '-',
-                    leadTimeDays: 7
-                };
-            });
-        }
+    function renderSkeleton() {
+        const list = document.getElementById('recommendation-list');
+        document.getElementById('empty-state').classList.add('hidden');
+        list.innerHTML = Array.from({ length: 4 }).map(() => `
+            <tr>
+                <td colspan="6" class="px-4 py-4">
+                    <div class="skeleton h-16 w-full"></div>
+                </td>
+            </tr>
+        `).join('');
+    }
 
-        function calcUrgencyFront(current, safety) {
-            if (current <= 0) return 'CRITICAL';
-            if (current <= safety / 2) return 'HIGH';
-            if (current <= safety) return 'MEDIUM';
-            return 'LOW';
-        }
+    function updateSummary(items) {
+        setText('cnt-ready', items.filter((item) => item.recommendationStatus === 'READY').length);
+        setText('cnt-review', items.filter((item) => item.recommendationStatus === 'REVIEW').length);
+        setText('cnt-disabled', items.filter((item) => item.recommendationStatus === 'DISABLED').length);
+        setText('cnt-critical', items.filter((item) => item.urgency === 'CRITICAL').length);
+    }
 
-        function updateSummaryCards(data) {
-            document.getElementById('cnt-critical').textContent = data.filter(r => r.urgency === 'CRITICAL').length;
-            document.getElementById('cnt-high').textContent = data.filter(r => r.urgency === 'HIGH').length;
-            document.getElementById('cnt-medium').textContent = data.filter(r => r.urgency === 'MEDIUM').length;
-            document.getElementById('cnt-total').textContent = data.length;
-        }
+    function renderRecommendations() {
+        const list = document.getElementById('recommendation-list');
+        const empty = document.getElementById('empty-state');
+        const filtered = allRecommendations.filter((item) => {
+            const matchesStatus = currentStatusFilter ? item.recommendationStatus === currentStatusFilter : true;
+            const matchesUrgency = currentUrgencyFilter ? item.urgency === currentUrgencyFilter : true;
+            return matchesStatus && matchesUrgency;
+        });
 
-        function renderTable(data) {
-            const list = document.getElementById('recommendation-list');
-            const empty = document.getElementById('empty-state');
-
-            // 긴급도 필터 적용
-            const filtered = currentUrgencyFilter
-                ? data.filter(r => r.urgency === currentUrgencyFilter)
-                : data;
-
-            if (filtered.length === 0) {
-                list.innerHTML = '';
-                empty.classList.remove('hidden');
-                return;
-            }
-            empty.classList.add('hidden');
-
-            list.innerHTML = filtered.map(r => {
-                const urgencyLabel = urgencyText(r.urgency);
-                const urgencyIcon = urgencyIcon2(r.urgency);
-                const stockPercent = r.safetyStock > 0
-                    ? Math.min(100, Math.round((r.currentStock / r.safetyStock) * 100))
-                    : 100;
-                const gaugeColor = r.urgency === 'CRITICAL' ? '#ef4444'
-                    : r.urgency === 'HIGH' ? '#f97316'
-                    : r.urgency === 'MEDIUM' ? '#eab308'
-                    : '#22c55e';
-
-                const stockoutText = stockoutDisplay(r.daysUntilStockout);
-                const stockoutClass = r.daysUntilStockout <= 3 ? 'stockout-red'
-                    : r.daysUntilStockout <= 14 ? 'stockout-orange'
-                    : 'stockout-gray';
-
-                const isUrgent = r.urgency === 'CRITICAL' || r.urgency === 'HIGH';
-                const btnClass = isUrgent ? 'order-btn order-btn-urgent' : 'order-btn order-btn-primary';
-                const btnLabel = isUrgent ? '⚡ 긴급 발주' : '발주 요청';
-
-                return `
-                    <tr>
-                        <td>
-                            <span class="urgency-badge urgency-${r.urgency}">
-                                ${urgencyIcon} ${urgencyLabel}
-                            </span>
-                        </td>
-                        <td>
-                            <p class="font-bold text-gray-800 text-sm">${escapeHtml(r.itemName)}</p>
-                            <p class="text-[10px] text-gray-400 font-semibold tracking-wider uppercase mt-0.5">${escapeHtml(r.itemCode)} · ${escapeHtml(r.itemCategory)} · ${escapeHtml(r.unit)}</p>
-                        </td>
-                        <td>
-                            <span class="text-xs font-semibold text-gray-600 bg-gray-100 px-2 py-1 rounded">${escapeHtml(r.warehouseName)}</span>
-                        </td>
-                        <td class="text-center">
-                            <p class="font-bold text-gray-800">${(r.currentStock || 0).toLocaleString()}</p>
-                            <div class="stock-gauge-wrap mx-auto mt-1">
-                                <div class="stock-gauge-bar" style="width:${stockPercent}%;background:${gaugeColor}"></div>
-                            </div>
-                        </td>
-                        <td class="text-center">
-                            <p class="text-xs font-semibold text-gray-500">${(r.safetyStock || 0).toLocaleString()}</p>
-                        </td>
-                        <td class="text-center">
-                            <p class="text-sm font-semibold text-gray-700">${formatAvgUsage(r.avgMonthlyUsage, r.unit)}</p>
-                        </td>
-                        <td class="text-center">
-                            <span class="text-xs font-bold text-indigo-600 bg-indigo-50 px-2 py-0.5 rounded-full">${r.leadTimeDays || 7}일</span>
-                        </td>
-                        <td class="text-center">
-                            <p class="text-xl font-black text-indigo-600">${(r.recommendedOrderQty || 0).toLocaleString()}</p>
-                            <p class="text-[10px] text-gray-400 font-semibold">${escapeHtml(r.unit)}</p>
-                        </td>
-                        <td class="text-center">
-                            <span class="${stockoutClass} text-sm">${stockoutText}</span>
-                        </td>
-                        <td>
-                            <span class="text-xs text-gray-600 font-medium">${escapeHtml(r.defaultVendorName || '-')}</span>
-                        </td>
-                        <td>
-                            <button class="${btnClass}"
-                                onclick="handleOrderRequest(${r.itemId}, '${escapeHtml(r.itemName)}', ${r.recommendedOrderQty}, '${escapeHtml(r.unit)}')">
-                                ${btnLabel}
-                            </button>
-                        </td>
-                    </tr>
-                `;
-            }).join('');
-
+        if (filtered.length === 0) {
+            list.innerHTML = '';
+            empty.classList.remove('hidden');
             lucide.createIcons();
+            return;
         }
 
-        function urgencyText(urgency) {
-            const map = { CRITICAL: '품절위기', HIGH: '긴급', MEDIUM: '주의', LOW: '여유' };
-            return map[urgency] || urgency;
-        }
+        empty.classList.add('hidden');
+        list.innerHTML = filtered.map((item) => {
+            const urgencyLabel = urgencyText(item.urgency);
+            const statusLabel = statusText(item.recommendationStatus);
+            const actionButton = item.orderable
+                ? `<button class="action-btn action-btn-ready" onclick="handleOrderRequest(${item.itemId}, '${escapeHtml(item.itemName)}', ${item.recommendedOrderQty}, '${escapeHtml(item.unit)}')">발주 요청</button>`
+                : `<button class="action-btn action-btn-muted" disabled>${item.recommendationStatus === 'REVIEW' ? '검토 필요' : '비활성'}</button>`;
 
-        function urgencyIcon2(urgency) {
-            const map = { CRITICAL: '🔴', HIGH: '🟠', MEDIUM: '🟡', LOW: '🟢' };
-            return map[urgency] || '';
-        }
+            return `
+                <tr>
+                    <td>
+                        <p class="text-sm font-extrabold text-gray-900">${escapeHtml(item.itemName)}</p>
+                        <p class="mt-1 text-xs font-semibold uppercase tracking-[0.16em] text-gray-400">${escapeHtml(item.itemCode)} · ${escapeHtml(item.itemCategory)} · ${escapeHtml(item.warehouseName)}</p>
+                    </td>
+                    <td>
+                        <div class="flex flex-wrap gap-2">
+                            <span class="status-badge status-${item.recommendationStatus}">${statusLabel}</span>
+                            <span class="urgency-badge urgency-${item.urgency}">${urgencyLabel}</span>
+                        </div>
+                        <p class="mt-2 text-sm font-semibold text-gray-700">${escapeHtml(item.statusReason || '-')}</p>
+                        <p class="mt-1 text-xs text-gray-500">${escapeHtml(item.reviewMessage || item.evidenceSummary || '-')}</p>
+                    </td>
+                    <td>
+                        <p class="metric"><strong>현재</strong> ${number(item.currentStock)} ${escapeHtml(item.unit)}</p>
+                        <p class="metric mt-1"><strong>안전</strong> ${number(item.safetyStock)} ${escapeHtml(item.unit)}</p>
+                        <p class="metric mt-1"><strong>추천</strong> ${number(item.recommendedOrderQty)} ${escapeHtml(item.unit)}</p>
+                        <p class="metric mt-1"><strong>소진 예상</strong> ${stockoutText(item.daysUntilStockout)}</p>
+                    </td>
+                    <td>
+                        <p class="metric"><strong>최근 30일 출고</strong> ${number(item.outboundQuantityLast30Days)}</p>
+                        <p class="metric mt-1"><strong>출고일 수</strong> ${number(item.outboundHistoryDays)}일</p>
+                        <p class="metric mt-1"><strong>리드타임</strong> ${number(item.leadTimeDays)}일</p>
+                        <p class="metric mt-1"><strong>발주 근거</strong> ${number(item.recentPurchaseOrderCount)}건</p>
+                    </td>
+                    <td>
+                        <p class="text-sm font-semibold text-gray-800">${escapeHtml(item.defaultVendorName || '-')}</p>
+                        <p class="mt-2 text-xs text-gray-500">${escapeHtml(item.leadTimeReliable ? '납기 근거 확보' : '납기 근거 없음')}</p>
+                    </td>
+                    <td>${actionButton}</td>
+                </tr>
+            `;
+        }).join('');
 
-        function stockoutDisplay(days) {
-            if (days === 0) return '이미 품절';
-            if (days >= 999) return '∞ (미사용)';
-            if (days === 1) return '내일 소진';
-            return `${days}일 후 소진`;
-        }
+        lucide.createIcons();
+    }
 
-        function formatAvgUsage(usage, unit) {
-            if (!usage || usage === 0) return `0 ${unit}/월`;
-            return `${Math.round(usage).toLocaleString()} ${unit}/월`;
-        }
+    function renderError(error) {
+        const list = document.getElementById('recommendation-list');
+        const isUnauthorized = error && (error.type === 'unauthorized' || error.status === 401);
+        const isNetwork = error && error.type === 'network';
+        const message = isNetwork
+            ? '서버 연결에 실패했어.'
+            : isUnauthorized
+                ? '로그인이 필요해.'
+                : `추천 발주 조회에 실패했어. ${error.message || ''}`.trim();
 
-        function handleOrderRequest(itemId, itemName, qty, unit) {
-            // 향후 발주서 생성 화면으로 연결 가능 (purchase-order-request.html)
-            if (confirm(`[${itemName}] ${qty.toLocaleString()} ${unit} 발주 요청을 생성하시겠습니까?\n\n※ 현재 단계: 추천 생성만 지원합니다. 발주 요청 페이지로 이동합니다.`)) {
-                // 발주 요청 페이지로 이동 (향후 itemId를 쿼리 파라미터로 전달)
-                window.location.href = `purchase-order-request.html?itemId=${itemId}&qty=${qty}`;
-            }
-        }
+        list.innerHTML = `<tr><td colspan="6" class="px-6 py-10 text-center text-sm font-bold text-red-500">${escapeHtml(message)}</td></tr>`;
 
-        function escapeHtml(str) {
-            if (str === null || str === undefined) return '-';
-            return String(str)
-                .replace(/&/g, '&amp;')
-                .replace(/</g, '&lt;')
-                .replace(/>/g, '&gt;')
-                .replace(/"/g, '&quot;');
+        if (!isUnauthorized && window.ddukApi && window.ddukApi.showToast) {
+            window.ddukApi.showToast(message, isNetwork ? 'warning' : 'error');
         }
-    </script>
+    }
+
+    function mapLegacyToRecommendations(inventories) {
+        return inventories.map((inventory) => {
+            const currentStock = inventory.currentStock || 0;
+            const safetyStock = inventory.safetyStock || 0;
+            const shortage = Math.max(safetyStock - currentStock, 1);
+            return {
+                inventoryId: inventory.id,
+                itemId: inventory.item?.id,
+                itemCode: inventory.item?.itemCode || '-',
+                itemName: inventory.item?.name || '-',
+                itemCategory: inventory.item?.category || '-',
+                unit: inventory.item?.unit || 'EA',
+                warehouseId: inventory.warehouse?.id,
+                warehouseName: inventory.warehouse?.warehouseName || '-',
+                currentStock,
+                safetyStock,
+                allocatedStock: inventory.allocatedStock || 0,
+                availableStock: currentStock - (inventory.allocatedStock || 0),
+                averageCost: inventory.averageCost || 0,
+                avgMonthlyUsage: 0,
+                recommendedOrderQty: shortage,
+                urgency: calcUrgency(currentStock, safetyStock),
+                daysUntilStockout: currentStock <= 0 ? 0 : 999,
+                defaultVendorName: '-',
+                leadTimeDays: 7,
+                recommendationStatus: 'DISABLED',
+                orderable: false,
+                statusReason: '신규 추천 API를 사용할 수 없어 통계 추천을 비활성화했습니다.',
+                reviewMessage: '기존 안전재고 기준 fallback 화면입니다.',
+                outboundQuantityLast30Days: 0,
+                outboundHistoryDays: 0,
+                recentPurchaseOrderCount: 0,
+                leadTimeReliable: false,
+                evidenceSummary: 'fallback'
+            };
+        });
+    }
+
+    function handleOrderRequest(itemId, itemName, quantity, unit) {
+        const confirmed = window.confirm(`[${itemName}] ${number(quantity)} ${unit} 발주 요청 화면으로 이동할까?`);
+        if (confirmed) {
+            window.location.href = `purchase-order-request.html?itemId=${itemId}&qty=${quantity}`;
+        }
+    }
+
+    function setText(id, value) {
+        document.getElementById(id).textContent = value;
+    }
+
+    function number(value) {
+        return Number(value || 0).toLocaleString('ko-KR');
+    }
+
+    function statusText(status) {
+        return {
+            READY: '추천 가능',
+            REVIEW: '수동 검토',
+            DISABLED: '비활성'
+        }[status] || status || '-';
+    }
+
+    function urgencyText(urgency) {
+        return {
+            CRITICAL: '긴급',
+            HIGH: '높음',
+            MEDIUM: '주의',
+            LOW: '여유'
+        }[urgency] || urgency || '-';
+    }
+
+    function stockoutText(daysUntilStockout) {
+        if (daysUntilStockout === 0) return '즉시 부족';
+        if (daysUntilStockout >= 999) return '예측 불가';
+        return `${number(daysUntilStockout)}일`;
+    }
+
+    function calcUrgency(currentStock, safetyStock) {
+        if (currentStock <= 0) return 'CRITICAL';
+        if (currentStock <= safetyStock / 2) return 'HIGH';
+        if (currentStock <= safetyStock) return 'MEDIUM';
+        return 'LOW';
+    }
+
+    function escapeHtml(value) {
+        if (value === null || value === undefined) return '-';
+        return String(value)
+            .replace(/&/g, '&amp;')
+            .replace(/</g, '&lt;')
+            .replace(/>/g, '&gt;')
+            .replace(/"/g, '&quot;')
+            .replace(/'/g, '&#39;');
+    }
+</script>
 </body>
 </html>

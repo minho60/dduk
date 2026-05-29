@@ -23,6 +23,7 @@ import org.junit.jupiter.api.Test;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.boot.test.context.SpringBootTest;
 import org.springframework.test.annotation.Rollback;
+import org.springframework.test.context.ActiveProfiles;
 import org.springframework.transaction.annotation.Transactional;
 
 import java.math.BigDecimal;
@@ -32,20 +33,8 @@ import java.util.Optional;
 
 import static org.assertj.core.api.Assertions.assertThat;
 
-@SpringBootTest(properties = {
-    "DB_URL=jdbc:mysql://gateway01.ap-northeast-1.prod.aws.tidbcloud.com:4000/dduk_erp?useSSL=true",
-    "DB_USERNAME=3UCLSyyYTzkXiNP.root",
-    "DB_PASSWORD=G7rPFFkfVMjTRv9c",
-    "RPA_CALLBACK_TOKEN=test-rpa-token",
-    "spring.datasource.url=jdbc:mysql://gateway01.ap-northeast-1.prod.aws.tidbcloud.com:4000/dduk_erp?useSSL=true",
-    "spring.datasource.username=3UCLSyyYTzkXiNP.root",
-    "spring.datasource.password=G7rPFFkfVMjTRv9c",
-    "spring.datasource.driver-class-name=com.mysql.cj.jdbc.Driver",
-    "spring.sql.init.mode=never",
-    "spring.sql.init.enabled=false",
-    "jwt.secret=9f3a8c1d7e2b4a6c8d9f0a1b2c3d4e5f6a7b8c9d0e1f2a3b4c5d6e7f8a9b0c1d",
-    "jwt.expiration=86400000"
-})
+@SpringBootTest
+@ActiveProfiles("test")
 @Transactional
 @Rollback
 @DisplayName("회계관리 전면 DB 연동 및 POSTED 회계 흐름 통합 검증")

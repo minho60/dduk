@@ -6,7 +6,10 @@ import com.dduk.entity.hr.Payroll;
 import com.dduk.service.hr.PayrollService;
 import com.dduk.service.hr.PayrollStatusService;
 import lombok.RequiredArgsConstructor;
+import org.springframework.web.bind.annotation.GetMapping;
 import org.springframework.web.bind.annotation.*;
+
+import java.util.Map;
 
 @RestController
 @RequestMapping("/api/v1/hr/payroll")
@@ -23,6 +26,11 @@ public class PayrollController {
                 request.getPayMonth(),
                 request.getInputs()
         );
+    }
+
+    @GetMapping("/reference-summary")
+    public Map<String, Object> getReferenceSummary() {
+        return payrollService.getPayrollReferenceSummary();
     }
 
     @PostMapping("/{id}/transition")

@@ -112,10 +112,21 @@ export const hrBackendApi = {
         });
     },
 
+    getPayrollReferenceSummary() {
+        return request('/api/v1/hr/payroll/reference-summary');
+    },
+
     transitionPayroll(id, payload) {
         return request(`/api/v1/hr/payroll/${id}/transition`, {
             method: 'POST',
             body: payload
+        });
+    },
+
+    triggerAdminRpa(taskType) {
+        return request('/api/v1/admin/rpa/trigger', {
+            method: 'POST',
+            body: { taskType }
         });
     },
 

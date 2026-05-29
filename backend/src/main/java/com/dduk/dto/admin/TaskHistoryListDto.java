@@ -18,6 +18,7 @@ public class TaskHistoryListDto {
     private String taskType;
     private String actionName;
     private String status;
+    private String errorMessage;
     private LocalDateTime requestedAt;
     private LocalDateTime completedAt;
 
@@ -28,6 +29,7 @@ public class TaskHistoryListDto {
                 .taskType(entity.getTaskType().name())
                 .actionName(entity.getActionName())
                 .status(entity.getStatus().name())
+                .errorMessage(entity.getErrorMessage())
                 .requestedAt(entity.getRequestedAt())
                 .completedAt(entity.getCompletedAt())
                 .build();

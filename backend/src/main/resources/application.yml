@@ -19,6 +19,7 @@ spring:
       schema-locations:
         - classpath:db/mysql/dduk_bootstrap_schema.sql
         - classpath:db/mysql/task_history_schema.sql
+        - classpath:db/mysql/anomaly_log_schema.sql
         - classpath:db/mysql/notice_schema.sql
         - classpath:db/mysql/ocr_schema.sql
       data-locations:
@@ -33,5 +34,5 @@ ai-server:
   url: ${AI_SERVER_URL:http://localhost:5000}
 
 rpa-server:
-  url: ${RPA_SERVER_URL:http://localhost:5500}
+  url: ${RPA_SERVER_URL:http://localhost:5050}
   callback-token: ${RPA_CALLBACK_TOKEN}
