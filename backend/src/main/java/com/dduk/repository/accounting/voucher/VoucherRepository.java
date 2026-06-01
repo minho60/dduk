@@ -16,6 +16,15 @@ import java.util.Optional;
 public interface VoucherRepository extends JpaRepository<Voucher, Long> {
     Optional<Voucher> findByVoucherNo(String voucherNo);
 
+    @Query("""
+            SELECT DISTINCT v
+            FROM Voucher v
+            LEFT JOIN FETCH v.lines
+            LEFT JOIN FETCH v.journalEntry
+            WHERE v.id = :id
+    """)
+    Optional<Voucher> findByIdWithLines(@Param("id") Long id);
+
     List<Voucher> findTop100ByOrderByVoucherDateDescIdDesc();
 
     List<Voucher> findTop10ByOrderByUpdatedAtDesc();

@@ -6,6 +6,7 @@ import com.dduk.dto.accounting.voucher.VoucherLineResponse;
 import com.dduk.dto.accounting.voucher.VoucherRequest;
 import com.dduk.dto.accounting.voucher.VoucherResponse;
 import com.dduk.dto.accounting.voucher.VoucherSummaryResponse;
+import com.dduk.dto.accounting.voucher.VoucherDetailResponse;
 import com.dduk.service.accounting.period.MonthlyClosingService;
 import com.dduk.entity.accounting.Account;
 import com.dduk.entity.accounting.AccountSide;
@@ -104,6 +105,44 @@ public class VoucherService {
     }
 
     @Transactional(readOnly = true)
+    public VoucherDetailResponse getVoucherDetail(Long id) {
+        Voucher voucher = voucherRepository.findByIdWithLines(id)
+                .orElseThrow(() -> new IllegalArgumentException("Voucher not found: " + id));
+
+        List<VoucherLineResponse> lines = voucher.getLines().stream()
+                .map(this::mapLine)
+                .collect(Collectors.toList());
+
+        BigDecimal debitTotal = lines.stream()
+                .filter(l -> l.getDebitCredit() == com.dduk.entity.accounting.AccountSide.DEBIT)
+                .map(VoucherLineResponse::getTotalAmount)
+                .reduce(BigDecimal.ZERO, BigDecimal::add);
+
+        BigDecimal creditTotal = lines.stream()
+                .filter(l -> l.getDebitCredit() == com.dduk.entity.accounting.AccountSide.CREDIT)
+                .map(VoucherLineResponse::getTotalAmount)
+                .reduce(BigDecimal.ZERO, BigDecimal::add);
+
+        return VoucherDetailResponse.builder()
+                .id(voucher.getId())
+                .voucherNo(voucher.getVoucherNo())
+                .voucherDate(voucher.getVoucherDate())
+                .voucherType(voucher.getVoucherType())
+                .vatType(voucher.getVatType())
+                .vendorId(voucher.getVendorId())
+                .vendorNameSnapshot(voucher.getVendorNameSnapshot())
+                .status(voucher.getStatus())
+                .description(voucher.getDescription())
+                .journalEntryId(voucher.getJournalEntry() != null ? voucher.getJournalEntry().getId() : null)
+                .createdBy(voucher.getCreatedBy())
+                .createdAt(voucher.getCreatedAt())
+                .lines(lines)
+                .debitTotal(debitTotal)
+                .creditTotal(creditTotal)
+                .build();
+    }
+
+    @Transactional(readOnly = true)
     public List<VoucherResponse> getVouchers(
             VoucherType voucherType,
             VoucherStatus status,
@@ -171,7 +210,9 @@ public class VoucherService {
         voucher.updateStatus(nextStatus);
         if (nextStatus == VoucherStatus.POSTED && voucher.getJournalEntry() != null) {
             voucher.getJournalEntry().post();
+            journalEntryRepository.save(voucher.getJournalEntry());
         }
+        voucherRepository.save(voucher);
         return mapToResponse(voucher);
     }
 

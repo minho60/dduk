@@ -141,6 +141,21 @@ public interface JournalEntryRepository extends JpaRepository<JournalEntry, Long
     );
 
     @Query("""
+        SELECT l.account.type,
+               coalesce(sum(l.debitAmount), 0),
+               coalesce(sum(l.creditAmount), 0)
+        FROM JournalEntry e
+        JOIN e.lines l
+        WHERE e.status = 'POSTED'
+          AND e.transactionDate <= :endDate
+        GROUP BY l.account.type
+    """)
+    List<Object[]> aggregatePostedByAccountTypeBeforeOrOnDate(
+            @Param("endDate") LocalDate endDate
+    );
+
+
+    @Query("""
         SELECT e.fiscalYear,
                e.fiscalMonth,
                l.account.type,

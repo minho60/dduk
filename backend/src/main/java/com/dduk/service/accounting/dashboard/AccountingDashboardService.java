@@ -80,10 +80,12 @@ public class AccountingDashboardService {
         YearMonth previousMonth = targetMonth.minusMonths(1);
         Map<AccountType, BigDecimal> current = aggregateByType(targetMonth.atDay(1), targetMonth.atEndOfMonth());
         Map<AccountType, BigDecimal> previous = aggregateByType(previousMonth.atDay(1), previousMonth.atEndOfMonth());
+        Map<AccountType, BigDecimal> cumulativeCurrent = aggregateCumulativeByType(targetMonth.atEndOfMonth());
+        
         BigDecimal revenue = current.getOrDefault(AccountType.REVENUE, BigDecimal.ZERO);
         BigDecimal expense = current.getOrDefault(AccountType.EXPENSE, BigDecimal.ZERO);
-        BigDecimal assets = current.getOrDefault(AccountType.ASSET, BigDecimal.ZERO);
-        BigDecimal liabilities = current.getOrDefault(AccountType.LIABILITY, BigDecimal.ZERO);
+        BigDecimal assets = cumulativeCurrent.getOrDefault(AccountType.ASSET, BigDecimal.ZERO);
+        BigDecimal liabilities = cumulativeCurrent.getOrDefault(AccountType.LIABILITY, BigDecimal.ZERO);
         return DashboardKpiSummary.builder()
                 .monthlyRevenue(revenue)
                 .monthlyRevenueChangeRate(changeRate(revenue, previous.getOrDefault(AccountType.REVENUE, BigDecimal.ZERO)))
@@ -289,7 +291,7 @@ public class AccountingDashboardService {
 
     private List<AccountCompositionResponse> getAccountComposition(Integer fiscalYear, Integer fiscalMonth) {
         YearMonth targetMonth = resolveYearMonth(fiscalYear, fiscalMonth);
-        Map<AccountType, BigDecimal> amounts = aggregateByType(targetMonth.atDay(1), targetMonth.atEndOfMonth());
+        Map<AccountType, BigDecimal> amounts = aggregateCumulativeByType(targetMonth.atEndOfMonth());
         BigDecimal asset = amounts.getOrDefault(AccountType.ASSET, BigDecimal.ZERO).abs();
         BigDecimal liability = amounts.getOrDefault(AccountType.LIABILITY, BigDecimal.ZERO).abs();
         BigDecimal equity = amounts.getOrDefault(AccountType.EQUITY, BigDecimal.ZERO).abs();
@@ -304,6 +306,15 @@ public class AccountingDashboardService {
     private Map<AccountType, BigDecimal> aggregateByType(LocalDate startDate, LocalDate endDate) {
         Map<AccountType, BigDecimal> result = new EnumMap<>(AccountType.class);
         for (Object[] row : journalEntryRepository.aggregatePostedByAccountTypeBetweenDates(startDate, endDate)) {
+            AccountType type = (AccountType) row[0];
+            result.put(type, signedAmount(type, decimalAt(row, 1), decimalAt(row, 2)));
+        }
+        return result;
+    }
+
+    private Map<AccountType, BigDecimal> aggregateCumulativeByType(LocalDate endDate) {
+        Map<AccountType, BigDecimal> result = new EnumMap<>(AccountType.class);
+        for (Object[] row : journalEntryRepository.aggregatePostedByAccountTypeBeforeOrOnDate(endDate)) {
             AccountType type = (AccountType) row[0];
             result.put(type, signedAmount(type, decimalAt(row, 1), decimalAt(row, 2)));
         }

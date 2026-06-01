@@ -1,6 +1,7 @@
 package com.dduk.controller.accounting.voucher;
 
 import com.dduk.dto.accounting.voucher.VoucherRequest;
+import com.dduk.dto.accounting.voucher.VoucherDetailResponse;
 import com.dduk.entity.accounting.AccountType;
 import com.dduk.entity.accounting.voucher.enums.VoucherStatus;
 import com.dduk.entity.accounting.voucher.enums.VoucherType;
@@ -28,6 +29,11 @@ public class VoucherController {
             @RequestParam(required = false) String keyword
     ) {
         return success(voucherService.getVouchers(type, status, startDate, endDate, keyword), "Voucher list loaded.");
+    }
+
+    @GetMapping("/{id}")
+    public ResponseEntity<Map<String, Object>> getVoucherDetail(@PathVariable Long id) {
+        return success(voucherService.getVoucherDetail(id), "Voucher detail loaded.");
     }
 
     @GetMapping("/summary")

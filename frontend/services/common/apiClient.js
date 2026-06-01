@@ -190,10 +190,13 @@
         };
 
         let fullUrl = url;
-        if (url.startsWith('/api/') && API_BASE_URL) {
-            fullUrl = `${API_BASE_URL}${url}`;
-        } else if (!url.startsWith('http') && !url.startsWith('/api/') && API_BASE_URL) {
-            fullUrl = `${API_BASE_URL}/api/v1/${url}`;
+        if (url.startsWith('http')) {
+            fullUrl = url;
+        } else if (url.startsWith('/api/')) {
+            fullUrl = `${API_BASE_URL || ''}${url}`;
+        } else {
+            const normalizedUrl = url.startsWith('/') ? url.slice(1) : url;
+            fullUrl = `${API_BASE_URL || ''}/api/v1/${normalizedUrl}`;
         }
 
         let response;
