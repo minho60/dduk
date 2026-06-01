@@ -55,16 +55,16 @@ INSERT INTO vendors (
 VALUES (
     'V-AMANTE',
     '110-86-24007',
-    '?꾨쭩??,
-    '怨듦컻?ъ씠?멸린以',
-    '?꾩냼留?,
-    '移④뎄/?덊뙣釉뚮┃',
-    '?꾨쭩???⑤씪?몃떞??,
+    '아망티',
+    '공개사이트기준',
+    '도소매',
+    '침구/홈패브릭',
+    '아망티 온라인담당',
     '02-555-1122',
     'support@amante.co.kr',
-    '?쒖슱 媛뺣궓援??섑뵆?곗씠?곕줈 12',
+    '서울 강남구 테헤란로 12',
     'ACTIVE',
-    '怨듦컻 ?꾨쭩???곹뭹 ?섏씠吏 湲곗? 鍮꾧탳/?덉륫 ?붾? 嫄곕옒泥?
+    '공개 아망티 상품 페이지 기준 비교/예측 데모 거래처'
 )
 ON DUPLICATE KEY UPDATE
     name = VALUES(name),
@@ -87,8 +87,8 @@ INSERT INTO warehouses (
     status
 )
 VALUES
-    ('WH-RAW', '?먯옱猷뚯갹怨?, '源??1?쇳꽣', '?댁옱??, 'ACTIVE'),
-    ('WH-SEASON', '?쒖쫵?곹뭹李쎄퀬', '?⑥뼇二?2?쇳꽣', '諛뺤꽭吏?, 'ACTIVE')
+    ('WH-RAW', '원재료창고', '김포 1센터', '이재성', 'ACTIVE'),
+    ('WH-SEASON', '시즌상품창고', '남양주 2센터', '박세진', 'ACTIVE')
 ON DUPLICATE KEY UPDATE
     warehouse_name = VALUES(warehouse_name),
     location = VALUES(location),
@@ -108,9 +108,9 @@ INSERT INTO employees (
     phone
 )
 VALUES
-    (2, 'EMP-INV-001', '?ш퀬?대떦 源誘쇱닔', 'inventory', 'Manager', 'ACTIVE', '2023-03-04', 'inventory.manager@dduk.local', '010-2000-3000'),
-    (3, 'EMP-HR-001', '?몄궗?대떦 諛뺤??', 'hr', 'Lead', 'ACTIVE', '2022-09-01', 'hr.lead@dduk.local', '010-2000-4000'),
-    (NULL, 'EMP-OPS-001', '?댁쁺?대떦 理쒖쑀吏?, 'inventory', 'Staff', 'ACTIVE', '2024-01-08', 'ops.staff@dduk.local', '010-2000-5000')
+    (2, 'EMP-INV-001', '창고담당 김민수', 'inventory', 'Manager', 'ACTIVE', '2023-03-04', 'inventory.manager@dduk.local', '010-2000-3000'),
+    (3, 'EMP-HR-001', '인사담당 박지우', 'hr', 'Lead', 'ACTIVE', '2022-09-01', 'hr.lead@dduk.local', '010-2000-4000'),
+    (NULL, 'EMP-OPS-001', '운영담당 최유진', 'inventory', 'Staff', 'ACTIVE', '2024-01-08', 'ops.staff@dduk.local', '010-2000-5000')
 ON DUPLICATE KEY UPDATE
     name = VALUES(name),
     department = VALUES(department),
@@ -137,12 +137,12 @@ INSERT INTO items (
     is_active
 )
 VALUES
-    ('AMANTE-ITEM-001', '?쒕━利??ㅽ듃?쇱씠???됯컧 ?묐㈃ ?뚯떛 ?뚮윭吏耳???щ쫫 李⑤졄?대텋 SS/Q/K 5colors', 'FINISHED_GOOD', '?щ쫫移④뎄', '李⑤졄?대텋 / SS-Q-K / ?됯컧 ?묐㈃ ?뚯떛', 'EA', (SELECT id FROM vendors WHERE vendor_code = 'V-AMANTE'), 45200.00, 64900.00, 18, 1),
-    ('AMANTE-ITEM-002', '?꾨줈?ㅽ듃 ?뺥뭹 ?щⅤ??00% ?됯컧 怨좎젙諛대뱶 移⑤??⑤뱶 SS/Q/K', 'FINISHED_GOOD', '移⑤??⑤뱶', '怨좎젙諛대뱶 移⑤??⑤뱶 / SS-Q-K / ?щⅤ??00%', 'EA', (SELECT id FROM vendors WHERE vendor_code = 'V-AMANTE'), 37200.00, 53900.00, 14, 1),
-    ('AMANTE-ITEM-003', '?뚮떎 ?됯컧 ?щ쫫 李⑤졄?대텋 ??명듃 SS/Q/K 5colors', 'FINISHED_GOOD', '?щ쫫移④뎄', '??명듃 / SS-Q-K / ?됯컧 ?명듃', 'EA', (SELECT id FROM vendors WHERE vendor_code = 'V-AMANTE'), 81200.00, 125900.00, 10, 1),
-    ('AMANTE-ITEM-004', '?뚮떎 ?됯컧 怨좎젙諛대뱶 ?좏띁 SS/Q/K 5colors', 'FINISHED_GOOD', '?좏띁', '怨좎젙諛대뱶 ?좏띁 / SS-Q-K / 5colors', 'EA', (SELECT id FROM vendors WHERE vendor_code = 'V-AMANTE'), 33400.00, 54900.00, 16, 1),
-    ('AMANTE-ITEM-005', '?뚮떎 ?됯컧 怨좎젙諛대뱶 移⑤??⑤뱶 SS/Q/K 5colors', 'FINISHED_GOOD', '移⑤??⑤뱶', '怨좎젙諛대뱶 移⑤??⑤뱶 / SS-Q-K / 5colors', 'EA', (SELECT id FROM vendors WHERE vendor_code = 'V-AMANTE'), 21200.00, 34900.00, 22, 1),
-    ('AMANTE-ITEM-006', '?뚰봽?몃뜲???ㅽ듃?쇱씠???됯컧 ?묐㈃ ?뚯떛 臾댁냼???щ쫫 李⑤졄?대텋 SS/Q/K 4colors', 'FINISHED_GOOD', '?щ쫫移④뎄', '李⑤졄?대텋 / SS-Q-K / 臾댁냼??/ 4colors', 'EA', (SELECT id FROM vendors WHERE vendor_code = 'V-AMANTE'), 31800.00, 48900.00, 12, 1)
+    ('AMANTE-ITEM-001', '브리즈 시어사커 피그먼트 양면 워싱 여름 차렵이불 SS/Q/K 5colors', 'FINISHED_GOOD', '여름침구', '차렵이불 / SS-Q-K / 피그먼트 양면 워싱', 'EA', (SELECT id FROM vendors WHERE vendor_code = 'V-AMANTE'), 45200.00, 64900.00, 18, 1),
+    ('AMANTE-ITEM-002', '프로방스 워싱 리플 100% 피그먼트 고정밴드 침대패드 SS/Q/K', 'FINISHED_GOOD', '침대패드', '고정밴드 침대패드 / SS-Q-K / 리플 100%', 'EA', (SELECT id FROM vendors WHERE vendor_code = 'V-AMANTE'), 37200.00, 53900.00, 14, 1),
+    ('AMANTE-ITEM-003', '보다 피그먼트 여름 차렵이불 세트 SS/Q/K 5colors', 'FINISHED_GOOD', '여름침구', '세트 / SS-Q-K / 피그먼트 세트', 'EA', (SELECT id FROM vendors WHERE vendor_code = 'V-AMANTE'), 81200.00, 125900.00, 10, 1),
+    ('AMANTE-ITEM-004', '보다 피그먼트 고정밴드 베개 SS/Q/K 5colors', 'FINISHED_GOOD', '베개', '고정밴드 베개 / SS-Q-K / 5colors', 'EA', (SELECT id FROM vendors WHERE vendor_code = 'V-AMANTE'), 33400.00, 54900.00, 16, 1),
+    ('AMANTE-ITEM-005', '보다 피그먼트 고정밴드 침대패드 SS/Q/K 5colors', 'FINISHED_GOOD', '침대패드', '고정밴드 침대패드 / SS-Q-K / 5colors', 'EA', (SELECT id FROM vendors WHERE vendor_code = 'V-AMANTE'), 21200.00, 34900.00, 22, 1),
+    ('AMANTE-ITEM-006', '코코홈 워싱 시어사커 피그먼트 양면 워싱 여름 차렵이불 SS/Q/K 4colors', 'FINISHED_GOOD', '여름침구', '차렵이불 / SS-Q-K / 시어사커 / 4colors', 'EA', (SELECT id FROM vendors WHERE vendor_code = 'V-AMANTE'), 31800.00, 48900.00, 12, 1)
 ON DUPLICATE KEY UPDATE
     name = VALUES(name),
     category = VALUES(category),
@@ -199,10 +199,10 @@ INSERT INTO purchase_orders (
     note
 )
 VALUES
-    ('PO-AMANTE-AI-001', (SELECT id FROM vendors WHERE vendor_code = 'V-AMANTE'), 2, 1, CURRENT_DATE - INTERVAL 150 DAY, CURRENT_DATE - INTERVAL 143 DAY, 'COMPLETED', 162690.00, 'AI ?붾? seed - lead time baseline 1'),
-    ('PO-AMANTE-AI-002', (SELECT id FROM vendors WHERE vendor_code = 'V-AMANTE'), 2, 1, CURRENT_DATE - INTERVAL 95 DAY, CURRENT_DATE - INTERVAL 88 DAY, 'RECEIVED', 207900.00, 'AI ?붾? seed - lead time baseline 2'),
-    ('PO-AMANTE-AI-003', (SELECT id FROM vendors WHERE vendor_code = 'V-AMANTE'), 2, 1, CURRENT_DATE - INTERVAL 40 DAY, CURRENT_DATE - INTERVAL 33 DAY, 'APPROVED', 149490.00, 'AI ?붾? seed - lead time baseline 3'),
-    ('PO-AMANTE-AI-004', (SELECT id FROM vendors WHERE vendor_code = 'V-AMANTE'), 2, 1, CURRENT_DATE - INTERVAL 18 DAY, CURRENT_DATE - INTERVAL 10 DAY, 'REQUESTED', 157300.00, 'AI ?붾? seed - recent replenishment plan')
+    ('PO-AMANTE-AI-001', (SELECT id FROM vendors WHERE vendor_code = 'V-AMANTE'), 2, 1, CURRENT_DATE - INTERVAL 150 DAY, CURRENT_DATE - INTERVAL 143 DAY, 'COMPLETED', 162690.00, 'AI 데모 seed - lead time baseline 1'),
+    ('PO-AMANTE-AI-002', (SELECT id FROM vendors WHERE vendor_code = 'V-AMANTE'), 2, 1, CURRENT_DATE - INTERVAL 95 DAY, CURRENT_DATE - INTERVAL 88 DAY, 'RECEIVED', 207900.00, 'AI 데모 seed - lead time baseline 2'),
+    ('PO-AMANTE-AI-003', (SELECT id FROM vendors WHERE vendor_code = 'V-AMANTE'), 2, 1, CURRENT_DATE - INTERVAL 40 DAY, CURRENT_DATE - INTERVAL 33 DAY, 'APPROVED', 149490.00, 'AI 데모 seed - lead time baseline 3'),
+    ('PO-AMANTE-AI-004', (SELECT id FROM vendors WHERE vendor_code = 'V-AMANTE'), 2, 1, CURRENT_DATE - INTERVAL 18 DAY, CURRENT_DATE - INTERVAL 10 DAY, 'REQUESTED', 157300.00, 'AI 데모 seed - recent replenishment plan')
 ON DUPLICATE KEY UPDATE
     vendor_id = VALUES(vendor_id),
     requested_by_member_id = VALUES(requested_by_member_id),
@@ -294,8 +294,8 @@ SELECT
     'SAMPLE_AMANTE:NEGATIVE_AVAILABLE_STOCK',
     'NEGATIVE_AVAILABLE_STOCK',
     'CRITICAL',
-    '媛???ш퀬媛 ?뚯닔濡??대젮媛??꾨쭩??SKU',
-    '?덉빟 ?섎웾???ㅼ옱怨좊? 珥덇낵??異쒓퀬 李⑥쭏 媛?μ꽦???믪븘. 利됱떆 ?ш퀬 ?뺥빀???뺤씤???꾩슂??',
+    '가용재고가 음수로 내려간 아망티 SKU',
+    '예약 수량이 현재고를 초과하여 출고 차질 가능성이 높아. 즉시 재고 정합성 확인이 필요해.',
     'INVENTORY',
     CAST(inv.id AS CHAR),
     CONCAT(i.name, ' / ', w.warehouse_name),
@@ -345,8 +345,8 @@ SELECT
     'SAMPLE_AMANTE:OUT_OF_STOCK_WITH_SAFETY',
     'OUT_OF_STOCK_WITH_SAFETY',
     'HIGH',
-    '?덉쟾?ш퀬媛 ?덈뒗???덉젅???꾨쭩???좏띁 SKU',
-    '?꾩옱 ?ш퀬媛 0?몃뜲 ?덉쟾?ш퀬 湲곗????댁븘 ?덉뼱??湲닿툒 蹂댁땐 ?먮뒗 ?먮ℓ 以묒? ?먮떒???꾩슂??',
+    '안전재고가 있는데 품절된 아망티 베개 SKU',
+    '현재 재고가 0인데 안전재고 기준이 남아 있어서 긴급 보충 또는 판매 중지 판단이 필요해.',
     'INVENTORY',
     CAST(inv.id AS CHAR),
     CONCAT(i.name, ' / ', w.warehouse_name),
@@ -396,8 +396,8 @@ SELECT
     'SAMPLE_AMANTE:STOCKOUT_BEFORE_LEAD_TIME',
     'STOCKOUT_BEFORE_LEAD_TIME',
     'MEDIUM',
-    '由щ뱶??꾨낫??癒쇱? ?ш퀬媛 ?뚯쭊???꾪뿕???덈뒗 SKU',
-    '理쒓렐 異쒓퀬 ?띾룄 湲곗??쇰줈 ?쒕━利?李⑤졄?대텋? 由щ뱶????꾩갑 ???덉젅 媛?μ꽦???덉뼱 ?좊컻二?寃?좉? ?꾩슂??',
+    '리드타임보다 먼저 재고가 소진될 위험이 있는 SKU',
+    '최근 출고 속도 기준으로 시리즈 차렵이불은 리드타임 내 도착 전 품절 가능성이 있어 긴급 발주 검토가 필요해.',
     'INVENTORY',
     CAST(inv.id AS CHAR),
     CONCAT(i.name, ' / ', w.warehouse_name),
@@ -408,7 +408,7 @@ SELECT
     NOW() - INTERVAL 1 HOUR,
     NOW() - INTERVAL 40 MINUTE,
     'System Admin',
-    '?꾨쭩???щ쫫 ?됱궗 二쇨컙 ?鍮?諛쒖＜ ?곗꽑?쒖쐞 ?곹뼢 寃??
+    '아망티 여름 행사 주간 대비 발주 우선순위 영향 검토'
 FROM inventories inv
 JOIN items i ON i.id = inv.item_id
 JOIN warehouses w ON w.id = inv.warehouse_id
