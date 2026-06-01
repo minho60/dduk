@@ -1,6 +1,95 @@
 (function () {
     const API_BASE = '/api/v1';
 
+    function getApiBaseUrl() {
+        if (window.ddukSession && typeof window.ddukSession.getApiBaseUrl === 'function') {
+            return window.ddukSession.getApiBaseUrl();
+        }
+
+        if (window.location.protocol === 'file:') {
+            return 'http://localhost:8080';
+        }
+
+        if (window.location.port && window.location.port !== '8080') {
+            return 'http://localhost:8080';
+        }
+
+        return '';
+    }
+
+    function getAuthHeaders(extraHeaders = {}) {
+        if (window.ddukSession && typeof window.ddukSession.getAuthHeaders === 'function') {
+            return window.ddukSession.getAuthHeaders(extraHeaders);
+        }
+
+        const token = localStorage.getItem('token');
+        return {
+            ...(token ? { Authorization: `Bearer ${token}` } : {}),
+            ...extraHeaders
+        };
+    }
+
+    async function requestJson(path) {
+        if (window.ddukApi) {
+            return window.ddukApi.get(path);
+        }
+
+        const response = await fetch(`${getApiBaseUrl()}${path}`, {
+            headers: getAuthHeaders()
+        });
+
+        const text = await response.text();
+        const payload = text ? JSON.parse(text) : null;
+
+        if (!response.ok) {
+            throw new Error(payload && payload.message ? payload.message : `대시보드 데이터를 불러오지 못했어. (${response.status})`);
+        }
+
+        return payload;
+    }
+
+    function ensureStatusBanner() {
+        let banner = document.querySelector('[data-dashboard-status]');
+        if (banner) return banner;
+
+        const pageTitle = document.querySelector('.dduk-inline-036');
+        if (!pageTitle) return null;
+
+        banner = document.createElement('div');
+        banner.setAttribute('data-dashboard-status', 'true');
+        Object.assign(banner.style, {
+            display: 'none',
+            marginTop: '12px',
+            padding: '12px 16px',
+            borderRadius: '12px',
+            fontSize: '0.8125rem',
+            fontWeight: '600'
+        });
+        pageTitle.insertAdjacentElement('afterend', banner);
+        return banner;
+    }
+
+    function setStatusBanner(message, type) {
+        const banner = ensureStatusBanner();
+        if (!banner) return;
+
+        if (!message) {
+            banner.style.display = 'none';
+            banner.textContent = '';
+            return;
+        }
+
+        const palette = type === 'error'
+            ? { border: '#fecaca', bg: '#fef2f2', color: '#991b1b' }
+            : { border: '#bfdbfe', bg: '#eff6ff', color: '#1d4ed8' };
+
+        banner.style.display = 'block';
+        banner.style.border = `1px solid ${palette.border}`;
+        banner.style.backgroundColor = palette.bg;
+        banner.style.color = palette.color;
+        banner.textContent = message;
+    }
+
     document.addEventListener("DOMContentLoaded", () => {
         initDashboardData();
         initSearch();
@@ -412,6 +501,77 @@
         const profile = document.querySelector('.profile-popover');
         if (notifications) notifications.style.display = 'none';
         if (profile) profile.style.display = 'none';
+    }
+
+    async function initDashboardData() {
+        setStatusBanner('대시보드 데이터를 불러오는 중이야.', 'info');
+
+        try {
+            const resData = await requestJson(`${API_BASE}/admin/dashboard`);
+
+            if (resData.status === 'success' && resData.data) {
+                updateKPICards(resData.data);
+                setStatusBanner('', 'info');
+            } else {
+                renderKpiErrorState();
+                setStatusBanner('대시보드 KPI 응답 형식이 올바르지 않아서 실제 수치를 표시하지 못했어.', 'error');
+            }
+        } catch (err) {
+            console.error("Dashboard KPI fetch failed:", err);
+            renderKpiErrorState();
+            setStatusBanner('대시보드 KPI를 불러오지 못해서 실제 수치 대신 빈 상태로 표시해.', 'error');
+        }
+
+        try {
+            const logsData = await requestJson(`${API_BASE}/admin/audit-logs?page=0&size=5`);
+
+            if (logsData.status === 'success' && logsData.data && logsData.data.content) {
+                updateRecentActivityTable(logsData.data.content);
+            } else {
+                renderRecentActivityMessage('최근 활동 응답 형식이 올바르지 않아 활동 내역을 표시하지 못했어.');
+            }
+        } catch (err) {
+            console.error("Recent activities fetch failed:", err);
+            renderRecentActivityMessage('최근 활동을 불러오지 못했어. 관리자 API 연결 상태를 확인해줘.');
+        }
+    }
+
+    function renderKpiErrorState() {
+        const kpiContainer = document.querySelector('.kpi_grid');
+        if (!kpiContainer) return;
+
+        const cards = kpiContainer.querySelectorAll('.kpi_card');
+        cards.forEach((card) => {
+            const value = card.querySelector('.dduk-inline-041, .dduk-inline-045');
+            const sub = card.querySelector('.dduk-inline-042, .dduk-inline-043, .dduk-inline-044, .dduk-inline-046');
+
+            if (value) {
+                value.textContent = '-';
+            }
+
+            if (sub) {
+                sub.textContent = '실데이터 연결 필요';
+            }
+        });
+    }
+
+    function renderRecentActivityMessage(message) {
+        const tableCard = document.querySelector('.section_card.dduk-inline-067');
+        if (!tableCard) return;
+
+        const rows = tableCard.querySelectorAll('.table_row:not(.dduk-inline-068)');
+        rows.forEach((row) => row.remove());
+
+        const row = document.createElement('div');
+        row.className = 'table_row';
+        row.innerHTML = `
+            <span class="dduk-inline-069">-</span>
+            <span>시스템</span>
+            <span>${message}</span>
+            <span>-</span>
+            <span class="dduk-inline-072">확인 필요</span>
+        `;
+        tableCard.appendChild(row);
     }
 
 })();

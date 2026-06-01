@@ -49,13 +49,55 @@
     background: var(--card-bg);
     border: 1px solid var(--border);
     border-radius: 12px;
-    padding: 20px;
+    padding: 24px;
     min-width: 0;
     box-shadow: 0 1px 3px rgba(0, 0, 0, 0.02);
+    transition: box-shadow 0.2s;
+}
+
+.dashboard_panel:hover {
+    box-shadow: 0 4px 12px rgba(0,0,0,0.02);
 }
 
 .dashboard_panel.span_2 {
     grid-column: span 2;
+}
+
+/* Premium SaaS ERP Visual Polishing */
+.kpi_card {
+  background: var(--card-bg);
+  border-radius: 12px;
+  padding: 22px 26px;
+  border: 1px solid var(--border);
+  transition: all 0.25s cubic-bezier(0.4, 0, 0.2, 1);
+  position: relative;
+  overflow: hidden;
+}
+.kpi_card:hover {
+  transform: translateY(-4px);
+  box-shadow: 0 10px 22px rgba(79, 70, 229, 0.08);
+  border-color: var(--accent);
+}
+.kpi_card::after {
+  content: '';
+  position: absolute;
+  top: 0; left: 0; width: 4px; height: 100%;
+  background: var(--accent);
+  opacity: 0;
+  transition: opacity 0.2s;
+}
+.kpi_card:hover::after {
+  opacity: 1;
+}
+
+/* Extracted from inline styles */
+.filter_year_input {
+  width: 100px;
+  height: 38px;
+}
+.filter_month_select {
+  width: 90px;
+  height: 38px;
 }
 
 .panel_head {

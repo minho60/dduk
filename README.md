@@ -78,13 +78,21 @@ docs/       협업 규칙, 구조 문서, API 초안
 
 더 구체적인 구조 기준은 아래 문서를 보면 된다.
 
-- 구조 문서: [docs/ARCHITECTURE.md](/C:/kmh/dduk/docs/ARCHITECTURE.md:1)
-- API 초안: [docs/API_DRAFT.md](/C:/kmh/dduk/docs/API_DRAFT.md:1)
-- DB 초안: [docs/DB_DRAFT.md](/C:/kmh/dduk/docs/DB_DRAFT.md:1)
-- 환경변수 가이드: [docs/ENV_GUIDE.md](/C:/kmh/dduk/docs/ENV_GUIDE.md:1) (통합 샘플: [.env.example](/.env.example))
-- 실행/테스트 가이드: [docs/RUN_TEST_GUIDE.md](/C:/kmh/dduk/docs/RUN_TEST_GUIDE.md:1)
+- 구조 문서: [docs/common/SYSTEM_ARCHITECTURE.md](/C:/kmh/dduk/docs/common/SYSTEM_ARCHITECTURE.md:1)
+- API 기준: [docs/common/API_STANDARD.md](/C:/kmh/dduk/docs/common/API_STANDARD.md:1)
+- DB 초안: [docs/common/ARCHIVE/DB_DRAFT.md](/C:/kmh/dduk/docs/common/ARCHIVE/DB_DRAFT.md:1)
+- 환경변수 가이드: [docs/common/ARCHIVE/ENV_GUIDE.md](/C:/kmh/dduk/docs/common/ARCHIVE/ENV_GUIDE.md:1) (통합 샘플: [.env.example](/.env.example))
+- 실행/테스트 가이드: [docs/common/ARCHIVE/RUN_TEST_GUIDE.md](/C:/kmh/dduk/docs/common/ARCHIVE/RUN_TEST_GUIDE.md:1)
 - AI 하네스: [docs/AI_HARNESS.md](/C:/kmh/dduk/docs/AI_HARNESS.md:1)
 - 협업 규칙: [docs/CONVENTION.md](/C:/kmh/dduk/docs/CONVENTION.md:1)
+
+문서 바로가기:
+
+- AI/RPA 실행 체크: [docs/ai-rpa/AI_RPA_EXECUTION_CHECK_GUIDE.md](/C:/kmh/dduk/docs/ai-rpa/AI_RPA_EXECUTION_CHECK_GUIDE.md:1)
+- AI/RPA 로드맵: [docs/ai-rpa/AI_RPA_ROADMAP.md](/C:/kmh/dduk/docs/ai-rpa/AI_RPA_ROADMAP.md:1)
+- 회계 문서: [docs/accounting/ACCOUNTING_DASHBOARD.md](/C:/kmh/dduk/docs/accounting/ACCOUNTING_DASHBOARD.md:1), [ACCOUNTING_TRANSACTION.md](/C:/kmh/dduk/docs/accounting/ACCOUNTING_TRANSACTION.md:1), [CHART_OF_ACCOUNTS.md](/C:/kmh/dduk/docs/accounting/CHART_OF_ACCOUNTS.md:1)
+- UI 공통 문서: [docs/ui/UI_GUIDE.md](/C:/kmh/dduk/docs/ui/UI_GUIDE.md:1), [DESIGN_SYSTEM.md](/C:/kmh/dduk/docs/ui/DESIGN_SYSTEM.md:1), [DASHBOARD_LAYOUT.md](/C:/kmh/dduk/docs/ui/DASHBOARD_LAYOUT.md:1)
+- 재고 문서: [docs/ui/inventory/INVENTORY_DASHBOARD.md](/C:/kmh/dduk/docs/ui/inventory/INVENTORY_DASHBOARD.md:1), [STOCK_MOVEMENT.md](/C:/kmh/dduk/docs/ui/inventory/STOCK_MOVEMENT.md:1), [WAREHOUSE_MANAGEMENT.md](/C:/kmh/dduk/docs/ui/inventory/WAREHOUSE_MANAGEMENT.md:1)
 
 ---
 
@@ -138,7 +146,7 @@ python app.py
 
 1. **역할 준수**: `admin`, `hr`, `inventory` 계층에 맞는 REST API와 화면 라우팅 기준을 준수한다.
 2. **보안 지침**: 비밀번호 등 주요 접속 크레덴셜은 하드코딩하지 않고 `.env` 환경변수로 주입받도록 구성한다.
-3. **API 명세**: 신규 API 추가 시 [docs/API_DRAFT.md](/C:/kmh/dduk/docs/API_DRAFT.md:1) 문서를 먼저 갱신하고 개발에 착수한다.
+3. **API 명세**: 신규 API 추가 시 [docs/common/API_STANDARD.md](/C:/kmh/dduk/docs/common/API_STANDARD.md:1) 문서를 먼저 갱신하고 개발에 착수한다.
 
 ---
 

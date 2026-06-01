@@ -10,45 +10,7 @@
   <link rel="stylesheet" href="../../../styles/common/dashboard.css">
   <link rel="stylesheet" href="../../../styles/common/erp_components.css">
   <link rel="stylesheet" href="../../../styles/accounting/voucher-management.css">
-  <style>
-    .erp_table_container { position: relative; max-height: 600px; overflow-y: auto; border-radius: 12px; border: 1px solid var(--border); background: var(--card-bg); }
-    .erp_table th { position: sticky; top: 0; background: #f1f5f9; z-index: 10; box-shadow: inset 0 -1px 0 var(--border); }
-    .table-loader-overlay { position: absolute; inset: 0; background: rgba(255,255,255,0.7); backdrop-filter: blur(2px); display: none; align-items: center; justify-content: center; z-index: 20; }
-    .spinner { width: 40px; height: 40px; border: 4px solid var(--border); border-top-color: var(--accent); border-radius: 50%; animation: spin 0.8s linear infinite; }
-    @keyframes spin { to { transform: rotate(360deg); } }
-    .empty-state { display: flex; flex-direction: column; align-items: center; justify-content: center; padding: 4rem 2rem; color: var(--text-secondary); text-align: center; }
-    .kpi_card { background: var(--card-bg); border-radius: 12px; padding: 20px 24px; border: 1px solid var(--border); transition: all 0.25s cubic-bezier(0.4,0,0.2,1); position: relative; overflow: hidden; }
-    .kpi_card:hover { transform: translateY(-4px); box-shadow: 0 10px 20px rgba(79,70,229,0.08); border-color: var(--accent); }
-    .kpi_card::after { content: ''; position: absolute; top: 0; left: 0; width: 4px; height: 100%; background: var(--accent); opacity: 0; transition: opacity 0.2s; }
-    .kpi_card:hover::after { opacity: 1; }
-
-    /* 슬라이드 다운 입력 패널 확장 트랜지션 효과 */
-    .collapsible_input_card {
-      max-height: 0;
-      overflow: hidden;
-      opacity: 0;
-      margin-bottom: 0 !important;
-      padding: 0 20px !important;
-      border-color: transparent !important;
-      box-shadow: none !important;
-      transition: max-height 0.4s cubic-bezier(0.4, 0, 0.2, 1), 
-                  opacity 0.3s ease, 
-                  margin-bottom 0.3s ease, 
-                  padding 0.4s cubic-bezier(0.4, 0, 0.2, 1),
-                  border-color 0.3s ease,
-                  box-shadow 0.3s ease;
-    }
-    .collapsible_input_card.show {
-      max-height: 1400px;
-      opacity: 1;
-      margin-bottom: 24px !important;
-      padding: 20px !important;
-      border-color: var(--border) !important;
-      box-shadow: 0 20px 25px -5px rgba(99, 102, 241, 0.08), 0 10px 10px -5px rgba(99, 102, 241, 0.04) !important;
-    }
-    .preview-debit-text { color: #2563eb; font-weight: 600; }
-    .preview-credit-text { color: #ea580c; font-weight: 600; }
-  </style>
+  <!-- Extracted internal style to voucher-management.css -->
 </head>
 <body>
   <aside data-dduk-sidebar></aside>
@@ -117,7 +79,7 @@
           <div class="kpi_icon blue"><i data-lucide="database"></i></div>
           <div class="kpi_content">
             <div class="kpi_label">합계금액</div>
-            <div class="kpi_value" style="font-size: 1.25rem;" data-summary-money="totalAmount">0</div>
+            <div class="kpi_value kpi_value_large" data-summary-money="totalAmount">0</div>
           </div>
         </div>
       </section>
@@ -125,33 +87,33 @@
       <section class="segmented_tabs" role="tablist" aria-label="전표 유형">
         <button class="segmented_tab active" type="button" data-voucher-type="SALES">매출전표</button>
         <button class="segmented_tab" type="button" data-voucher-type="PURCHASE">매입전표</button>
-        <button class="segmented_tab" type="button" disabled style="opacity: 0.5; cursor: not-allowed;">일반전표</button>
-        <button class="segmented_tab" type="button" disabled style="opacity: 0.5; cursor: not-allowed;">수정전표</button>
-        <button class="segmented_tab" type="button" disabled style="opacity: 0.5; cursor: not-allowed;">반제전표</button>
+        <button class="segmented_tab tab_disabled" type="button" disabled>일반전표</button>
+        <button class="segmented_tab tab_disabled" type="button" disabled>수정전표</button>
+        <button class="segmented_tab tab_disabled" type="button" disabled>반제전표</button>
       </section>
 
       <!-- 2. 전표 입력 영역 (기본 Collapse 상태) -->
       <section class="section_card collapsible_input_card" id="inputSection">
-        <div class="section_card_header" style="display: flex; justify-content: space-between; align-items: center; border-bottom: 1px solid var(--border); padding-bottom: 12px; margin-bottom: 16px;">
-          <div style="display: flex; align-items: center; gap: 8px;">
-            <h3 id="inputFormTitle" style="font-size: 1rem; font-weight: 700; color: var(--text-primary);">전표 입력 (매출전표)</h3>
+        <div class="section_card_header input_section_header">
+          <div class="header_title_group">
+            <h3 id="inputFormTitle" class="input_form_title">전표 입력 (매출전표)</h3>
             <span class="status_badge info" id="voucherTypeBadge">매출전표</span>
-            <span class="status_badge muted" id="balanceState" style="font-size: 11px; font-weight: 700;">차대 검증 대기</span>
+            <span class="status_badge muted balance_state_badge" id="balanceState">차대 검증 대기</span>
           </div>
-          <button type="button" class="erp_modal_close" id="closeInputBtn" aria-label="닫기" style="cursor: pointer;">
-            <i data-lucide="x" style="width: 18px; height: 18px;"></i>
+          <button type="button" class="erp_modal_close close_btn" id="closeInputBtn" aria-label="닫기">
+            <i data-lucide="x" class="icon_size_medium"></i>
           </button>
         </div>
         
-        <form id="voucherForm" class="voucher_form" style="margin: 0; border: none; padding: 0; box-shadow: none;">
-          <div style="display: grid; grid-template-columns: 1.1fr 1.3fr; gap: 24px; align-items: start;">
+        <form id="voucherForm" class="voucher_form voucher_form_reset">
+          <div class="form_workspace">
             <!-- 좌측: 거래정보 입력 -->
-            <div style="border-right: 1px solid var(--border); padding-right: 24px;">
-              <h4 style="font-size: 0.85rem; font-weight: 600; color: var(--text-secondary); margin-bottom: 14px; display: flex; align-items: center; gap: 6px;">
-                <i data-lucide="edit-3" style="width: 15px; height: 15px; color: var(--accent);"></i>
+            <div class="form_left_panel">
+              <h4 class="panel_subtitle">
+                <i data-lucide="edit-3" class="icon_accent_small"></i>
                 <span>거래 정보 입력</span>
               </h4>
-              <div class="form_grid" style="grid-template-columns: repeat(2, minmax(0, 1fr)); gap: 12px;">
+              <div class="form_grid">
                 <div class="erp_form_group">
                   <label class="erp_label" for="voucherDate">전표일자</label>
                   <input id="voucherDate" type="date" class="erp_input" required>
@@ -171,47 +133,47 @@
                     <option value="OTHER_SALES">기타매출</option>
                   </select>
                 </div>
-                <div class="erp_form_group" style="grid-column: span 2;">
+                <div class="erp_form_group form_span_2">
                   <label class="erp_label" id="vendorLabel">거래처</label>
-                  <div class="lookup_field" style="display: flex; gap: 8px;">
-                    <input id="vendorName" type="text" class="erp_input" readonly required placeholder="매출 거래처 검색" style="flex: 1;">
+                  <div class="lookup_field lookup_wrapper">
+                    <input id="vendorName" type="text" class="erp_input flex_fill" readonly required placeholder="매출 거래처 검색">
                     <input id="vendorId" type="hidden">
                     <button type="button" class="erp_btn erp_btn_secondary erp_btn_icon" data-open-lookup="vendor" aria-label="거래처 검색"><i data-lucide="search"></i></button>
                   </div>
                 </div>
                 <div class="erp_form_group">
                   <label class="erp_label" for="supplyAmount">공급가액</label>
-                  <input id="supplyAmount" class="erp_input" inputmode="decimal" required placeholder="0" style="text-align: right;">
+                  <input id="supplyAmount" class="erp_input text_right" inputmode="decimal" required placeholder="0">
                 </div>
                 <div class="erp_form_group">
                   <label class="erp_label" for="vatAmount">부가세</label>
-                  <input id="vatAmount" class="erp_input" inputmode="decimal" required placeholder="0" style="text-align: right;">
+                  <input id="vatAmount" class="erp_input text_right" inputmode="decimal" required placeholder="0">
                 </div>
                 <div class="erp_form_group">
                   <label class="erp_label" for="totalAmount">합계금액</label>
-                  <input id="totalAmount" class="erp_input" inputmode="decimal" readonly placeholder="0" style="background-color: #f8fafc; text-align: right; font-weight: 700;">
+                  <input id="totalAmount" class="erp_input total_amount_preview" inputmode="decimal" readonly placeholder="0">
                 </div>
                 <div class="erp_form_group">
                   <label class="erp_label" for="feeAmount">수수료</label>
-                  <input id="feeAmount" class="erp_input" inputmode="decimal" placeholder="0" style="text-align: right;">
+                  <input id="feeAmount" class="erp_input text_right" inputmode="decimal" placeholder="0">
                 </div>
-                <div class="erp_form_group" style="grid-column: span 2;">
+                <div class="erp_form_group form_span_2">
                   <label class="erp_label" id="businessAccountLabel">매출계정</label>
-                  <div class="lookup_field" style="display: flex; gap: 8px;">
-                    <input id="businessAccountName" class="erp_input" type="text" required autocomplete="off" placeholder="계정코드/계정명 검색" style="flex: 1;">
+                  <div class="lookup_field lookup_wrapper">
+                    <input id="businessAccountName" class="erp_input flex_fill" type="text" required autocomplete="off" placeholder="계정코드/계정명 검색">
                     <input id="businessAccountId" type="hidden">
                     <button type="button" class="erp_btn erp_btn_secondary erp_btn_icon" data-open-lookup="businessAccount" aria-label="계정과목 검색"><i data-lucide="search"></i></button>
                   </div>
                 </div>
-                <div class="erp_form_group" style="grid-column: span 2;">
+                <div class="erp_form_group form_span_2">
                   <label class="erp_label" id="settlementAccountLabel">입금계좌</label>
-                  <div class="lookup_field" style="display: flex; gap: 8px;">
-                    <input id="settlementAccountName" class="erp_input" type="text" required autocomplete="off" placeholder="현금/예금 계정 검색" style="flex: 1;">
+                  <div class="lookup_field lookup_wrapper">
+                    <input id="settlementAccountName" class="erp_input flex_fill" type="text" required autocomplete="off" placeholder="현금/예금 계정 검색">
                     <input id="settlementAccountId" type="hidden">
                     <button type="button" class="erp_btn erp_btn_secondary erp_btn_icon" data-open-lookup="settlementAccount" aria-label="계좌 검색"><i data-lucide="search"></i></button>
                   </div>
                 </div>
-                <div class="erp_form_group form_full" style="grid-column: span 2;">
+                <div class="erp_form_group form_full form_span_2">
                   <label class="erp_label" for="description">적요</label>
                   <textarea id="description" class="erp_textarea" rows="2" placeholder="상품 판매, 원재료 매입, 카드 매출 발생"></textarea>
                 </div>
@@ -219,13 +181,13 @@
             </div>
 
             <!-- 우측: 자동분개 미리보기 및 요약 -->
-            <div style="display: flex; flex-direction: column; justify-content: space-between; height: 100%;">
+            <div class="form_right_panel">
               <div>
-                <h4 style="font-size: 0.85rem; font-weight: 600; color: var(--text-secondary); margin-bottom: 14px; display: flex; align-items: center; gap: 6px;">
-                  <i data-lucide="layers" style="width: 15px; height: 15px; color: var(--accent);"></i>
+                <h4 class="panel_subtitle">
+                  <i data-lucide="layers" class="icon_accent_small"></i>
                   <span>자동 분개 미리보기</span>
                 </h4>
-                <div class="erp_table_container" style="max-height: 250px; overflow-y: auto;">
+                <div class="erp_table_container table_container_scroll">
                   <table class="erp_table">
                     <thead>
                       <tr>
@@ -238,7 +200,7 @@
                     </thead>
                     <tbody id="journalPreviewBody">
                       <tr>
-                        <td colspan="5" style="text-align: center; color: var(--text-muted); padding: 16px;">
+                        <td colspan="5" class="table_empty_td">
                           금액과 계정과목을 입력하면 자동 분개 내역이 실시간 출력됩니다.
                         </td>
                       </tr>
@@ -248,34 +210,34 @@
               </div>
 
               <!-- 요약 검증 정보 -->
-              <div style="background: #f8fafc; border: 1px solid var(--border); border-radius: 8px; padding: 16px; margin-top: 16px;">
-                <div style="display: flex; justify-content: space-between; font-size: 0.825rem; color: var(--text-secondary); margin-bottom: 8px;">
+              <div class="summary_info_box">
+                <div class="summary_item_row">
                   <span>공급가액:</span>
-                  <span id="summarySupply" style="font-weight: 600; color: var(--text-primary);">0원</span>
+                  <span id="summarySupply" class="summary_item_value">0원</span>
                 </div>
-                <div style="display: flex; justify-content: space-between; font-size: 0.825rem; color: var(--text-secondary); margin-bottom: 8px;">
+                <div class="summary_item_row">
                   <span>부가세 (VAT):</span>
-                  <span id="summaryVat" style="font-weight: 600; color: var(--text-primary);">0원</span>
+                  <span id="summaryVat" class="summary_item_value">0원</span>
                 </div>
-                <div style="display: flex; justify-content: space-between; font-size: 0.875rem; font-weight: 700; color: var(--text-primary); border-top: 1px dashed var(--border); padding-top: 8px;">
+                <div class="summary_total_row">
                   <span>총 합계금액:</span>
-                  <span id="summaryTotal" style="color: var(--accent);">0원</span>
+                  <span id="summaryTotal" class="text_accent">0원</span>
                 </div>
               </div>
             </div>
           </div>
 
           <!-- Sticky Action Footer -->
-          <div class="form_actions" style="margin-top: 24px; padding-top: 16px; border-top: 1px solid var(--border); display: flex; justify-content: space-between; align-items: center; position: sticky; bottom: 0; background: var(--card-bg); z-index: 10;">
+          <div class="form_actions form_sticky_actions">
             <!-- 좌측: 연속 입력 모드 -->
-            <div style="display: flex; align-items: center; gap: 8px; font-size: 0.875rem; color: var(--text-secondary);">
-              <input type="checkbox" id="continuousMode" style="width: 16px; height: 16px; accent-color: var(--accent); cursor: pointer;">
-              <label for="continuousMode" style="cursor: pointer; user-select: none;">연속 입력 모드 (거래처 및 계정 정보 유지)</label>
+            <div class="continuous_mode_group">
+              <input type="checkbox" id="continuousMode" class="form_checkbox">
+              <label for="continuousMode" class="cursor_pointer_unselectable">연속 입력 모드 (거래처 및 계정 정보 유지)</label>
             </div>
             <!-- 우측: 버튼 액션 -->
-            <div style="display: flex; gap: 8px;">
+            <div class="flex_gap_8">
               <button type="button" class="erp_btn erp_btn_secondary" id="resetFormButton">다시 작성</button>
-              <button type="button" class="erp_btn erp_btn_secondary" id="draftSaveButton" style="background-color: #f1f5f9; color: #334155; border: 1px solid #cbd5e1;">임시저장</button>
+              <button type="button" class="erp_btn erp_btn_secondary btn_draft_save" id="draftSaveButton">임시저장</button>
               <button type="submit" class="erp_btn erp_btn_primary">저장(기표)</button>
             </div>
           </div>
@@ -283,12 +245,12 @@
       </section>
 
         <!-- [하단 영역] 전표 현황 및 승인 리스트 -->
-        <section class="section_card" style="margin-top: 12px;" id="listSection">
-          <div class="section_card_header" style="display: flex; justify-content: space-between; align-items: center;">
+        <section class="section_card section_spacing" id="listSection">
+          <div class="section_card_header section_flex_header">
             <h3>전표 현황 및 승인관리</h3>
-            <div style="display: flex; gap: 8px; align-items: center;">
-              <button type="button" class="erp_btn erp_btn_primary" id="newVoucherBtn" style="font-size: 0.875rem; display: flex; align-items: center; gap: 4px;">
-                <i data-lucide="plus" style="width: 16px; height: 16px;"></i>
+            <div class="flex_gap_8_center">
+              <button type="button" class="erp_btn erp_btn_primary btn_new_voucher" id="newVoucherBtn">
+                <i data-lucide="plus" class="icon_size_small"></i>
                 <span>+ 신규 전표</span>
               </button>
               <button type="button" class="erp_btn erp_btn_secondary erp_btn_icon" id="reloadButton"><i data-lucide="refresh-cw"></i></button>
@@ -321,16 +283,16 @@
 
   <!-- 검색 조회용 공통 모달 -->
   <div id="lookupDialog" class="erp_modal_overlay">
-    <div class="erp_modal" style="width: 500px;">
+    <div class="erp_modal modal_width_500">
       <div class="erp_modal_header">
         <h3 id="lookupTitle">검색</h3>
         <button type="button" class="erp_modal_close" onclick="document.getElementById('lookupDialog').classList.remove('is_active')">
-          <i data-lucide="x" style="width: 18px; height: 18px;"></i>
+          <i data-lucide="x" class="icon_size_medium"></i>
         </button>
       </div>
       <div class="erp_modal_body">
-        <div class="account_lookup_search" style="display: flex; gap: 8px; margin-bottom: 16px;">
-          <input id="lookupKeyword" type="search" class="erp_input" placeholder="검색어 입력" style="flex: 1;">
+        <div class="account_lookup_search lookup_search_wrapper">
+          <input id="lookupKeyword" type="search" class="erp_input flex_fill" placeholder="검색어 입력">
           <button type="button" class="erp_btn erp_btn_primary" id="lookupSearchButton"><i data-lucide="search"></i></button>
         </div>
         <div id="lookupResults" class="account_lookup_results"></div>
@@ -340,49 +302,49 @@
 
   <!-- 전표 상세 조회 및 승인/반려 모달 -->
   <div id="detailModal" class="erp_modal_overlay">
-    <div class="erp_modal" style="width: 800px; max-width: 95%;">
+    <div class="erp_modal modal_width_800">
       <div class="erp_modal_header">
         <h3>전표 상세 정보 및 승인 관리</h3>
         <button type="button" class="erp_modal_close" onclick="document.getElementById('detailModal').classList.remove('is_active')">
-          <i data-lucide="x" style="width: 18px; height: 18px;"></i>
+          <i data-lucide="x" class="icon_size_medium"></i>
         </button>
       </div>
-      <div class="erp_modal_body" style="max-height: 70vh; overflow-y: auto;">
+      <div class="erp_modal_body modal_body_scrollable">
         <!-- 상단 기본 정보 -->
-        <div style="display: grid; grid-template-columns: repeat(3, 1fr); gap: 16px; margin-bottom: 20px; border-bottom: 1px solid var(--border); padding-bottom: 20px;">
+        <div class="modal_details_grid">
           <div>
-            <label class="erp_label" style="margin-bottom: 4px; display: block; color: var(--text-secondary); font-size: 0.75rem;">전표번호</label>
-            <strong id="modalVoucherNo" style="font-size: 1rem; color: var(--text-primary);">-</strong>
+            <label class="erp_label modal_detail_label">전표번호</label>
+            <strong id="modalVoucherNo" class="modal_detail_value">-</strong>
           </div>
           <div>
-            <label class="erp_label" style="margin-bottom: 4px; display: block; color: var(--text-secondary); font-size: 0.75rem;">전표유형</label>
-            <strong id="modalVoucherType" style="font-size: 1rem; color: var(--text-primary);">-</strong>
+            <label class="erp_label modal_detail_label">전표유형</label>
+            <strong id="modalVoucherType" class="modal_detail_value">-</strong>
           </div>
           <div>
-            <label class="erp_label" style="margin-bottom: 4px; display: block; color: var(--text-secondary); font-size: 0.75rem;">전표일자</label>
-            <strong id="modalVoucherDate" style="font-size: 1rem; color: var(--text-primary);">-</strong>
+            <label class="erp_label modal_detail_label">전표일자</label>
+            <strong id="modalVoucherDate" class="modal_detail_value">-</strong>
           </div>
           <div>
-            <label class="erp_label" style="margin-bottom: 4px; display: block; color: var(--text-secondary); font-size: 0.75rem;">거래처</label>
-            <strong id="modalVendorName" style="font-size: 1rem; color: var(--text-primary);">-</strong>
+            <label class="erp_label modal_detail_label">거래처</label>
+            <strong id="modalVendorName" class="modal_detail_value">-</strong>
           </div>
           <div>
-            <label class="erp_label" style="margin-bottom: 4px; display: block; color: var(--text-secondary); font-size: 0.75rem;">상태</label>
-            <span id="modalStatus" class="status_badge muted" style="display: inline-block; margin-top: 2px;">-</span>
+            <label class="erp_label modal_detail_label">상태</label>
+            <span id="modalStatus" class="status_badge muted modal_status_badge">-</span>
           </div>
           <div>
-            <label class="erp_label" style="margin-bottom: 4px; display: block; color: var(--text-secondary); font-size: 0.75rem;">작성자 / 등록일시</label>
-            <span id="modalCreatedInfo" style="font-size: 0.875rem; color: var(--text-secondary);">-</span>
+            <label class="erp_label modal_detail_label">작성자 / 등록일시</label>
+            <span id="modalCreatedInfo" class="modal_info_text">-</span>
           </div>
-          <div style="grid-column: span 3;">
-            <label class="erp_label" style="margin-bottom: 4px; display: block; color: var(--text-secondary); font-size: 0.75rem;">적요</label>
-            <p id="modalDescription" style="font-size: 0.875rem; color: var(--text-primary); background: #f8fafc; padding: 12px; border-radius: 8px; border: 1px solid var(--border); margin: 0; min-height: 48px;"></p>
+          <div class="form_span_2">
+            <label class="erp_label modal_detail_label">적요</label>
+            <p id="modalDescription" class="modal_description_box"></p>
           </div>
         </div>
 
         <!-- 분개 상세 내역 테이블 -->
-        <h4 style="font-size: 0.875rem; font-weight: 600; color: var(--text-primary); margin-bottom: 12px;">분개 상세 내역</h4>
-        <div class="erp_table_container" style="margin-bottom: 20px;">
+        <h4 class="modal_table_title">분개 상세 내역</h4>
+        <div class="erp_table_container modal_table_spacing">
           <table class="erp_table">
             <thead>
               <tr>
@@ -397,24 +359,24 @@
             </thead>
             <tbody id="modalLinesBody">
               <tr>
-                <td colspan="7" style="text-align: center; color: var(--text-muted); padding: 20px;">로딩 중...</td>
+                <td colspan="7" class="table_loading_td">로딩 중...</td>
               </tr>
             </tbody>
           </table>
         </div>
 
         <!-- 합계 검증 피드백 -->
-        <div style="display: flex; justify-content: flex-end; gap: 24px; padding: 12px 20px; background: #f8fafc; border-radius: 8px; border: 1px solid var(--border); font-weight: 600;">
-          <div style="color: var(--text-secondary);">차변 합계: <span id="modalDebitSum" style="color: var(--text-primary);">0원</span></div>
-          <div style="color: var(--text-secondary);">대변 합계: <span id="modalCreditSum" style="color: var(--text-primary);">0원</span></div>
+        <div class="modal_summary_box">
+          <div>차변 합계: <span id="modalDebitSum" class="text_primary">0원</span></div>
+          <div>대변 합계: <span id="modalCreditSum" class="text_primary">0원</span></div>
         </div>
       </div>
       
-      <div class="erp_modal_footer" style="display: flex; justify-content: flex-end; gap: 8px; border-top: 1px solid var(--border); padding-top: 16px; margin-top: 16px;">
+      <div class="erp_modal_footer modal_footer_actions">
         <button type="button" class="erp_btn erp_btn_secondary" onclick="document.getElementById('detailModal').classList.remove('is_active')">닫기</button>
         <!-- 승인 가드용 권한 필요 영역 -->
-        <div id="modalApprovalActions" style="display: flex; gap: 8px;">
-          <button type="button" class="erp_btn" id="modalRejectButton" style="background-color: #ef4444; color: white;">반려/취소</button>
+        <div id="modalApprovalActions" class="flex_gap_8">
+          <button type="button" class="erp_btn btn_reject" id="modalRejectButton">반려/취소</button>
           <button type="button" class="erp_btn erp_btn_primary" id="modalApproveButton">전표 승인</button>
         </div>
       </div>

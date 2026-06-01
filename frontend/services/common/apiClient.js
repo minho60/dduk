@@ -173,31 +173,62 @@
     }
 
     // ── 핵심 fetch 래퍼 ──────────────────────────────────────────
-    async function request(url, options = {}) {
-        const token = localStorage.getItem('token');
-        const headers = {
-            'Content-Type': 'application/json',
-            ...options.headers
-        };
-
-        if (token) {
-            headers['Authorization'] = `Bearer ${token}`;
+    function buildUrl(url) {
+        if (url.startsWith('/api/') && API_BASE_URL) {
+            return `${API_BASE_URL}${url}`;
         }
+        if (!url.startsWith('http') && !url.startsWith('/api/') && API_BASE_URL) {
+            return `${API_BASE_URL}/api/v1/${url}`;
+        }
+        return url;
+    }
 
+    function getAuthHeaders(extraHeaders = {}) {
+        const token = localStorage.getItem('token');
+        const headers = { ...extraHeaders };
+        if (token) {
+            headers.Authorization = `Bearer ${token}`;
+        }
+        return headers;
+    }
+
+    function normalizeOptions(options = {}) {
+        const headers = getAuthHeaders(options.headers || {});
         const config = {
             ...options,
             headers
         };
 
-        let fullUrl = url;
-        if (url.startsWith('http')) {
-            fullUrl = url;
-        } else if (url.startsWith('/api/')) {
-            fullUrl = `${API_BASE_URL || ''}${url}`;
-        } else {
-            const normalizedUrl = url.startsWith('/') ? url.slice(1) : url;
-            fullUrl = `${API_BASE_URL || ''}/api/v1/${normalizedUrl}`;
+        if (
+            config.body &&
+            typeof config.body === 'object' &&
+            !(config.body instanceof FormData) &&
+            !(config.body instanceof Blob) &&
+            !headers['Content-Type']
+        ) {
+            headers['Content-Type'] = 'application/json';
         }
+
+        if (
+            config.body &&
+            headers['Content-Type'] === 'application/json' &&
+            typeof config.body !== 'string' &&
+            !(config.body instanceof FormData) &&
+            !(config.body instanceof Blob)
+        ) {
+            config.body = JSON.stringify(config.body);
+        }
+
+        return config;
+    }
+
+    function unwrapPayload(payload) {
+        return payload && typeof payload === 'object' && 'data' in payload ? payload.data : payload;
+    }
+
+    async function request(url, options = {}) {
+        const config = normalizeOptions(options);
+        const fullUrl = buildUrl(url);
 
         let response;
         try {
@@ -251,12 +282,28 @@
     }
 
     // ── public API ────────────────────────────────────────────────
+    async function requestData(url, options = {}) {
+        const payload = await request(url, options);
+        return unwrapPayload(payload);
+    }
+
+    async function requestList(url, options = {}) {
+        const payload = await requestData(url, options);
+        return Array.isArray(payload) ? payload : [];
+    }
+
     window.ddukApi = {
         get: (url, options) => request(url, { ...options, method: 'GET' }),
-        post: (url, body, options) => request(url, { ...options, method: 'POST', body: JSON.stringify(body) }),
-        put: (url, body, options) => request(url, { ...options, method: 'PUT', body: JSON.stringify(body) }),
-        patch: (url, body, options) => request(url, { ...options, method: 'PATCH', body: JSON.stringify(body) }),
+        post: (url, body, options) => request(url, { ...options, method: 'POST', body }),
+        put: (url, body, options) => request(url, { ...options, method: 'PUT', body }),
+        patch: (url, body, options) => request(url, { ...options, method: 'PATCH', body }),
         delete: (url, options) => request(url, { ...options, method: 'DELETE' }),
+        request,
+        requestData,
+        requestList,
+        buildUrl,
+        getAuthHeaders,
+        unwrapData: unwrapPayload,
         getBaseUrl: () => API_BASE_URL,
         showToast,
         setUiState

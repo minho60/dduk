@@ -227,94 +227,6 @@ DB 초안을 수정하거나 컬럼을 추가하기 전에 아래 기준을 먼�
 
 - 비용 관리가 일정에 없다면 이 테이블도 2차로 미루는 편이 낫다.
 
-### 6.5 `payroll_contracts`
-직원별 급여/연봉 계약 정보
-
-| 컬럼 | 타입 예시 | 설명 |
-| :--- | :--- | :--- |
-| `id` | bigint | PK |
-| `employee_id` | bigint | FK -> `employees.id` |
-| `contract_no` | varchar(50) | 계약 번호, unique |
-| `base_salary` | decimal(15,2) | 기본급 |
-| `hourly_rate` | decimal(15,2) | 시급, nullable |
-| `contract_date` | date | 계약일 |
-| `expiry_date` | date | 만료일, nullable |
-| `status` | varchar(30) | `ACTIVE`, `EXPIRED`, `TERMINATED` |
-| `bonus_rule` | text | 상여/수당 규칙, nullable |
-| `created_at` | datetime | 생성 시각 |
-| `updated_at` | datetime | 수정 시각 |
-
-권장 제약:
-
-- `contract_no` unique
-
-### 6.6 `accounts` (회계 - 계정과목)
-ERP 회계 처리의 기준이 되는 계정과목 (Chart of Accounts)
-
-| 컬럼 | 타입 예시 | 설명 |
-| :--- | :--- | :--- |
-| `id` | bigint | PK |
-| `code` | varchar(20) | 계정 코드, unique |
-| `name` | varchar(100) | 계정과목명 |
-| `english_name` | varchar(100) | 영문 계정명, nullable |
-| `type` | varchar(30) | `ASSET`, `LIABILITY`, `EQUITY`, `REVENUE`, `EXPENSE` |
-| `normal_balance` | varchar(10) | 잔액 정상 방향 (`DEBIT`, `CREDIT`) |
-| `level` | int | 계층 레벨 |
-| `sort_order` | int | 정렬 순서 |
-| `description` | varchar(255) | 설명, nullable |
-| `status` | varchar(20) | 상태 (`ACTIVE`, `INACTIVE`, `LOCKED`) |
-| `allow_posting` | tinyint(1) | 실제 전표 기표 가능 여부 |
-| `system_account` | tinyint(1) | ERP 핵심 보호 계정 여부 |
-| `deleted` | tinyint(1) | Soft Delete 여부 |
-| `parent_code` | varchar(20) | 부모 계정 코드, nullable |
-| `parent_id` | bigint | FK -> `accounts.id` (자기 참조), nullable |
-| `created_at` | datetime | 생성 시각 |
-| `updated_at` | datetime | 수정 시각 |
-
-권장 제약:
-
-- `code` unique
-- 자산/비용은 `DEBIT`, 부채/자본/수익은 `CREDIT` 유지 원칙 적용 (애플리케이션 검증)
-
-### 6.7 `journal_entries` (회계 - 전표 헤더)
-발생한 회계 거래 내역의 헤더
-
-| 컬럼 | 타입 예시 | 설명 |
-| :--- | :--- | :--- |
-| `id` | bigint | PK |
-| `journal_no` | varchar(50) | 전표 번호, unique |
-| `transaction_date` | date | 거래 발생일 |
-| `description` | varchar(255) | 거래 내역 설명 |
-| `status` | varchar(30) | `DRAFT`, `POSTED`, `CANCELED` |
-| `source_type` | varchar(50) | 원천 거래 유형 (예: `EXPENSE`, `PAYROLL`), nullable |
-| `source_id` | bigint | 원천 거래 ID, nullable |
-| `total_debit` | decimal(15,2) | 차변 총액 |
-| `total_credit` | decimal(15,2) | 대변 총액 |
-| `created_by` | varchar(100) | 기표자 (사용자 ID 등), nullable |
-| `fiscal_year` | int | 회계 연도, nullable |
-| `fiscal_month` | int | 회계 월, nullable |
-| `created_at` | datetime | 생성 시각 |
-| `updated_at` | datetime | 수정 시각 |
-
-### 6.8 `journal_items` (회계 - 전표 상세)
-전표에 속한 차변/대변 상세 항목
-
-| 컬럼 | 타입 예시 | 설명 |
-| :--- | :--- | :--- |
-| `id` | bigint | PK |
-| `journal_entry_id` | bigint | FK -> `journal_entries.id` |
-| `account_id` | bigint | FK -> `accounts.id` |
-| `debit_amount` | decimal(15,2) | 차변 금액 |
-| `credit_amount` | decimal(15,2) | 대변 금액 |
-| `description` | varchar(255) | 상세 내역, nullable |
-| `reference_type` | varchar(50) | 참조 대상 유형, nullable |
-| `reference_id` | bigint | 참조 대상 ID, nullable |
-
-비고:
-
-- 전표 내 모든 차변 합(`debit_amount`)과 대변 합(`credit_amount`)은 일치해야 함(대차평균의 원리).
-- `reference_type` 등을 통해 특정 입출고나 영수증 내역과 직접 연결 가능.
-
 ---
 
 ## 7. `inventory` 추천 구조
@@ -460,7 +372,6 @@ members 1---N purchase_orders (approved_by_member_id)
 members 1---N audit_logs
 
 employees 1---N attendances
-employees 1---N payroll_contracts
 employees 1---N payrolls
 employees 1---N expenses
 
@@ -471,10 +382,6 @@ purchase_orders 1---N purchase_order_items
 items 1---N purchase_order_items
 items 1---N stock_movements
 inventories 1---N stock_movements
-
-accounts 1---N accounts (parent-child 계층구조)
-journal_entries 1---N journal_items
-accounts 1---N journal_items
 ```
 
 ---

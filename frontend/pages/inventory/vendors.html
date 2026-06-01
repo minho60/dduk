@@ -63,31 +63,9 @@
     </div>
     <script src="../../services/common/session.js"></script>
     <script src="../../services/common/sidebar.js"></script>
-    <script>
-        document.addEventListener('DOMContentLoaded', () => {
-            const session = window.ddukSession?.requireRole?.(['ADMIN', 'INVENTORY', 'HR'], { redirectToLogin: true });
-            if (!session) return;
-            if (window.lucide) lucide.createIcons();
-            const apiOrigin = window.location.protocol === 'file:' ? 'http://localhost:8080' : window.location.origin;
-            const api = `${apiOrigin}/api/v1/inventory/vendors`;
-            const list = document.getElementById('vendor-list'), listStatus = document.getElementById('list-status'), detailStatus = document.getElementById('detail-status'), form = document.getElementById('detail-form');
-            const editBtn = document.getElementById('btn-edit'), cancelBtn = document.getElementById('btn-cancel'), saveBtn = document.getElementById('btn-save');
-            const fields = ['vendorCode','status','name','representativeName','businessRegistrationNo','businessType','businessItem','contactName','contactPhone','email','address','bankName','bankAccountNo','bankAccountHolder','memo'];
-            let vendors = [], current = null;
-            function headers(json=false){const t=localStorage.getItem('token');const h=json?{'Content-Type':'application/json'}:{};if(t)h.Authorization=`Bearer ${t}`;return h}
-            async function readError(r){const t=await r.text();if(!t)return`HTTP ${r.status}`;try{const j=JSON.parse(t);return j.message||j.error||t}catch{return t}}
-            function text(v){return v==null||v===''?'-':v}
-            function renderList(emptyText='조회 버튼을 누르면 거래처 목록이 표시됩니다.'){if(!vendors.length){list.innerHTML=`<tr><td colspan="7" class="text-center text-gray-400 font-semibold py-8">${emptyText}</td></tr>`;return}list.innerHTML=vendors.map(v=>`<tr data-id="${v.id}" class="${current&&current.id===v.id?'selected':''}"><td class="font-bold">${text(v.vendorCode)}</td><td>${text(v.name)}</td><td>${text(v.representativeName)}</td><td>${text(v.businessRegistrationNo)}</td><td>${text(v.contactName)}</td><td>${text(v.contactPhone)}</td><td>${text(v.status)}</td></tr>`).join('');list.querySelectorAll('tr[data-id]').forEach(r=>r.onclick=()=>loadVendor(r.dataset.id));listStatus.textContent=`${vendors.length}건이 조회되었습니다.`}
-            function setMode(edit){form.querySelectorAll('input,textarea').forEach(i=>i.disabled=i.dataset.immutable!==undefined||['vendorCode','status'].includes(i.id)||!edit);editBtn.classList.toggle('hidden',edit||!current);cancelBtn.classList.toggle('hidden',!edit);saveBtn.classList.toggle('hidden',!edit)}
-            function fill(v){current=v;fields.forEach(f=>document.getElementById(f).value=v[f]||'');form.classList.remove('hidden');detailStatus.textContent=`${text(v.vendorCode)} 정보를 불러왔습니다.`;setMode(false);renderList()}
-            function searchUrl(){const p=new URLSearchParams();const keyword=document.getElementById('search-keyword').value.trim();if(keyword)p.set('keyword',keyword);return`${api}/search${p.toString()?`?${p}`:''}`}
-            async function search(){const keyword=document.getElementById('search-keyword').value.trim();if(!keyword){vendors=[];renderList('검색어를 입력해야 조회할 수 있습니다.');listStatus.textContent='거래처명, 대표자명, 전화번호, 사업자등록번호 중 하나를 입력해주세요.';document.getElementById('search-keyword').focus();return}listStatus.textContent='조회 중입니다.';try{const r=await fetch(searchUrl(),{headers:headers()});if(!r.ok)throw new Error(await readError(r));vendors=await r.json();renderList('조회된 거래처가 없습니다.')}catch(e){vendors=[];renderList('조회 실패');listStatus.textContent=`거래처 조회 실패: ${e.message}`}}
-            async function loadVendor(id){try{const r=await fetch(`${api}/${encodeURIComponent(id)}`,{headers:headers()});if(!r.ok)throw new Error(await readError(r));fill(await r.json())}catch(e){detailStatus.textContent=`상세 조회 실패: ${e.message}`}}
-            async function save(){if(!form.checkValidity()){form.reportValidity();return}const payload={businessRegistrationNo:current.businessRegistrationNo,name:current.name,representativeName:current.representativeName,businessType:current.businessType,businessItem:current.businessItem,contactName:contactName.value.trim(),contactPhone:contactPhone.value.trim(),email:email.value.trim(),address:address.value.trim(),bankName:bankName.value.trim(),bankAccountNo:bankAccountNo.value.trim(),bankAccountHolder:bankAccountHolder.value.trim(),memo:memo.value.trim()};try{const r=await fetch(`${api}/${current.id}`,{method:'PATCH',headers:headers(true),body:JSON.stringify(payload)});if(!r.ok)throw new Error(await readError(r));const v=await r.json();vendors=vendors.map(x=>x.id===v.id?v:x);fill(v);detailStatus.textContent='거래처 정보가 수정되었습니다.'}catch(e){detailStatus.textContent=`수정 실패: ${e.message}`}}
-            function clear(){document.getElementById('search-keyword').value='';vendors=[];current=null;form.classList.add('hidden');editBtn.classList.add('hidden');cancelBtn.classList.add('hidden');saveBtn.classList.add('hidden');listStatus.textContent='검색어를 입력한 뒤 조회 버튼을 눌러주세요.';detailStatus.textContent='목록에서 거래처를 선택하세요.';renderList()}
-            document.getElementById('btn-search').onclick=search;document.getElementById('btn-reset').onclick=clear;document.getElementById('search-keyword').addEventListener('keydown',e=>{if(e.key==='Enter')search()});editBtn.onclick=()=>setMode(true);cancelBtn.onclick=()=>fill(current);saveBtn.onclick=save;
-            const initial = new URLSearchParams(location.search).get('vendorId'); if(initial) loadVendor(initial); else clear();
-        });
-    </script>
+    <script src="../../services/common/apiClient.js"></script>
+    <script src="../../services/inventory/inventory-vendors-page.js"></script>
+    
+
 </body>
 </html>

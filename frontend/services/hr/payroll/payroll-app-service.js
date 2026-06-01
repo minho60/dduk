@@ -2,70 +2,61 @@
  * Payroll Application Service (Orchestration Layer)
  */
 import { payrollService } from './payroll-service.js';
-import { PayrollStateMachine } from './payroll-state-machine.js';
-import { PAYROLL_STATUS, REVISION_TYPE } from './payroll-models.js';
-import { PayrollRevisionManager } from './payroll-revision-manager.js';
 import { payrollAccountingBridge } from './payroll-accounting-bridge.js';
 import { UIUtils } from '../../utils/ui-utils.js';
 
 export class PayrollAppService {
     /**
-     * Run Batch Payroll for a Period
+     * Run batch payroll for a period.
      */
-    async runBatchPayroll(yearMonth, employees, userId) {
-        console.log(`[AppService] Running batch payroll for ${yearMonth}...`);
+    async runBatchPayroll(yearMonth, employees) {
         const results = [];
-        for (const emp of employees) {
-            const res = await payrollService.calculatePayroll(emp, yearMonth, { overtimeHours: 0 }); // Default inputs
-            results.push(res.data);
+
+        for (const employee of employees) {
+            const result = await payrollService.calculatePayroll(employee, yearMonth, { overtimeHours: 0 });
+            results.push(result.data);
         }
+
         return results;
     }
 
     /**
-     * Finalize and Post Payroll to Accounting
-     */
-    /**
-     * Finalize and Post Payroll to Accounting (Backend-centric)
+     * Finalize and post payroll to accounting.
+     * The current backend contract does not expose a dedicated payroll detail query,
+     * so this flow uses the latest reference summary instead of an in-memory record store.
      */
     async finalizeAndPost(payrollId, userId) {
         try {
             UIUtils.setLoading('btn-finalize', true);
-            
-            // In a backend-centric model, we might call a specific transition API
-            // For now, we use the bridge to post to accounting
-            const record = (await payrollService.getPayrolls()).data.find(r => r.id === payrollId);
-            if (!record) throw new Error("급여 기록을 찾을 수 없습니다.");
 
-            // 1. Post to Accounting via Bridge
-            const postResult = await payrollAccountingBridge.postPayrollRun(record);
-            
-            if (postResult.success) {
-                // 2. Transition Status in Backend
-                await payrollService.transitionStatus(payrollId, 'POSTED', userId, '급여 확정 및 회계 반영');
-                UIUtils.showToast("급여가 확정되어 회계에 반영되었습니다.", 'success');
-                return { success: true };
-            } else {
-                throw new Error(postResult.message);
+            const summary = (await payrollService.getPayrollReferenceSummary()).data || {};
+            const record = summary.latestPayroll;
+
+            if (!record || String(record.id) !== String(payrollId)) {
+                throw new Error('급여 상세 조회 API가 아직 없어 최신 급여 기준으로만 후속 처리를 지원해.');
             }
-        } catch (err) {
-            UIUtils.showToast(err.message, 'error');
-            return { success: false, message: err.message };
+
+            const postResult = await payrollAccountingBridge.postPayrollRun(record);
+            if (!postResult.success) {
+                throw new Error(postResult.message || '급여 전표 반영에 실패했어.');
+            }
+
+            await payrollService.transitionStatus(payrollId, 'POSTED', userId, '급여 확정 및 회계 반영');
+            UIUtils.showToast('급여가 확정되어 회계에 반영됐어.', 'success');
+            return { success: true };
+        } catch (error) {
+            UIUtils.showToast(error.message, 'error');
+            return { success: false, message: error.message };
         } finally {
             UIUtils.setLoading('btn-finalize', false);
         }
     }
 
     /**
-     * Initiate Revision for an Approved Record
+     * Explicitly block revision creation until a dedicated backend endpoint exists.
      */
-    async initiateRevision(payrollRunId, type, userId, reason) {
-        const baseRun = (await payrollService.getPayrolls()).data.find(r => r.id === payrollRunId);
-        const newRun = PayrollRevisionManager.createRevision(baseRun, type, userId, reason);
-        
-        // Save new run
-        payrollService.records.push(newRun);
-        return newRun;
+    async initiateRevision() {
+        throw new Error('급여 리비전 생성은 전용 백엔드 API가 준비된 뒤에만 지원해.');
     }
 }
 

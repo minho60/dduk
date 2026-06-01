@@ -1,135 +1,130 @@
 /**
  * Payroll Management Service
+ * Backend remains the single source of truth for payroll data/state.
  */
-import { PayrollEngine } from './payroll-engine.js';
-import { payrollAuditService } from './payroll-audit-service.js';
-import { payrollAccountingBridge } from './payroll-accounting-bridge.js';
 
 class PayrollService {
-    constructor() {
-        this.records = []; // In-memory storage for mock
+    getApiBaseUrl() {
+        if (window.ddukSession && typeof window.ddukSession.getApiBaseUrl === 'function') {
+            return window.ddukSession.getApiBaseUrl();
+        }
+
+        if (window.location.protocol === 'file:') {
+            return 'http://localhost:8080';
+        }
+
+        if (window.location.port && window.location.port !== '8080') {
+            return 'http://localhost:8080';
+        }
+
+        return '';
+    }
+
+    getHeaders(extraHeaders = {}) {
+        if (window.ddukSession && typeof window.ddukSession.getAuthHeaders === 'function') {
+            return window.ddukSession.getAuthHeaders(extraHeaders);
+        }
+
+        const token = localStorage.getItem('token');
+        return {
+            ...(token ? { Authorization: `Bearer ${token}` } : {}),
+            ...extraHeaders
+        };
+    }
+
+    async request(path, options = {}) {
+        const method = (options.method || 'GET').toUpperCase();
+        const body = options.body;
+
+        if (window.ddukApi) {
+            if (method === 'GET') return window.ddukApi.get(path, options);
+            if (method === 'POST') return window.ddukApi.post(path, body || {}, options);
+            if (method === 'PUT') return window.ddukApi.put(path, body || {}, options);
+            if (method === 'PATCH') return window.ddukApi.patch(path, body || {}, options);
+            if (method === 'DELETE') return window.ddukApi.delete(path, options);
+        }
+
+        const response = await fetch(`${this.getApiBaseUrl()}${path}`, {
+            method,
+            headers: this.getHeaders({ 'Content-Type': 'application/json' }),
+            body: body ? JSON.stringify(body) : undefined
+        });
+
+        const text = await response.text();
+        let payload = null;
+
+        if (text) {
+            try {
+                payload = JSON.parse(text);
+            } catch (error) {
+                payload = null;
+            }
+        }
+
+        if (!response.ok) {
+            throw new Error(payload?.message || `급여 요청 처리에 실패했어. (${response.status})`);
+        }
+
+        return payload;
     }
 
     /**
-     * Calculate and Save Payroll Draft (Backend-only)
+     * Calculate and save payroll through the backend.
      */
     async calculatePayroll(employee, yearMonth, input = {}) {
-        // Step 1: Call Backend API (Single Source of Truth)
-        const response = await fetch('/api/v1/hr/payroll/calculate', {
+        const payroll = await this.request('/api/v1/hr/payroll/calculate', {
             method: 'POST',
-            headers: { 'Content-Type': 'application/json' },
-            body: JSON.stringify({
+            body: {
                 employeeId: employee.id,
                 payMonth: yearMonth,
                 inputs: input
-            })
+            }
         });
 
-        if (!response.ok) {
-            const errorData = await response.json().catch(() => ({}));
-            throw new Error(errorData.message || `급여 계산 서버 오류 (${response.status})`);
-        }
-
-        const apiData = await response.json();
-        console.log("[PayrollService] Backend calculation successful:", apiData);
-        
-        // Update local records
-        const index = this.records.findIndex(r => r.id === apiData.id);
-        if (index !== -1) {
-            this.records[index] = apiData;
-        } else {
-            this.records.push(apiData);
-        }
-
-        return { success: true, data: apiData };
+        return { success: true, data: payroll };
     }
 
     /**
-     * Approve Payroll (Make it Immutable and Sync to Accounting)
+     * Fetch the backend reference summary used by the payroll screens.
      */
-    async approvePayroll(id, userId) {
-        const record = this.records.find(r => r.id === id);
-        if (!record) return { success: false, message: "기록을 찾을 수 없습니다." };
-        if (record.status !== 'DRAFT') return { success: false, message: "대기 상태인 것만 승인 가능합니다." };
-
-        record.status = 'APPROVED';
-        record.approvedAt = new Date().toISOString();
-        record.updatedAt = new Date().toISOString();
-
-        payrollAuditService.log(id, 'APPROVED', userId);
-
-        // Sync to Accounting
-        const syncResult = await payrollAccountingBridge.syncToAccounting(record);
-        if (syncResult.success) {
-            record.accountingId = syncResult.accountingId;
-            payrollAuditService.log(id, 'SYNCED', 'SYSTEM', { accountingId: syncResult.accountingId });
-        }
-
-        return { success: true, message: "급여 승인 및 회계 연동이 완료되었습니다." };
+    async getPayrollReferenceSummary() {
+        const summary = await this.request('/api/v1/hr/payroll/reference-summary');
+        return { success: true, data: summary };
     }
 
     /**
-     * Recalculate (Create New Revision if Approved)
-     */
-    async recalculate(id, userId, input = {}) {
-        const oldRecord = this.records.find(r => r.id === id);
-        if (!oldRecord) return { success: false, message: "기록을 찾을 수 없습니다." };
-
-        // If approved, we need to handle revision carefully (out of scope for simple mock, but we mark as recalculated)
-        if (oldRecord.status === 'APPROVED' || oldRecord.status === 'PAID') {
-            return { success: false, message: "승인된 급여는 재계산할 수 없습니다. 취소 후 다시 진행하세요." };
-        }
-
-        // Simulating recalculation
-        const employee = { id: oldRecord.employeeId, name: oldRecord.employeeName, baseSalary: oldRecord.amounts.baseSalary };
-        const result = PayrollEngine.calculate(employee, input);
-        
-        Object.assign(oldRecord, result);
-        oldRecord.updatedAt = new Date().toISOString();
-        oldRecord.revision++;
-
-        payrollAuditService.log(id, 'RECALCULATED', userId, { revision: oldRecord.revision });
-        return { success: true, data: oldRecord };
-    }
-
-    /**
-     * Get all payroll records from Backend
+     * Keep compatibility for callers that previously expected a list.
+     * The current backend only exposes a reference summary, so we surface
+     * the latest payroll as a one-item list instead of faking a full store.
      */
     async getPayrolls(filters = {}) {
-        try {
-            const response = await fetch('/api/v1/hr/payroll');
-            if (response.ok) {
-                this.records = await response.json();
-                let filtered = this.records;
-                if (filters.yearMonth) filtered = filtered.filter(r => r.payMonth === filters.yearMonth);
-                if (filters.status) filtered = filtered.filter(r => r.status === filters.status);
-                return { success: true, data: filtered };
-            }
-        } catch (e) {
-            console.error("[PayrollService] Failed to fetch payrolls:", e);
+        const summary = (await this.getPayrollReferenceSummary()).data || {};
+        let payrolls = [];
+
+        if (summary.latestPayroll) {
+            payrolls = [summary.latestPayroll];
         }
-        return { success: false, data: [] };
+
+        if (filters.yearMonth) {
+            payrolls = payrolls.filter((record) => record.payMonth === filters.yearMonth);
+        }
+
+        if (filters.status) {
+            payrolls = payrolls.filter((record) => record.status === filters.status);
+        }
+
+        return { success: true, data: payrolls };
     }
 
     /**
-     * Transition Status via Backend API
+     * Transition status via backend API.
      */
     async transitionStatus(id, nextStatus, userId, reason) {
-        const response = await fetch(`/api/v1/hr/payroll/${id}/transition`, {
+        const updated = await this.request(`/api/v1/hr/payroll/${id}/transition`, {
             method: 'POST',
-            headers: { 'Content-Type': 'application/json' },
-            body: JSON.stringify({ nextStatus, userId, reason })
+            body: { nextStatus, userId, reason }
         });
 
-        if (!response.ok) {
-            const errorData = await response.json().catch(() => ({}));
-            throw new Error(errorData.message || `상태 변경 실패 (${response.status})`);
-        }
-
-        const updated = await response.json();
-        const index = this.records.findIndex(r => r.id === id);
-        if (index !== -1) this.records[index] = updated;
-        
         return { success: true, data: updated };
     }
 }
