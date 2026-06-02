@@ -101,7 +101,12 @@
         const path = window.location.pathname.replace(/\\/g, '/');
         if (item.match && path.includes('/' + item.match)) return true;
         if (!item.href || item.href === '#') return false;
-        return path.endsWith('/frontend/' + item.href) || path.endsWith('/' + item.href);
+        
+        const cleanHref = item.href.replace(/^\//, '');
+        return path.endsWith('/' + cleanHref) || 
+               path.includes('/' + cleanHref) || 
+               path.endsWith('/frontend/' + cleanHref) ||
+               (path.includes(cleanHref) && path.endsWith(cleanHref.split('/').pop()));
     }
 
     function renderMenuItem(item, extraClass) {

@@ -90,10 +90,7 @@
                 loadRpaHistory();
             }
 
-            if (pageMessage) {
-                pageMessage.textContent = '재고 대시보드를 최신 데이터로 갱신했어.';
-                pageMessage.className = 'mt-1 text-sm font-semibold text-emerald-600';
-            }
+            window.ddukApi?.showToast?.('최신 데이터로 대시보드가 갱신되었습니다.', 'success');
         } catch (error) {
             if (pageMessage) {
                 pageMessage.textContent = error.message || '재고 대시보드를 불러오지 못했어.';

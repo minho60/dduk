@@ -32,7 +32,7 @@
     showLoader(true);
     
     try {
-      const payload = await window.ddukApi.get(`/accounting/reports/trial-balance?${query}`);
+      const payload = await window.ddukApi.get(`/api/v1/accounting/reports/trial-balance?${query}`);
       state.rows = payload.data.rows || [];
       state.collapsed.clear();
       renderSummary(payload.data.summary);
