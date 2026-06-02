@@ -254,10 +254,27 @@
             return;
         }
 
-        document.body.classList.toggle('sidebar-collapsed');
+        const isCollapsed = document.body.classList.toggle('sidebar-collapsed');
+        localStorage.setItem('dduk_sidebar_collapsed', isCollapsed ? 'true' : 'false');
+
+        // 사이드바 접힐 때 열려 있던 서브메뉴 전체 접기 강제 적용
+        if (isCollapsed) {
+            document.querySelectorAll('.submenu').forEach(submenu => {
+                submenu.classList.add('collapsed');
+                const id = submenu.id;
+                const icon = document.getElementById('icon_' + id.replace('menu_', ''));
+                if (icon) {
+                    icon.setAttribute('data-lucide', 'chevron-down');
+                }
+            });
+        } else {
+            // 사이드바 다시 펼칠 때 현재 활성화된 메뉴 그룹 자동 열기
+            openCurrentMenuGroup();
+        }
+
         const icon = sidebar.querySelector('[data-lucide="panel-left-close"], [data-lucide="panel-left-open"]');
         if (icon) {
-            icon.setAttribute('data-lucide', document.body.classList.contains('sidebar-collapsed') ? 'panel-left-open' : 'panel-left-close');
+            icon.setAttribute('data-lucide', isCollapsed ? 'panel-left-open' : 'panel-left-close');
         }
         if (window.lucide) lucide.createIcons();
     };
@@ -349,17 +366,40 @@
 
     function openCurrentMenuGroup() {
         const current = document.querySelector('.menu_item.active');
-        const submenu = current ? current.closest('.submenu') : null;
-        if (!submenu) return;
-        submenu.classList.remove('collapsed');
-        updateMenuIcon(submenu.id, true);
+        if (!current) return;
+
+        let parent = current.parentElement;
+        while (parent) {
+            if (parent.classList.contains('submenu')) {
+                parent.classList.remove('collapsed');
+                updateMenuIcon(parent.id, true);
+            }
+            parent = parent.parentElement;
+        }
     }
 
     function initSidebar() {
         const host = document.querySelector('[data-dduk-sidebar]');
         if (!host) return;
 
+        // localStorage에서 이전 접힘 상태 로드 및 동기화
+        const isCollapsed = localStorage.getItem('dduk_sidebar_collapsed') === 'true';
+        if (isCollapsed && window.innerWidth > 1024) {
+            document.body.classList.add('sidebar-collapsed');
+        } else {
+            document.body.classList.remove('sidebar-collapsed');
+        }
+
         host.outerHTML = renderSidebar();
+
+        const sidebar = document.getElementById('sidebar');
+        if (sidebar && isCollapsed && window.innerWidth > 1024) {
+            const icon = sidebar.querySelector('[data-lucide="panel-left-close"], [data-lucide="panel-left-open"]');
+            if (icon) {
+                icon.setAttribute('data-lucide', 'panel-left-open');
+            }
+        }
+
         document.querySelectorAll('.submenu').forEach(submenu => updateMenuIcon(submenu.id, !submenu.classList.contains('collapsed')));
         
         const currentUserRole = localStorage.getItem('role') || '';
@@ -380,7 +420,12 @@
             });
         });
         renderRecentMenus();
-        openCurrentMenuGroup();
+        
+        // 접힌 상태일 때는 메뉴그룹 자동 열기를 건너뜀 (대형 화이트스페이스 방지)
+        if (!document.body.classList.contains('sidebar-collapsed')) {
+            openCurrentMenuGroup();
+        }
+        
         checkMobile();
         window.addEventListener('resize', checkMobile);
         if (window.lucide) lucide.createIcons();
