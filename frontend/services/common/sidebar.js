@@ -1,4 +1,4 @@
-﻿(function () {
+(function () {
     const RECENT_MENU_KEY = 'dduk_dashboard_recent_menu';
     const RECENT_MENU_TTL = 3 * 24 * 60 * 60 * 1000;
 
@@ -568,7 +568,33 @@
         container.scrollTop = container.scrollHeight;
     }
 
+    // ==========================================
+    // Utility Helpers for Sidebar Widget
+    // ==========================================
+    const money = {
+        format: function(value) {
+            return Number(value || 0).toLocaleString('ko-KR');
+        }
+    };
+
+    function formatDateTime(value) {
+        if (!value) return '-';
+        try {
+            const date = new Date(value);
+            if (isNaN(date.getTime())) return value;
+            const y = date.getFullYear();
+            const m = String(date.getMonth() + 1).padStart(2, '0');
+            const d = String(date.getDate()).padStart(2, '0');
+            const hh = String(date.getHours()).padStart(2, '0');
+            const mm = String(date.getMinutes()).padStart(2, '0');
+            return `${y}-${m}-${d} ${hh}:${mm}`;
+        } catch (e) {
+            return value;
+        }
+    }
+
     async function renderAnomalyList() {
+
         const container = document.getElementById('dduk-floating-anomaly-list');
         if (!container) return;
 
