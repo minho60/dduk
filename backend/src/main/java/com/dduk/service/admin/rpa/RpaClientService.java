@@ -32,16 +32,18 @@ public class RpaClientService {
 
     private final RestTemplate restTemplate;
     private final TaskHistoryService taskHistoryService;
+    private final com.dduk.service.inventory.InventoryAgingAnalysisService inventoryAgingAnalysisService;
 
     @Value("${rpa-server.url:http://localhost:5050}")
     private String rpaServerUrl;
 
-    public RpaClientService(RestTemplateBuilder restTemplateBuilder, TaskHistoryService taskHistoryService) {
+    public RpaClientService(RestTemplateBuilder restTemplateBuilder, TaskHistoryService taskHistoryService, com.dduk.service.inventory.InventoryAgingAnalysisService inventoryAgingAnalysisService) {
         this.restTemplate = restTemplateBuilder
                 .setConnectTimeout(Duration.ofSeconds(2))
                 .setReadTimeout(Duration.ofSeconds(3))
                 .build();
         this.taskHistoryService = taskHistoryService;
+        this.inventoryAgingAnalysisService = inventoryAgingAnalysisService;
     }
 
     @SuppressWarnings("unchecked")
@@ -61,6 +63,18 @@ public class RpaClientService {
         requestBody.put("action", actionName);
 
         taskHistoryService.createRpaTriggerRequest(taskId, actionName, requestBody);
+
+        if (TASK_TYPE_INVENTORY_SHORTAGE.equals(normalizedTaskType)) {
+            taskHistoryService.markRpaTaskAccepted(taskId);
+            inventoryAgingAnalysisService.runAsync(taskId, normalizedTaskType, actionName);
+            log.info("[RPA Client] Internal Inventory Aging analysis triggered. Task ID: {}, action: {}", taskId, actionName);
+            return Map.of(
+                    "taskId", taskId,
+                    "taskType", normalizedTaskType,
+                    "actionName", actionName,
+                    "accepted", true
+            );
+        }
 
         HttpEntity<Map<String, Object>> requestEntity = new HttpEntity<>(requestBody, headers);
 

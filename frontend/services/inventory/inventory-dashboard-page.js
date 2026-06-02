@@ -55,12 +55,13 @@
     function rpaChipMeta(status) {
         switch (status) {
             case 'READY':
-                return { label: '경고 확인 가능', className: 'rpa-chip ready' };
-            case 'ERP_ONLY':
-                return { label: 'ERP 기준만 있음', className: 'rpa-chip waiting' };
-            case 'MISSING_FILE':
+                return { label: '결과 확인 가능', className: 'rpa-chip ready' };
+            case 'ANALYSIS_PARTIAL':
+                return { label: '부분 분석 완료', className: 'rpa-chip ready' };
             case 'EMPTY_RESULT':
-                return { label: '결과 부족', className: 'rpa-chip missing' };
+                return { label: '리스크 없음', className: 'rpa-chip ready' };
+            case 'MISSING_FILE':
+                return { label: '결과 누락', className: 'rpa-chip missing' };
             default:
                 return { label: rpaTriggerPending ? '실행 요청 중' : '대기', className: 'rpa-chip waiting' };
         }
@@ -86,7 +87,7 @@
             renderRecentMovements(stats.recentMovements || []);
             renderDashboardCharts(stats);
             renderShortageRpa(stats.inventoryShortageRpa || {});
-            if (session?.role === 'ADMIN') {
+            if (session?.role && ['ADMIN', 'INVENTORY', 'HR'].includes(session.role)) {
                 loadRpaHistory();
             }
 
@@ -176,17 +177,17 @@
         chip.className = chipMeta.className;
         chip.textContent = chipMeta.label;
 
-        setText('rpa-message', block.message || '부족 재고 조회 결과가 아직 없어.');
-        setText('rpa-vendor-name', block.vendorName || '-');
+        setText('rpa-message', block.message || '분석 결과가 아직 없어.');
+        setText('rpa-vendor-name', block.vendorName || '내부 분석기');
         setText('rpa-collected-at', formatDateTime(block.latestCollectedAt));
-        setText('rpa-matched-count', number(block.matchedLowStockCount || 0));
-        setText('rpa-erp-count', number(block.erpLowStockCount || 0));
-        setText('rpa-alert-count', number(block.rpaAlertCount || 0));
-        setText('rpa-match-count-card', number(block.matchedLowStockCount || 0));
+        setText('rpa-matched-count', number(block.agingCount || 0));
+        setText('rpa-erp-count', number(block.expiryCount || 0));
+        setText('rpa-alert-count', number(block.totalRiskCount || 0));
+        setText('rpa-match-count-card', number(block.totalRiskCount || 0));
 
         const items = Array.isArray(block.items) ? block.items : [];
         if (!items.length) {
-            body.innerHTML = '<tr><td colspan="5"><div class="warn-empty">ERP 부족 재고와 비교할 경고 결과가 아직 없어.</div></td></tr>';
+            body.innerHTML = '<tr><td colspan="5"><div class="warn-empty">분석된 리스크 재고 항목이 없어.</div></td></tr>';
             return;
         }
 
@@ -194,8 +195,8 @@
             <tr>
                 <td class="font-black text-slate-900">${escapeHtml(item.itemName || '-')}</td>
                 <td class="font-bold text-slate-600">${escapeHtml(item.warehouseName || '-')}</td>
-                <td class="font-bold text-slate-700">${item.availableStock == null ? '-' : `${number(item.availableStock)} / ${number(item.safetyStock)}`}</td>
-                <td class="font-bold ${item.matchType === 'MATCHED' ? 'text-rose-600' : 'text-amber-700'}">${escapeHtml(item.rpaStockStatus || '-')}</td>
+                <td class="font-bold text-slate-700">${item.availableStock == null ? '-' : number(item.availableStock)}</td>
+                <td class="font-bold text-amber-700">${escapeHtml(item.statusLabel || '장기 체화')}</td>
                 <td class="font-bold text-slate-700">${escapeHtml(item.recommendedAction || '-')}</td>
             </tr>
         `).join('');
@@ -267,26 +268,26 @@
         try {
             const response = await window.ddukApi.post('/api/v1/admin/rpa/trigger', { taskType: 'INVENTORY_SHORTAGE' });
             if (pageMessage) {
-                pageMessage.textContent = `재고 부족 조회를 요청했어. Task ID: ${response.data?.taskId || '-'}`;
+                pageMessage.textContent = `장기 체화 및 임박 재고 분석을 요청했어. Task ID: ${response.data?.taskId || '-'}`;
                 pageMessage.className = 'mt-1 text-sm font-semibold text-amber-700';
             }
             renderShortageRpa({
                 status: 'WAITING',
-                vendorName: '아망떼',
-                message: 'RPA 실행을 요청했어. 완료되면 자동으로 부족 재고 카드가 갱신돼.',
+                vendorName: '내부 분석기',
+                message: '분석 실행을 요청했어. 완료되면 재고 리스크 분석 결과가 갱신돼.',
                 items: []
             });
             loadRpaHistory();
             window.setTimeout(loadDashboard, 2000);
         } catch (error) {
             if (pageMessage) {
-                pageMessage.textContent = error.message || '재고 부족 조회 실행 요청이 실패했어.';
+                pageMessage.textContent = error.message || '재고 리스크 분석 실행 요청이 실패했어.';
                 pageMessage.className = 'mt-1 text-sm font-semibold text-rose-600';
             }
         } finally {
             rpaTriggerPending = false;
             button.disabled = !['ADMIN', 'INVENTORY', 'HR'].includes(session.role);
-            button.innerHTML = '<i data-lucide="radar" class="w-4 h-4"></i> 부족 조회 실행';
+            button.innerHTML = '<i data-lucide="radar" class="w-4 h-4"></i> 분석 실행';
             if (window.lucide) {
                 window.lucide.createIcons();
             }
@@ -316,7 +317,7 @@
         assetChartInstance = new Chart(assetCanvas.getContext('2d'), {
             type: 'doughnut',
             data: {
-                labels: whNames.length ? whNames : ['재고 없음'],
+                labels: whNames.length ? whNames : ['창고 없음'],
                 datasets: [{
                     data: whValues.length ? whValues : [0],
                     backgroundColor: [
@@ -429,7 +430,7 @@
     }
 
     async function approveTransfer(id) {
-        if (!window.confirm('해당 창고 이동 요청을 승인할까?')) {
+        if (!window.confirm('해당 창고 이동 요청을 승인하시겠습니까?')) {
             return;
         }
         try {
@@ -473,9 +474,9 @@
         }
         if (triggerButton && !['ADMIN', 'INVENTORY', 'HR'].includes(session.role)) {
             triggerButton.disabled = true;
-            triggerButton.title = 'RPA 실행은 관리자만 가능해.';
+            triggerButton.title = 'RPA 실행은 허용된 사용자만 가능해.';
             if (historyList) {
-                historyList.innerHTML = '<div class="warn-empty">최근 RPA 실행 이력은 관리자만 볼 수 있어.</div>';
+                historyList.innerHTML = '<div class="warn-empty">최근 RPA 실행 이력을 볼 수 없어.</div>';
             }
         }
 

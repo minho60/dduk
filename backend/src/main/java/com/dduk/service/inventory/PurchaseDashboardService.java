@@ -177,11 +177,11 @@ public class PurchaseDashboardService {
         }
 
         comparison.put("available", true);
-        comparison.put("status", comparedItems.isEmpty() ? "ERP_BASELINE_ONLY" : "READY");
+        comparison.put("status", "READY");
         comparison.put(
                 "message",
                 comparedItems.isEmpty()
-                        ? "ERP 기준 평균과 최근 수집 평균은 계산했지만, 품목명을 직접 맞춘 비교 행은 아직 없어."
+                        ? "수집 단가와 ERP 등록 단가가 모두 일치하여, 현재 단가 차이가 발생하는 품목이 없습니다."
                         : "최근 수집 단가와 ERP 기준 단가를 비교할 수 있어."
         );
         return comparison;
@@ -228,6 +228,12 @@ public class PurchaseDashboardService {
 
             BigDecimal collectedPrice = toBigDecimal(collectedItem.get("unitPrice"));
             BigDecimal erpPrice = toBigDecimal(erpItem.get("erpPrice"));
+
+            // 단가 차이가 있는 품목만 허용 (수집가와 ERP가가 모두 존재하고, 두 가격이 다른 경우만)
+            if (collectedPrice == null || erpPrice == null || collectedPrice.compareTo(erpPrice) == 0) {
+                continue;
+            }
+
             Map<String, Object> row = new LinkedHashMap<>();
             row.put("productName", productName);
             row.put("vendorName", collectedItem.get("vendorName"));
@@ -237,17 +243,9 @@ public class PurchaseDashboardService {
             row.put("matchType", normalized.equals(normalizeName(String.valueOf(erpItem.get("itemName")))) ? "EXACT" : "LOOSE");
             result.add(row);
             usedKeys.add(normalized);
-
-            if (result.size() >= 3) {
-                break;
-            }
         }
 
-        if (!result.isEmpty()) {
-            return result;
-        }
-
-        return summarizeCollectedOnly(collectedItems);
+        return result;
     }
 
     private Map<String, Object> findLooseMatch(String normalizedCollectedName, List<Map<String, Object>> erpItems) {

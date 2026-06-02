@@ -1,4 +1,4 @@
-(function () {
+﻿(function () {
     let session = null;
     let rpaTriggerPending = false;
 
@@ -109,7 +109,6 @@
                 return { label: rpaTriggerPending ? '실행 요청 중' : '대기', className: 'rpa-chip waiting' };
         }
     }
-
     function matchTypeText(value) {
         return {
             EXACT: '정확 매칭',
@@ -346,9 +345,9 @@
 
     async function triggerPurchasePriceRpa() {
         const message = el('message');
-        if (!session || session.role !== 'ADMIN') {
+        if (!session || !['ADMIN', 'INVENTORY', 'HR'].includes(session.role)) {
             if (message) {
-                message.textContent = 'RPA 실행은 관리자만 가능해.';
+                message.textContent = 'RPA 실행은 허용된 사용자만 가능해.';
                 message.className = 'text-sm text-slate-600 mt-1 font-semibold';
             }
             return;
@@ -374,7 +373,7 @@
             }
             renderRpaComparison({
                 status: 'WAITING',
-                vendorName: '아망떼',
+                vendorName: '알림',
                 message: 'RPA 실행을 요청했어. 완료되면 자동으로 비교 카드가 갱신돼.',
                 items: []
             });
@@ -453,7 +452,7 @@
         }
         if (triggerButton && !['ADMIN', 'INVENTORY', 'HR'].includes(session.role)) {
             triggerButton.disabled = true;
-            triggerButton.title = 'RPA 실행은 관리자만 가능해.';
+            triggerButton.title = 'RPA 실행은 허용된 사용자만 가능해.';
             if (historyList) {
                 historyList.innerHTML = '<div class="rpa-empty">최근 RPA 실행 이력은 관리자만 볼 수 있어.</div>';
             }
@@ -473,3 +472,4 @@
 
     window.triggerPurchasePriceRpa = triggerPurchasePriceRpa;
 })();
+

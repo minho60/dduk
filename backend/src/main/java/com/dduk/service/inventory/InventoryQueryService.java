@@ -135,19 +135,20 @@ public class InventoryQueryService {
         }
     }
 
+    @SuppressWarnings("unchecked")
     private Map<String, Object> buildInventoryShortageRpa() {
         Map<String, Object> result = new LinkedHashMap<>();
         result.put("taskType", "INVENTORY_SHORTAGE");
         result.put("actionName", INVENTORY_SHORTAGE_ACTION);
         result.put("available", false);
         result.put("status", "EMPTY");
-        result.put("vendorName", DEFAULT_VENDOR_NAME);
-        result.put("message", "아직 완료된 재고 부족 조회 결과가 없어.");
+        result.put("vendorName", "내부 분석기");
+        result.put("message", "아직 완료된 장기 체화 및 임박 재고 분석 결과가 없어.");
         result.put("latestTaskId", null);
         result.put("latestCollectedAt", null);
-        result.put("rpaAlertCount", 0);
-        result.put("erpLowStockCount", inventoryRepository.countLowStockItems());
-        result.put("matchedLowStockCount", 0);
+        result.put("agingCount", 0);
+        result.put("expiryCount", 0);
+        result.put("totalRiskCount", 0);
         result.put("items", List.of());
 
         Optional<TaskHistory> latestTask = taskHistoryRepository
@@ -157,9 +158,7 @@ public class InventoryQueryService {
                         TaskHistoryStatus.SUCCESS
                 );
 
-        List<Inventory> lowStockItems = inventoryRepository.findItemsNeedingReorderWithFetch();
         if (latestTask.isEmpty()) {
-            result.put("items", summarizeErpOnly(lowStockItems));
             return result;
         }
 
@@ -170,115 +169,55 @@ public class InventoryQueryService {
         String sourceFilePath = readString(parseMap(taskHistory.getResponsePayload()), "data", "filePath");
         if (sourceFilePath == null || sourceFilePath.isBlank()) {
             result.put("status", "MISSING_FILE");
-            result.put("message", "최근 재고 부족 조회 이력은 있지만 결과 파일 경로를 찾지 못했어.");
-            result.put("items", summarizeErpOnly(lowStockItems));
+            result.put("message", "최근 분석 이력은 있지만 결과 파일 경로를 찾지 못했어.");
             return result;
         }
 
         Path resolvedPath = resolveProjectPath(sourceFilePath);
         if (resolvedPath == null || !Files.exists(resolvedPath)) {
             result.put("status", "MISSING_FILE");
-            result.put("message", "최근 재고 부족 조회 이력은 있지만 결과 파일이 없어.");
-            result.put("items", summarizeErpOnly(lowStockItems));
+            result.put("message", "최근 분석 이력은 있지만 결과 파일이 없어.");
             return result;
         }
 
-        List<Map<String, Object>> alerts = readAlertItems(resolvedPath);
-        result.put("rpaAlertCount", alerts.size());
-        result.put("vendorName", firstVendor(alerts).orElse(DEFAULT_VENDOR_NAME));
-
-        if (alerts.isEmpty()) {
+        Map<String, Object> fileContent = readJsonFile(resolvedPath);
+        if (fileContent.isEmpty()) {
             result.put("status", "EMPTY_RESULT");
-            result.put("message", "최근 재고 부족 조회 파일은 있지만 비교할 경고 항목이 비어 있어.");
-            result.put("items", summarizeErpOnly(lowStockItems));
+            result.put("message", "최근 분석 파일은 있지만 분석 결과 내용을 해석하지 못했어.");
             return result;
         }
 
-        List<Map<String, Object>> mergedItems = mergeLowStockItems(lowStockItems, alerts);
-        long matchedCount = mergedItems.stream()
-                .filter(item -> "MATCHED".equals(item.get("matchType")))
-                .count();
+        Map<String, Object> summary = (Map<String, Object>) fileContent.get("summary");
+        int agingCount = summary != null && summary.get("agingCount") != null ? ((Number) summary.get("agingCount")).intValue() : 0;
+        int expiryCount = summary != null && summary.get("expiryCount") != null ? ((Number) summary.get("expiryCount")).intValue() : 0;
+        int totalRiskCount = summary != null && summary.get("totalRiskCount") != null ? ((Number) summary.get("totalRiskCount")).intValue() : 0;
+        boolean expirySupport = summary != null && Boolean.TRUE.equals(summary.get("expirySupport"));
+
+        result.put("agingCount", agingCount);
+        result.put("expiryCount", expiryCount);
+        result.put("totalRiskCount", totalRiskCount);
+
+        List<Map<String, Object>> items = (List<Map<String, Object>>) fileContent.get("items");
+        if (items == null) {
+            items = List.of();
+        }
+        result.put("items", items);
 
         result.put("available", true);
-        result.put("status", matchedCount > 0 ? "READY" : "ERP_ONLY");
-        result.put("matchedLowStockCount", matchedCount);
-        result.put(
-                "message",
-                matchedCount > 0
-                        ? "ERP 부족 재고와 최근 조회 경고를 함께 볼 수 있어."
-                        : "ERP 부족 재고는 있지만, 최근 조회 결과와 직접 맞는 품목은 아직 없어."
-        );
-        result.put("items", mergedItems);
-        return result;
-    }
-
-    private List<Map<String, Object>> mergeLowStockItems(List<Inventory> lowStockItems, List<Map<String, Object>> alerts) {
-        Map<String, Map<String, Object>> alertIndex = alerts.stream()
-                .collect(Collectors.toMap(
-                        alert -> normalizeName(String.valueOf(alert.get("productName"))),
-                        alert -> alert,
-                        (left, right) -> left,
-                        LinkedHashMap::new
-                ));
-
-        List<Map<String, Object>> rows = lowStockItems.stream()
-                .limit(5)
-                .map(inventory -> {
-                    String itemName = inventory.getItem().getName();
-                    Map<String, Object> alert = alertIndex.get(normalizeName(itemName));
-                    Map<String, Object> row = new LinkedHashMap<>();
-                    row.put("itemName", itemName);
-                    row.put("warehouseName", inventory.getWarehouse().getWarehouseName());
-                    row.put("availableStock", inventory.getAvailableStock());
-                    row.put("safetyStock", inventory.getSafetyStock());
-                    row.put("shortageGap", inventory.getSafetyStock() - inventory.getAvailableStock());
-                    row.put("rpaStockStatus", alert == null ? "미확인" : alert.get("stockStatus"));
-                    row.put("expectedRestockDate", alert == null ? null : alert.get("expectedRestockDate"));
-                    row.put("recommendedAction", alert == null ? "ERP 기준으로 수동 확인" : alert.get("recommendedAction"));
-                    row.put("matchType", alert == null ? "ERP_ONLY" : "MATCHED");
-                    return row;
-                })
-                .collect(Collectors.toList());
-
-        if (!rows.isEmpty()) {
-            return rows;
+        if (totalRiskCount == 0) {
+            result.put("status", "EMPTY_RESULT");
+            result.put("message", "분석을 완료했지만 노출할 리스크 항목은 없었어.");
+        } else {
+            if (!expirySupport) {
+                result.put("status", "ANALYSIS_PARTIAL");
+                result.put("message", "장기 체화 재고 " + agingCount + "건을 탐지했고, 유통기한 데이터는 아직 연결되지 않았어.");
+            } else {
+                result.put("status", "READY");
+                result.put("message", "장기 체화 재고 " + agingCount + "건, 유통기한 임박 재고 " + expiryCount + "건을 탐지했어.");
+            }
         }
 
-        return alerts.stream()
-                .limit(5)
-                .map(alert -> {
-                    Map<String, Object> row = new LinkedHashMap<>();
-                    row.put("itemName", alert.get("productName"));
-                    row.put("warehouseName", "-");
-                    row.put("availableStock", null);
-                    row.put("safetyStock", null);
-                    row.put("shortageGap", null);
-                    row.put("rpaStockStatus", alert.get("stockStatus"));
-                    row.put("expectedRestockDate", alert.get("expectedRestockDate"));
-                    row.put("recommendedAction", alert.get("recommendedAction"));
-                    row.put("matchType", "RPA_ONLY");
-                    return row;
-                })
-                .collect(Collectors.toList());
-    }
-
-    private List<Map<String, Object>> summarizeErpOnly(List<Inventory> lowStockItems) {
-        return lowStockItems.stream()
-                .limit(5)
-                .map(inventory -> {
-                    Map<String, Object> row = new LinkedHashMap<>();
-                    row.put("itemName", inventory.getItem().getName());
-                    row.put("warehouseName", inventory.getWarehouse().getWarehouseName());
-                    row.put("availableStock", inventory.getAvailableStock());
-                    row.put("safetyStock", inventory.getSafetyStock());
-                    row.put("shortageGap", inventory.getSafetyStock() - inventory.getAvailableStock());
-                    row.put("rpaStockStatus", "미확인");
-                    row.put("expectedRestockDate", null);
-                    row.put("recommendedAction", "ERP 기준으로 수동 확인");
-                    row.put("matchType", "ERP_ONLY");
-                    return row;
-                })
-                .collect(Collectors.toList());
+        return result;
     }
 
     private Map<String, Object> parseMap(String json) {
@@ -301,20 +240,12 @@ public class InventoryQueryService {
         return null;
     }
 
-    private List<Map<String, Object>> readAlertItems(Path filePath) {
+    private Map<String, Object> readJsonFile(Path filePath) {
         try {
-            return objectMapper.readValue(filePath.toFile(), new TypeReference<List<Map<String, Object>>>() {});
+            return objectMapper.readValue(filePath.toFile(), new TypeReference<Map<String, Object>>() {});
         } catch (IOException exception) {
-            return List.of();
+            return Map.of();
         }
-    }
-
-    private Optional<String> firstVendor(List<Map<String, Object>> alerts) {
-        return alerts.stream()
-                .map(item -> item.get("vendorName"))
-                .filter(value -> value != null && !String.valueOf(value).isBlank())
-                .map(String::valueOf)
-                .findFirst();
     }
 
     private Path resolveProjectPath(String filePath) {
@@ -332,12 +263,5 @@ public class InventoryQueryService {
             return null;
         }
         return resolved;
-    }
-
-    private String normalizeName(String value) {
-        if (value == null) {
-            return "";
-        }
-        return value.replaceAll("[^\\p{IsAlphabetic}\\p{IsDigit}]", "").toUpperCase();
     }
 }

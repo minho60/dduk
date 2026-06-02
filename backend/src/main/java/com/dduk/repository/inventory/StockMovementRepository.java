@@ -42,4 +42,7 @@ public interface StockMovementRepository extends JpaRepository<StockMovement, Lo
 
     @Query("SELECT SUM(m.quantity) FROM StockMovement m WHERE m.movementType = 'OUTBOUND' AND m.createdAt >= :since")
     Long getOutboundVolumeSince(LocalDateTime since);
+
+    @Query("SELECT MAX(m.createdAt) FROM StockMovement m WHERE m.item.id = :itemId AND m.warehouse.id = :warehouseId AND m.movementType IN (com.dduk.entity.inventory.MovementType.OUTBOUND, com.dduk.entity.inventory.MovementType.TRANSFER_OUT, com.dduk.entity.inventory.MovementType.RETURN_OUT)")
+    LocalDateTime findLastOutboundTime(@Param("itemId") Long itemId, @Param("warehouseId") Long warehouseId);
 }

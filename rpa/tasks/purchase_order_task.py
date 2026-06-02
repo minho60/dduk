@@ -20,16 +20,16 @@ if hasattr(sys.stderr, "reconfigure"):
 dotenv_path = os.path.join(os.path.dirname(__file__), "..", "..", ".env")
 load_dotenv(dotenv_path)
 
-AMANTE_VENDOR_NAME = "아망티"
-DEFAULT_CATALOG_URL = "https://amante.co.kr/"
+AMANTEA_VENDOR_NAME = "아망티"
+DEFAULT_CATALOG_URL = "https://www.amantea.co.kr/"
 DEFAULT_DISCOVERY_URLS = [
-    "https://amante.co.kr/",
-    "https://www.amante.co.kr/",
+    "https://www.amantea.co.kr/",
+    "https://www.amantea.co.kr/product/list.html?cate_no=42",
 ]
 DEFAULT_PRODUCT_URLS = [
-    "https://www.amante.co.kr/shop/product/product_view?product_cd=3482697",
-    "https://www.amante.co.kr/shop/product/product_view?product_cd=9545008",
-    "https://www.amante.co.kr/shop/product/product_view?product_cd=3478589",
+    "https://www.amantea.co.kr/product/detail.html?product_no=426",
+    "https://www.amantea.co.kr/product/detail.html?product_no=614",
+    "https://www.amantea.co.kr/product/detail.html?product_no=1122",
 ]
 DEFAULT_MAX_PRODUCTS = 24
 DEFAULT_TIMEOUT_MS = 15000
@@ -58,12 +58,13 @@ def canonicalize_product_url(raw_url: str) -> str | None:
     parsed = urlparse(raw_url.strip())
     hostname = (parsed.hostname or "").lower()
     path = parsed.path or ""
-    if not hostname.endswith("amante.co.kr"):
+    if not hostname.endswith("amantea.co.kr"):
         return None
 
     is_public_product = (
         path.endswith("/product/detail.html")
         or path.endswith("/shop/product/product_view")
+        or "/product/list.html" in path
         or bool(re.search(r"/product/.+/\d+/?$", path))
     )
     if not is_public_product:
@@ -261,7 +262,7 @@ def parse_product_detail(page, product_url: str, index: int, timeout_ms: int) ->
             ].filter(Boolean);
 
             const title = titleCandidates
-                .map((candidate) => candidate.replace(/^아망떼\\s*[|ㅣ]\\s*/, "").trim())
+                .map((candidate) => candidate.replace(/^아망티\\s*[|ㅣ]\\s*/, "").trim())
                 .find((candidate) => candidate && !candidate.includes("개인정보 수집 및 이용"))
                 || "";
 
@@ -299,13 +300,13 @@ def parse_product_detail(page, product_url: str, index: int, timeout_ms: int) ->
     related_links = collect_product_links(page, DEFAULT_DISCOVERY_LIMIT)
 
     order = {
-        "orderNo": f"AMANTE-{extract_product_code(product_url, index)}",
+        "orderNo": f"AMANTEA-{extract_product_code(product_url, index)}",
         "productCode": extract_product_code(product_url, index),
         "productName": product_name,
         "quantity": 1,
         "unitPrice": int(unit_price_text),
         "spec": build_spec(payload.get("optionGroups") or [], str(payload.get("optionSummaryText") or "")),
-        "vendorName": AMANTE_VENDOR_NAME,
+        "vendorName": AMANTEA_VENDOR_NAME,
         "productUrl": product_url,
         "soldOut": bool(payload.get("soldOut")),
         "stockStatus": "SOLD_OUT" if payload.get("soldOut") else "AVAILABLE_OR_UNKNOWN",
@@ -322,13 +323,13 @@ def parse_product_detail(page, product_url: str, index: int, timeout_ms: int) ->
 def discover_initial_product_urls(context, catalog_url: str, max_products: int, timeout_ms: int) -> list[str]:
     seeded = []
     seen = set()
-    for raw_url in parse_env_list("RPA_AMANTE_PRODUCT_URLS", DEFAULT_PRODUCT_URLS):
+    for raw_url in parse_env_list("RPA_AMANTEA_PRODUCT_URLS", DEFAULT_PRODUCT_URLS):
         normalized = canonicalize_product_url(raw_url)
         if normalized and normalized not in seen:
             seen.add(normalized)
             seeded.append(normalized)
 
-    for discovery_url in parse_env_list("RPA_AMANTE_DISCOVERY_URLS", DEFAULT_DISCOVERY_URLS):
+    for discovery_url in parse_env_list("RPA_AMANTEA_DISCOVERY_URLS", DEFAULT_DISCOVERY_URLS):
         if len(seeded) >= max_products:
             break
         page = context.new_page()
@@ -352,10 +353,10 @@ def discover_initial_product_urls(context, catalog_url: str, max_products: int, 
 
 
 def run_purchase_order_task(task_id: str, task_type: str = "PURCHASE_PRICE", action_name: str = "collect_purchase_orders"):
-    print(f"[RPA Task] Starting public Amante collection. Task ID: {task_id}, Task Type: {task_type}, Action: {action_name}")
+    print(f"[RPA Task] Starting public Amantea collection. Task ID: {task_id}, Task Type: {task_type}, Action: {action_name}")
 
-    catalog_url = os.getenv("RPA_AMANTE_CATALOG_URL", DEFAULT_CATALOG_URL).strip() or DEFAULT_CATALOG_URL
-    max_products = max(1, safe_int(os.getenv("RPA_AMANTE_MAX_PRODUCTS"), DEFAULT_MAX_PRODUCTS))
+    catalog_url = os.getenv("RPA_AMANTEA_CATALOG_URL", DEFAULT_CATALOG_URL).strip() or DEFAULT_CATALOG_URL
+    max_products = max(1, safe_int(os.getenv("RPA_AMANTEA_MAX_PRODUCTS"), DEFAULT_MAX_PRODUCTS))
     timeout_ms = max(5000, safe_int(os.getenv("RPA_PUBLIC_PAGE_TIMEOUT_MS"), DEFAULT_TIMEOUT_MS))
     per_item_delay = max(0.0, safe_float(os.getenv("RPA_PUBLIC_PAGE_DELAY_SECONDS"), DEFAULT_DELAY_SECONDS))
     callback_token = os.getenv("RPA_CALLBACK_TOKEN")
@@ -389,7 +390,7 @@ def run_purchase_order_task(task_id: str, task_type: str = "PURCHASE_PRICE", act
 
             initial_urls = discover_initial_product_urls(context, catalog_url, max_products, timeout_ms)
             if not initial_urls:
-                raise RuntimeError("아망티 공개 페이지에서 상품 링크를 찾지 못했어.")
+                raise RuntimeError("아망티(amantea.co.kr) 공개 페이지에서 상품 링크를 찾지 못했어.")
 
             queue = deque(initial_urls)
             queued = set(initial_urls)

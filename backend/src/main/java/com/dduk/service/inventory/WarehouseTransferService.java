@@ -261,10 +261,14 @@ public class WarehouseTransferService {
             transfers = transfers.stream().filter(t -> t.getStatus() == status).collect(Collectors.toList());
         }
         if (sourceWhId != null) {
-            transfers = transfers.stream().filter(t -> t.getSourceWarehouse().getId().equals(sourceWhId)).collect(Collectors.toList());
+            transfers = transfers.stream()
+                    .filter(t -> t.getSourceWarehouse() != null && t.getSourceWarehouse().getId().equals(sourceWhId))
+                    .collect(Collectors.toList());
         }
         if (targetWhId != null) {
-            transfers = transfers.stream().filter(t -> t.getTargetWarehouse().getId().equals(targetWhId)).collect(Collectors.toList());
+            transfers = transfers.stream()
+                    .filter(t -> t.getTargetWarehouse() != null && t.getTargetWarehouse().getId().equals(targetWhId))
+                    .collect(Collectors.toList());
         }
 
         // 최신 생성순 정렬
@@ -342,7 +346,9 @@ public class WarehouseTransferService {
     }
 
     private WarehouseTransferResponseDto convertToResponseDto(WarehouseTransfer transfer) {
-        List<WarehouseTransferItemDto> items = transfer.getItems().stream().map(item -> WarehouseTransferItemDto.builder()
+        List<WarehouseTransferItemDto> items = transfer.getItems().stream()
+                .filter(item -> item.getItem() != null)
+                .map(item -> WarehouseTransferItemDto.builder()
                 .itemId(item.getItem().getId())
                 .itemCode(item.getItem().getItemCode())
                 .itemName(item.getItem().getName())
@@ -353,10 +359,10 @@ public class WarehouseTransferService {
         return WarehouseTransferResponseDto.builder()
                 .id(transfer.getId())
                 .transferNo(transfer.getTransferNo())
-                .sourceWarehouseId(transfer.getSourceWarehouse().getId())
-                .sourceWarehouseName(transfer.getSourceWarehouse().getWarehouseName())
-                .targetWarehouseId(transfer.getTargetWarehouse().getId())
-                .targetWarehouseName(transfer.getTargetWarehouse().getWarehouseName())
+                .sourceWarehouseId(transfer.getSourceWarehouse() != null ? transfer.getSourceWarehouse().getId() : null)
+                .sourceWarehouseName(transfer.getSourceWarehouse() != null ? transfer.getSourceWarehouse().getWarehouseName() : "")
+                .targetWarehouseId(transfer.getTargetWarehouse() != null ? transfer.getTargetWarehouse().getId() : null)
+                .targetWarehouseName(transfer.getTargetWarehouse() != null ? transfer.getTargetWarehouse().getWarehouseName() : "")
                 .status(transfer.getStatus())
                 .remarks(transfer.getRemarks())
                 .requestedByName(transfer.getRequestedBy() != null ? transfer.getRequestedBy().getName() : "")
