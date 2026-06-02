@@ -432,6 +432,52 @@ CREATE TABLE IF NOT EXISTS journal_items (
     CONSTRAINT fk_journal_items_account FOREIGN KEY (account_id) REFERENCES accounts (id) ON DELETE RESTRICT
 ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci;
 
+CREATE TABLE IF NOT EXISTS vouchers (
+    id BIGINT NOT NULL AUTO_INCREMENT,
+    voucher_no VARCHAR(255) NOT NULL,
+    voucher_date DATE NOT NULL,
+    voucher_type VARCHAR(50) NOT NULL,
+    vat_type VARCHAR(50) NULL,
+    vendor_id BIGINT NULL,
+    vendor_name_snapshot VARCHAR(255) NULL,
+    status VARCHAR(50) NOT NULL DEFAULT 'DRAFT',
+    description VARCHAR(255) NULL,
+    source_type VARCHAR(50) NULL COMMENT '자동생성 원천 도메인 (VoucherSourceType enum)',
+    source_reference_id BIGINT NULL COMMENT '원천 엔티티 ID (stock_movement.id 등)',
+    journal_entry_id BIGINT NULL,
+    created_by VARCHAR(255) NULL,
+    created_at DATETIME(6) NOT NULL DEFAULT CURRENT_TIMESTAMP(6),
+    updated_at DATETIME(6) NOT NULL DEFAULT CURRENT_TIMESTAMP(6) ON UPDATE CURRENT_TIMESTAMP(6),
+    PRIMARY KEY (id),
+    UNIQUE KEY uk_vouchers_no (voucher_no),
+    UNIQUE KEY uk_vouchers_journal_entry (journal_entry_id),
+    CONSTRAINT fk_vouchers_journal_entry FOREIGN KEY (journal_entry_id) REFERENCES journal_entries (id) ON DELETE SET NULL
+) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci;
+
+CREATE TABLE IF NOT EXISTS voucher_lines (
+    id BIGINT NOT NULL AUTO_INCREMENT,
+    voucher_id BIGINT NOT NULL,
+    line_no INT NOT NULL,
+    account_id BIGINT NOT NULL,
+    account_code VARCHAR(255) NOT NULL,
+    account_name VARCHAR(255) NOT NULL,
+    debit_credit VARCHAR(10) NOT NULL,
+    supply_amount DECIMAL(38,2) NOT NULL,
+    vat_amount DECIMAL(38,2) NOT NULL,
+    total_amount DECIMAL(38,2) NOT NULL,
+    quantity INT NULL,
+    unit_price DECIMAL(38,2) NULL,
+    description VARCHAR(255) NULL,
+    sort_order INT NOT NULL,
+    stock_movement_id BIGINT NULL COMMENT 'FK: stock_movements.id (nullable - 수동전표는 NULL)',
+    movement_type VARCHAR(50) NULL COMMENT '원장 거래 구분 (감사 추적용 스냅샷)',
+    movement_reference_no VARCHAR(50) NULL COMMENT '원장 참조번호 스냅샷',
+    PRIMARY KEY (id),
+    KEY idx_voucher_lines_voucher (voucher_id),
+    CONSTRAINT fk_voucher_lines_voucher FOREIGN KEY (voucher_id) REFERENCES vouchers (id) ON DELETE CASCADE
+) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci;
+
+
 -- Legacy local DBs can still carry the old `amount` column without a default,
 -- which breaks startup seed inserts because the current entity no longer writes it.
 ALTER TABLE journal_items
@@ -462,17 +508,7 @@ ON DUPLICATE KEY UPDATE
     deleted = VALUES(deleted),
     sort_order = VALUES(sort_order);
 
--- 재고-회계 연동: Voucher source tracking 컬럼 추가
-ALTER TABLE vouchers
-    MODIFY COLUMN voucher_type VARCHAR(50) NOT NULL,
-    ADD COLUMN IF NOT EXISTS source_type VARCHAR(50) NULL COMMENT '자동생성 원천 도메인 (VoucherSourceType enum)',
-    ADD COLUMN IF NOT EXISTS source_reference_id BIGINT NULL COMMENT '원천 엔티티 ID (stock_movement.id 등)';
-
--- 재고-회계 연동: VoucherLine - StockMovement 연결 컬럼 추가
-ALTER TABLE voucher_lines
-    ADD COLUMN IF NOT EXISTS stock_movement_id BIGINT NULL COMMENT 'FK: stock_movements.id (nullable - 수동전표는 NULL)',
-    ADD COLUMN IF NOT EXISTS movement_type VARCHAR(50) NULL COMMENT '원장 거래 구분 (감사 추적용 스냅샷)',
-    ADD COLUMN IF NOT EXISTS movement_reference_no VARCHAR(50) NULL COMMENT '원장 참조번호 스냅샷';
+-- 재고-회계 연동: Voucher 및 VoucherLine 컬럼이 생성 시 추가 완료되어 ALTER 구문 제거함
 
 CREATE TABLE IF NOT EXISTS warehouse_transfers (
     id BIGINT NOT NULL AUTO_INCREMENT,
