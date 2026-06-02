@@ -309,7 +309,7 @@ public class PurchaseDashboardService {
                 FROM items i
                 JOIN vendors v ON v.id = i.default_vendor_id
                 LEFT JOIN inventories inv ON inv.item_id = i.id
-                WHERE i.active = true
+                WHERE i.is_active = true
                   AND UPPER(v.name) LIKE UPPER(CONCAT('%', :vendorName, '%'))
                 GROUP BY i.id, i.name, v.name, i.unit_price, i.standard_cost
                 ORDER BY i.name

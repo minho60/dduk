@@ -119,7 +119,7 @@ function renderPayrollReferenceHistory(items) {
 async function loadPayrollReferenceHistory() {
     const element = byId('hr_reference_history');
     const currentSession = getCurrentSession();
-    if (!currentSession || currentSession.role !== 'ADMIN') {
+    if (!currentSession || !['ADMIN', 'HR'].includes(currentSession.role)) {
         if (element) {
             element.textContent = '최근 RPA 실행 이력은 관리자만 볼 수 있어.';
         }
@@ -192,7 +192,7 @@ async function loadPayrollReferenceSummary() {
 
 async function triggerPayrollReference() {
     const session = window.ddukSession?.getSession?.();
-    if (!session || session.role !== 'ADMIN') {
+    if (!session || !['ADMIN', 'HR'].includes(session.role)) {
         showToast('RPA 실행은 관리자만 가능해.', 'warning');
         return;
     }
@@ -237,7 +237,7 @@ export function initPayrollCalculate() {
     byId('btn_trigger_hr_reference')?.addEventListener('click', triggerPayrollReference);
 
     const currentSession = getCurrentSession();
-    if (!currentSession || currentSession.role !== 'ADMIN') {
+    if (!currentSession || !['ADMIN', 'HR'].includes(currentSession.role)) {
         const triggerButton = byId('btn_trigger_hr_reference');
         if (triggerButton) {
             triggerButton.disabled = true;

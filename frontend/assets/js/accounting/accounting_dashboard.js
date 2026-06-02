@@ -41,7 +41,7 @@
         fiscalYear: byId("filterYear").value,
         fiscalMonth: byId("filterMonth").value
       });
-      const payload = await window.ddukApi.get(`/accounting/dashboard?${query}`);
+      const payload = await window.ddukApi.get(`accounting/dashboard?${query}`);
       renderDashboard(payload.data);
     } catch (error) {
       toast(error.message || "대시보드 데이터를 불러오지 못했습니다.");
@@ -352,4 +352,26 @@
   function renderIcons() {
     if (window.lucide) window.lucide.createIcons();
   }
+
+  window.switchWidgetTab = function (tab) {
+    const aiTab = byId("tabAiAlerts");
+    const rpaTab = byId("tabRpaControl");
+    const aiContent = byId("aiAlertsContent");
+    const rpaContent = byId("rpaControlContent");
+
+    if (!aiTab || !rpaTab || !aiContent || !rpaContent) return;
+
+    if (tab === "ai") {
+      aiTab.className = "px-3 py-1.5 rounded-md bg-white text-slate-800 shadow-sm transition-all";
+      rpaTab.className = "px-3 py-1.5 rounded-md text-slate-600 hover:text-slate-900 transition-all";
+      aiContent.classList.remove("hidden");
+      rpaContent.classList.add("hidden");
+    } else if (tab === "rpa") {
+      rpaTab.className = "px-3 py-1.5 rounded-md bg-white text-slate-800 shadow-sm transition-all";
+      aiTab.className = "px-3 py-1.5 rounded-md text-slate-600 hover:text-slate-900 transition-all";
+      rpaContent.classList.remove("hidden");
+      aiContent.classList.add("hidden");
+    }
+    renderIcons();
+  };
 })();

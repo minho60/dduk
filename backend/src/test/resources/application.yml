@@ -16,7 +16,7 @@ spring:
 
   sql:
     init:
-      mode: never
+      mode: always
 
 jwt:
   secret: test-secret-key-dduk-erp-system-for-testing-purpose-only-256bit

@@ -1,4 +1,5 @@
 @charset "UTF-8";
+@import url('https://fonts.googleapis.com/css2?family=DM+Sans:wght@400;500;600;700&display=swap');
 
 * {
   margin: 0;
@@ -21,8 +22,25 @@
 }
 
 body {
-  font-family: 'Noto Sans KR', -apple-system, BlinkMacSystemFont, 'Segoe UI', sans-serif;
+  font-family: 'DM Sans', sans-serif;
   /* background-color: var(--primary-light); */
   color: var(--text-dark);
   line-height: 1.6;
 }
+
+/* ==========================================
+   Account-Security Page Standard Style Unified
+   ========================================== */
+
+/* 1. content_area 패딩 및 너비/마진 통일 (선택자 구체성 강화를 통해 !important 없이 Tailwind 극복) */
+body .main_wrap main.content_area {
+    padding: 24px;
+    max-width: none;
+    margin: 0;
+}
+
+/* 2. content_area 자식 간격 통일 (space-y-8 = 32px 기준) */
+body .main_wrap main.content_area > * + * {
+    margin-top: 32px;
+}
+

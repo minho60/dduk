@@ -88,17 +88,12 @@ document.addEventListener('DOMContentLoaded', () => {
 
     async function search() {
         const keyword = document.getElementById('search-keyword').value.trim();
-        if (!keyword) {
-            vendors = [];
-            renderList('Enter a keyword first.');
-            listStatus.textContent = 'Search by vendor name, representative, phone, or business number.';
-            document.getElementById('search-keyword').focus();
-            return;
-        }
-
         listStatus.textContent = 'Loading vendors...';
         try {
-            vendors = await requestList(buildSearchPath());
+            const path = keyword 
+                ? `${apiBase}/search?keyword=${encodeURIComponent(keyword)}`
+                : apiBase;
+            vendors = await requestList(path);
             renderList('No vendors found.');
         } catch (error) {
             vendors = [];
@@ -151,17 +146,27 @@ document.addEventListener('DOMContentLoaded', () => {
         }
     }
 
+    async function loadAllVendors() {
+        listStatus.textContent = 'Loading all vendors...';
+        try {
+            vendors = await requestList(apiBase);
+            renderList('No vendors found.');
+        } catch (error) {
+            vendors = [];
+            renderList('Failed to load vendors.');
+            listStatus.textContent = `Failed to load all vendors: ${error.message}`;
+        }
+    }
+
     function clear() {
         document.getElementById('search-keyword').value = '';
-        vendors = [];
         current = null;
         form.classList.add('hidden');
         editButton.classList.add('hidden');
         cancelButton.classList.add('hidden');
         saveButton.classList.add('hidden');
-        listStatus.textContent = 'Enter a keyword and click search.';
         detailStatus.textContent = 'Select a vendor from the list.';
-        renderList();
+        loadAllVendors();
     }
 
     document.getElementById('btn-search')?.addEventListener('click', search);
@@ -177,8 +182,10 @@ document.addEventListener('DOMContentLoaded', () => {
 
     const initialVendorId = new URLSearchParams(window.location.search).get('vendorId');
     if (initialVendorId) {
-        loadVendor(initialVendorId);
+        loadAllVendors().then(() => {
+            loadVendor(initialVendorId);
+        });
     } else {
-        clear();
+        loadAllVendors();
     }
 });

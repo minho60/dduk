@@ -81,15 +81,15 @@ public class InventoryQueryService {
         List<WarehouseDistributionDto> distribution = distributionRaw.stream()
                 .map(row -> WarehouseDistributionDto.builder()
                         .warehouseName((String) row[0])
-                        .totalStock(row[1] != null ? (Long) row[1] : 0L)
-                        .totalValue(row[2] != null ? (BigDecimal) row[2] : BigDecimal.ZERO)
+                        .totalStock(row[1] != null ? ((Number) row[1]).longValue() : 0L)
+                        .totalValue(row[2] instanceof BigDecimal ? (BigDecimal) row[2] : (row[2] != null ? BigDecimal.valueOf(((Number) row[2]).doubleValue()) : BigDecimal.ZERO))
                         .build())
                 .collect(Collectors.toList());
 
         List<StockMovement> movements = stockMovementRepository.findAllWithFetch();
         LocalDateTime thirtyDaysAgo = LocalDateTime.now().minusDays(30);
         List<RecentMovementDto> recentMovements = movements.stream()
-                .filter(m -> m.getCreatedAt().isAfter(thirtyDaysAgo))
+                .filter(m -> m.getCreatedAt() != null && m.getCreatedAt().isAfter(thirtyDaysAgo))
                 .map(m -> RecentMovementDto.builder()
                         .id(m.getId())
                         .createdAt(m.getCreatedAt())

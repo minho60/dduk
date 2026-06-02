@@ -1,4 +1,4 @@
-(function () {
+﻿(function () {
     const RECENT_MENU_KEY = 'dduk_dashboard_recent_menu';
     const RECENT_MENU_TTL = 3 * 24 * 60 * 60 * 1000;
 
@@ -383,58 +383,53 @@
     // ==========================================
     // AI Copilot Portal Widget & Styles
     // ==========================================
-    const ANOMALY_DATA = [
-        {
-            type: 'danger',
-            label: '위험',
-            time: '10분 전',
-            title: '장기 미회수 의심 패턴 감지',
-            desc: '특정 원부자재 거래처 물품 대금 지연 가능성 및 장기 미회수가 우려됩니다.',
-            query: '장기 미회수 의심 거래처와 미회수 금액 통계를 상세히 분석해 줘.'
-        },
-        {
-            type: 'warning',
-            label: '경고',
-            time: '1시간 전',
-            title: '안전 재고 급감 리스크',
-            desc: '원두 원부자재 품목 중 안전 재고 임계값을 하회하여 발주가 시급합니다.',
-            query: '현재 안전 재고 이하로 내려간 품목 목록과 리드타임을 고려한 적정 발주 권장 수량을 알려줘.'
-        }
-    ];
 
-    const PREDICTION_DATA = [
-        {
-            title: '다음 달 예상 발주 금액',
-            stat: '₩12,450,000',
-            desc: '이동평균 기반 다음 달 예상 원부자재 구매 비용입니다.',
-            color: 'blue',
-            linkText: '발주 추천 페이지 이동',
-            linkUrl: 'pages/inventory/reorder.html'
-        },
-        {
-            title: '이번 주 예상 재고 소진율',
-            stat: '87.4%',
-            desc: '평균 출고량 기준 이번 주 예상 원두 재고 소진 추이입니다.',
-            color: 'green',
-            linkText: '재고 조회 이동',
-            linkUrl: 'pages/inventory/list.html'
-        },
-        {
-            title: '월 마감 회계 정산 예측',
-            stat: '정상 정산 예상',
-            desc: '이전 거래 패턴 대비 불일치 가능성이 낮아 마감이 원활할 것으로 예측됩니다.',
-            color: 'purple',
-            linkText: '월 마감 페이지 이동',
-            linkUrl: 'pages/hr/accounting/monthly_closing.html'
-        }
-    ];
 
     let chatbotHistory = [];
+
+    // 패널을 트리거 아래/옆에 동적으로 정렬하는 헬퍼 함수
+    function alignPanelToTrigger() {
+        const panel = document.getElementById('dduk-floating-chatbot-panel');
+        const trigger = document.getElementById('dduk-floating-chatbot-trigger');
+        if (!panel || !trigger) return;
+
+        const triggerRect = trigger.getBoundingClientRect();
+        const panelWidth = panel.offsetWidth || 450;
+        const panelHeight = panel.offsetHeight || 600;
+
+        let targetTop = triggerRect.bottom + 10;
+        let targetLeft = triggerRect.right - panelWidth;
+
+        // 화면 하단을 벗어나면 트리거 위쪽으로 배치
+        if (targetTop + panelHeight > window.innerHeight) {
+            targetTop = triggerRect.top - panelHeight - 10;
+        }
+        if (targetTop < 10) {
+            targetTop = 10;
+        }
+
+        // 화면 왼쪽을 벗어나면 트리거 좌측 끝선에 맞춤
+        if (targetLeft < 10) {
+            targetLeft = Math.max(10, triggerRect.left);
+        }
+        if (targetLeft + panelWidth > window.innerWidth - 10) {
+            targetLeft = window.innerWidth - panelWidth - 10;
+        }
+
+        panel.style.right = 'auto';
+        panel.style.bottom = 'auto';
+        panel.style.left = targetLeft + 'px';
+        panel.style.top = targetTop + 'px';
+    }
 
     window.toggleFloatingChatbot = function(forceOpen) {
         const panel = document.getElementById('dduk-floating-chatbot-panel');
         if (!panel) return;
-        
+
+        if (forceOpen === true || (forceOpen === undefined && !panel.classList.contains('active'))) {
+            alignPanelToTrigger();
+        }
+
         if (forceOpen === true) {
             panel.classList.add('active');
         } else if (forceOpen === false) {
@@ -442,7 +437,7 @@
         } else {
             panel.classList.toggle('active');
         }
-        
+
         if (panel.classList.contains('active')) {
             const activeTab = panel.querySelector('.dduk-portal-tab.active');
             if (activeTab && activeTab.getAttribute('data-tab') === 'chatbot') {
@@ -484,6 +479,10 @@
             if (input) input.focus();
         } else if (tabName === 'rpa') {
             renderDynamicRpaWidget();
+        } else if (tabName === 'anomaly') {
+            renderAnomalyList();
+        } else if (tabName === 'prediction') {
+            renderPredictionList();
         }
         
         if (window.lucide) lucide.createIcons();
@@ -569,64 +568,171 @@
         container.scrollTop = container.scrollHeight;
     }
 
-    function renderAnomalyList() {
+    async function renderAnomalyList() {
         const container = document.getElementById('dduk-floating-anomaly-list');
         if (!container) return;
+
+        container.innerHTML = '<div class="py-12 text-center text-xs text-slate-400">이상 징후를 감지하는 중입니다...</div>';
         
         const detailUrl = resolveHref('pages/admin/anomaly-detection.html');
         
-        let html = ANOMALY_DATA.map(item => `
-            <div class="dduk-anomaly-card">
-                <div class="dduk-anomaly-card-header">
-                    <span class="dduk-anomaly-badge ${item.type === 'danger' ? 'danger' : 'warning'}">${item.label}</span>
-                    <span class="dduk-anomaly-time">${item.time}</span>
-                </div>
-                <div class="dduk-anomaly-title">${item.title}</div>
-                <div class="dduk-anomaly-desc">${item.desc}</div>
-                <div class="dduk-anomaly-action" style="display: flex; gap: 0.5rem; justify-content: flex-end; margin-top: 0.625rem;">
-                    <a href="${detailUrl}" class="dduk-prediction-link" style="background-color: #f1f5f9; color: #475569; border-radius: 0.5rem; font-size: 0.75rem; text-decoration: none; padding: 0.3rem 0.75rem; display: inline-flex; align-items: center; font-weight: 700;">
-                        이동 ↗
+        try {
+            // OPEN 상태인 이상 탐지 이력 조회
+            const data = await requestRpaApi('/api/v1/admin/anomaly-logs?status=OPEN&size=5', { method: "GET" });
+            const list = data && data.content ? data.content : [];
+
+            if (list.length === 0) {
+                container.innerHTML = `
+                    <div class="flex flex-col items-center justify-center py-12 text-center text-slate-400">
+                        <i data-lucide="check-circle" class="w-8 h-8 text-emerald-500 mb-2" style="margin: 0 auto 0.5rem auto;"></i>
+                        <p class="text-xs font-bold text-slate-600">감지된 이상 징후 없음</p>
+                        <p class="text-[10px] text-slate-400 mt-1">시스템이 완벽하게 안전한 상태입니다.</p>
+                    </div>
+                `;
+                if (window.lucide) lucide.createIcons();
+                return;
+            }
+
+            let html = list.map(item => {
+                const timeStr = item.lastDetectedAt ? formatDateTime(item.lastDetectedAt) : '-';
+                const severityClass = item.severity === 'DANGER' || item.severity === 'danger' ? 'danger' : 'warning';
+                const severityLabel = item.severity === 'DANGER' || item.severity === 'danger' ? '위험' : '경고';
+                const aiQuery = `${item.title} (${item.summary || ''})에 대해 분석해 주고, 해당 건의 발생 원인과 ERP 시스템 상의 권장 후속 조치를 상세히 설명해 줘.`;
+
+                return `
+                    <div class="dduk-anomaly-card" style="font-family: inherit;">
+                        <div class="dduk-anomaly-card-header" style="display: flex; align-items: center; justify-content: space-between; margin-bottom: 0.5rem;">
+                            <span class="dduk-anomaly-badge ${severityClass}">${severityLabel}</span>
+                            <span class="dduk-anomaly-time" style="font-size: 0.7rem; color: #94a3b8;">${timeStr}</span>
+                        </div>
+                        <div class="dduk-anomaly-title" style="font-size: 0.825rem; font-weight: 700; color: #1e293b; line-height: 1.3;">${item.title}</div>
+                        <div class="dduk-anomaly-desc" style="font-size: 0.75rem; color: #64748b; margin-top: 0.25rem; line-height: 1.4;">${item.summary || '-'}</div>
+                        <div class="dduk-anomaly-action" style="display: flex; gap: 0.5rem; justify-content: flex-end; margin-top: 0.625rem;">
+                            <a href="${detailUrl}" class="dduk-prediction-link" style="background-color: #f1f5f9; color: #475569; border-radius: 0.5rem; font-size: 0.75rem; text-decoration: none; padding: 0.3rem 0.75rem; display: inline-flex; align-items: center; font-weight: 700;">
+                                이동 ↗
+                            </a>
+                            <button class="dduk-anomaly-btn" onclick="window.openFloatingChatbotWithQuery('${aiQuery}')">AI 분석</button>
+                        </div>
+                    </div>
+                `;
+            }).join('');
+            
+            html += `
+                <div style="margin-top: 1.25rem; text-align: center; padding-bottom: 0.5rem;">
+                    <a href="${detailUrl}" style="color: #4f46e5; text-decoration: none; font-size: 0.785rem; font-weight: 700; display: inline-flex; align-items: center; gap: 0.25rem;">
+                        <span>이상 탐지 상세 모니터링 페이지로 이동</span>
+                        <i data-lucide="arrow-right" style="width: 0.85rem; height: 0.85rem;"></i>
                     </a>
-                    <button class="dduk-anomaly-btn" onclick="window.openFloatingChatbotWithQuery('${item.query}')">AI 분석</button>
                 </div>
-            </div>
-        `).join('');
-        
-        html += `
-            <div style="margin-top: 1.25rem; text-align: center; padding-bottom: 0.5rem;">
-                <a href="${detailUrl}" style="color: #4f46e5; text-decoration: none; font-size: 0.785rem; font-weight: 700; display: inline-flex; align-items: center; gap: 0.25rem;">
-                    <span>이상 탐지 상세 모니터링 페이지로 이동</span>
-                    <i data-lucide="arrow-right" style="width: 0.85rem; height: 0.85rem;"></i>
-                </a>
-            </div>
-        `;
-        
-        container.innerHTML = html;
-        if (window.lucide) lucide.createIcons();
+            `;
+            
+            container.innerHTML = html;
+            if (window.lucide) lucide.createIcons();
+        } catch (err) {
+            container.innerHTML = `
+                <div class="py-8 text-center text-rose-500 text-xs">
+                    이상 탐지 목록을 불러오지 못했습니다: ${err.message || err}
+                </div>
+            `;
+        }
     }
 
-    function renderPredictionList() {
+    async function renderPredictionList() {
         const container = document.getElementById('dduk-floating-prediction-list');
         if (!container) return;
+
+        container.innerHTML = '<div class="py-12 text-center text-xs text-slate-400">재고 및 재무 데이터를 분석하는 중입니다...</div>';
         
-        container.innerHTML = PREDICTION_DATA.map(item => `
-            <div class="dduk-prediction-card">
-                <div class="dduk-prediction-header">
-                    <div class="dduk-prediction-indicator ${item.color}"></div>
-                    <div class="dduk-prediction-title">${item.title}</div>
+        try {
+            // 1. 발주 추천 품목 목록 조회
+            const data = await requestRpaApi('/api/v1/inventory/purchase-recommendations', { method: "GET" });
+            const items = data && data.items ? data.items : [];
+
+            // 2. 이상 탐지 이력 조회 (회계 정산 리스크 체크용)
+            const anomalyData = await requestRpaApi('/api/v1/admin/anomaly-logs?size=10', { method: "GET" });
+            const anomalies = anomalyData && anomalyData.content ? anomalyData.content : [];
+
+            // 2-1) 다음 달 예상 발주 금액 집계 (recommendedOrderQty * averageCost)
+            const totalRecAmount = items.reduce((sum, item) => {
+                const qty = item.recommendedOrderQty || 0;
+                const cost = Number(item.averageCost || 0);
+                return sum + (qty * cost);
+            }, 0);
+
+            // 2-2) 재고 소진 위험 품목 (daysUntilStockout이 가장 적고 0보다 큰 품목 중 시급한 품목 선정)
+            const urgentStockoutItem = [...items]
+                .filter(item => item.daysUntilStockout > 0)
+                .sort((a, b) => a.daysUntilStockout - b.daysUntilStockout)[0];
+
+            let stockoutText = "현재 특별한 재고 소진 리스크가 없습니다.";
+            let stockoutStat = "안정 상태";
+            let stockoutColor = "green";
+            if (urgentStockoutItem) {
+                stockoutText = `평균 출고량 기준 ${urgentStockoutItem.itemName} 품목의 재고가 ${urgentStockoutItem.daysUntilStockout}일 내 소진될 것으로 예측됩니다.`;
+                stockoutStat = `${urgentStockoutItem.daysUntilStockout}일 내 소진 우려`;
+                stockoutColor = urgentStockoutItem.daysUntilStockout <= 7 ? "purple" : "blue";
+            }
+
+            // 2-3) 회계 정산 예측 (이상 탐지 항목 중 severity가 danger/DANGER 이면서 OPEN인 항목이 있으면 주의, 없으면 정상)
+            const hasDangerAnomaly = anomalies.some(a => (a.severity === 'DANGER' || a.severity === 'danger') && a.status === 'OPEN');
+            const accountingStat = hasDangerAnomaly ? "정산 주의 필요" : "정상 정산 예상";
+            const accountingDesc = hasDangerAnomaly 
+                ? "비정상 전표 기표 혹은 차대 불일치 이슈가 감지되어 월 마감 전 점검이 강력히 요구됩니다."
+                : "최근 거래 패턴 대비 분개 불일치 가능성이 낮아 당월 마감이 순조로울 것으로 예측됩니다.";
+            const accountingColor = hasDangerAnomaly ? "purple" : "blue";
+
+            const predictionItems = [
+                {
+                    title: '다음 달 예상 발주 금액',
+                    stat: `₩${money.format(totalRecAmount)}`,
+                    desc: '실시간 추천 발주 필요 품목들의 총 권장 수량과 평균 단가를 기반으로 자동 산출된 금액입니다.',
+                    color: 'blue',
+                    linkText: '발주 추천 페이지 이동',
+                    linkUrl: 'pages/inventory/reorder.html'
+                },
+                {
+                    title: '예상 재고 소진 리스크',
+                    stat: stockoutStat,
+                    desc: stockoutText,
+                    color: stockoutColor,
+                    linkText: '재고 조회 이동',
+                    linkUrl: 'pages/inventory/list.html'
+                },
+                {
+                    title: '월 마감 회계 정산 예측',
+                    stat: accountingStat,
+                    desc: accountingDesc,
+                    color: accountingColor,
+                    linkText: '월 마감 페이지 이동',
+                    linkUrl: 'pages/hr/accounting/monthly_closing.html'
+                }
+            ];
+
+            container.innerHTML = predictionItems.map(item => `
+                <div class="dduk-prediction-card">
+                    <div class="dduk-prediction-header" style="display: flex; align-items: center; gap: 0.5rem; margin-bottom: 0.5rem;">
+                        <div class="dduk-prediction-indicator ${item.color}" style="width: 0.5rem; height: 0.5rem; border-radius: 9999px;"></div>
+                        <div class="dduk-prediction-title" style="font-size: 0.825rem; font-weight: 700; color: #1e293b; line-height: 1.3;">${item.title}</div>
+                    </div>
+                    <div class="dduk-prediction-stat" style="font-size: 1.15rem; font-weight: 800; color: #4f46e5; margin: 0.25rem 0;">${item.stat}</div>
+                    <div class="dduk-prediction-desc" style="font-size: 0.75rem; color: #64748b; line-height: 1.4;">${item.desc}</div>
+                    <div class="dduk-prediction-action" style="display: flex; justify-content: flex-end; margin-top: 0.625rem;">
+                        <a href="${resolveHref(item.linkUrl)}" class="dduk-prediction-link" style="text-decoration: none; display: inline-flex; align-items: center; gap: 0.25rem;">
+                            <span>${item.linkText}</span>
+                            <i data-lucide="external-link" style="width: 0.75rem; height: 0.75rem;"></i>
+                        </a>
+                    </div>
                 </div>
-                <div class="dduk-prediction-stat">${item.stat}</div>
-                <div class="dduk-prediction-desc">${item.desc}</div>
-                <div class="dduk-prediction-action">
-                    <a href="${resolveHref(item.linkUrl)}" class="dduk-prediction-link">
-                        <span>${item.linkText}</span>
-                        <i data-lucide="external-link" style="width: 0.75rem; height: 0.75rem;"></i>
-                    </a>
+            `).join('');
+            
+            if (window.lucide) lucide.createIcons();
+        } catch (err) {
+            container.innerHTML = `
+                <div class="py-8 text-center text-rose-500 text-xs">
+                    예측 분석 데이터를 처리하지 못했습니다: ${err.message || err}
                 </div>
-            </div>
-        `).join('');
-        
-        if (window.lucide) lucide.createIcons();
+            `;
+        }
     }
 
     function initAICopilotPortal() {
@@ -667,9 +773,11 @@
                 align-items: center;
                 justify-content: center;
                 box-shadow: 0 10px 25px -5px rgba(79, 70, 229, 0.4), 0 8px 10px -6px rgba(79, 70, 229, 0.4);
-                cursor: pointer;
-                transition: all 0.2s cubic-bezier(0.4, 0, 0.2, 1);
+                cursor: move;
+                transition: transform 0.2s cubic-bezier(0.4, 0, 0.2, 1);
                 z-index: 9999;
+                user-select: none;
+                touch-action: none;
             }
             .dduk-chat-trigger:hover {
                 transform: scale(1.08);
@@ -1093,8 +1201,66 @@
             </div>
         `;
         document.body.appendChild(container);
-        
-        document.getElementById('dduk-floating-chatbot-trigger').addEventListener('click', () => window.toggleFloatingChatbot());
+
+        // 드래그 가능한 챗 트리거 구현 (드래그와 클릭을 완벽히 구분)
+        const triggerEl = document.getElementById('dduk-floating-chatbot-trigger');
+        let triggerDragging = false;
+        let tStartX, tStartY, tInitLeft, tInitTop;
+
+        const onTriggerMove = (e) => {
+            const clientX = e.type.startsWith('touch') ? e.touches[0].clientX : e.clientX;
+            const clientY = e.type.startsWith('touch') ? e.touches[0].clientY : e.clientY;
+            const dx = clientX - tStartX;
+            const dy = clientY - tStartY;
+
+            if (Math.abs(dx) > 5 || Math.abs(dy) > 5) {
+                triggerDragging = true;
+                if (e.cancelable) e.preventDefault();
+                triggerEl.style.right = 'auto';
+                triggerEl.style.left = (tInitLeft + dx) + 'px';
+                triggerEl.style.top = (tInitTop + dy) + 'px';
+
+                alignPanelToTrigger();
+            }
+        };
+
+        const onTriggerUp = (e) => {
+            if (e.type.startsWith('touch')) {
+                document.removeEventListener('touchmove', onTriggerMove);
+                document.removeEventListener('touchend', onTriggerUp);
+            } else {
+                document.removeEventListener('mousemove', onTriggerMove);
+                document.removeEventListener('mouseup', onTriggerUp);
+            }
+
+            if (!triggerDragging) {
+                window.toggleFloatingChatbot();
+            }
+        };
+
+        const onTriggerDown = (e) => {
+            triggerDragging = false;
+            const clientX = e.type.startsWith('touch') ? e.touches[0].clientX : e.clientX;
+            const clientY = e.type.startsWith('touch') ? e.touches[0].clientY : e.clientY;
+            tStartX = clientX;
+            tStartY = clientY;
+
+            const rect = triggerEl.getBoundingClientRect();
+            tInitLeft = rect.left;
+            tInitTop = rect.top;
+
+            if (e.type.startsWith('touch')) {
+                document.addEventListener('touchmove', onTriggerMove, { passive: false });
+                document.addEventListener('touchend', onTriggerUp);
+            } else {
+                document.addEventListener('mousemove', onTriggerMove);
+                document.addEventListener('mouseup', onTriggerUp);
+            }
+        };
+
+        triggerEl.addEventListener('mousedown', onTriggerDown);
+        triggerEl.addEventListener('touchstart', onTriggerDown, { passive: true });
+
         document.getElementById('dduk-floating-chatbot-close').addEventListener('click', () => window.toggleFloatingChatbot(false));
         
         document.querySelectorAll('.dduk-portal-tab').forEach(tabBtn => {
@@ -1172,7 +1338,7 @@
     const rpaTranslation = {
         taskTypes: {
             'PURCHASE_PRICE': '단가 수집',
-            'INVENTORY_ALERT': '재고 부족'
+            'INVENTORY_SHORTAGE': '?? ??'
         },
         actions: {
             'COLLECT_EXTERNAL_PRICE': '외부 단가 수집',
@@ -1243,7 +1409,7 @@
             };
         } else if (path.includes('/dashboard.html')) {
             return {
-                taskType: 'INVENTORY_ALERT',
+                taskType: 'INVENTORY_SHORTAGE',
                 title: '안전 재고 하회 품목 조회',
                 description: '현재 창고 재고를 점검하여 안전 재고 이하 품목을 식별하는 RPA 봇입니다.',
                 actionName: 'CHECK_LOW_INVENTORY'
@@ -1261,6 +1427,22 @@
     function renderDynamicRpaWidget() {
         const container = document.getElementById('dduk-floating-rpa-container');
         if (!container) return;
+
+        const path = window.location.pathname.replace(/\\/g, '/');
+        // 회계 도메인 페이지 필터링 (accounting 경로 및 관련 html 체크)
+        if (path.includes('/accounting') || path.includes('/monthly_closing') || path.includes('/voucher_management') || path.includes('/trial_balance') || path.includes('/settlement') || path.includes('/accounts') || path.includes('/wip')) {
+            container.innerHTML = `
+                <div class="flex flex-col items-center justify-center py-16 text-center" style="font-family: inherit;">
+                    <div style="background-color: #f8fafc; border: 1px dashed #cbd5e1; border-radius: 1rem; padding: 2rem; width: 100%;">
+                        <i data-lucide="cpu" style="width: 2.5rem; height: 2.5rem; margin: 0 auto 0.75rem auto; color: #94a3b8;"></i>
+                        <h4 style="margin: 0 0 0.5rem 0; font-size: 0.875rem; font-weight: 700; color: #1e293b;">RPA 자동화 제어</h4>
+                        <span style="display: inline-block; background-color: #e2e8f0; color: #475569; border-radius: 9999px; padding: 0.25rem 0.75rem; font-size: 0.75rem; font-weight: 700;">추후 업데이트 예정</span>
+                    </div>
+                </div>
+            `;
+            if (window.lucide) window.lucide.createIcons();
+            return;
+        }
 
         const ctx = getRpaContext();
         
@@ -1464,7 +1646,7 @@
         if (!resultContainer) return;
 
         try {
-            if (taskType === 'INVENTORY_ALERT') {
+            if (taskType === 'INVENTORY_SHORTAGE') {
                 const stats = await requestRpaApi('/api/v1/inventory/dashboard/stats', { method: 'GET' });
                 const block = stats.inventoryShortageRpa;
                 if (!block || !block.items || !block.items.length) {

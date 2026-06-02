@@ -1,3 +1,35 @@
+SET FOREIGN_KEY_CHECKS = 0;
+
+DROP TABLE IF EXISTS journal_items;
+DROP TABLE IF EXISTS journal_entry_lines;
+DROP TABLE IF EXISTS journal_entries;
+DROP TABLE IF EXISTS voucher_lines;
+DROP TABLE IF EXISTS vouchers;
+DROP TABLE IF EXISTS accounts;
+DROP TABLE IF EXISTS accounting_closing_logs;
+DROP TABLE IF EXISTS accounting_periods;
+DROP TABLE IF EXISTS payroll_settlement_items;
+DROP TABLE IF EXISTS payroll_deduction_items;
+DROP TABLE IF EXISTS payroll_deductions;
+DROP TABLE IF EXISTS payrolls;
+DROP TABLE IF EXISTS payroll_contracts;
+DROP TABLE IF EXISTS stock_movements;
+DROP TABLE IF EXISTS purchase_order_items;
+DROP TABLE IF EXISTS purchase_orders;
+DROP TABLE IF EXISTS inventories;
+DROP TABLE IF EXISTS warehouses;
+DROP TABLE IF EXISTS items;
+DROP TABLE IF EXISTS vendors;
+DROP TABLE IF EXISTS attendances;
+DROP TABLE IF EXISTS employees;
+DROP TABLE IF EXISTS members;
+DROP TABLE IF EXISTS task_history;
+DROP TABLE IF EXISTS anomaly_logs;
+DROP TABLE IF EXISTS notice;
+DROP TABLE IF EXISTS ocr_documents;
+
+SET FOREIGN_KEY_CHECKS = 1;
+
 CREATE TABLE IF NOT EXISTS members (
     id BIGINT NOT NULL AUTO_INCREMENT,
     login_id VARCHAR(50) NOT NULL,
@@ -125,6 +157,7 @@ CREATE TABLE IF NOT EXISTS inventories (
     id BIGINT NOT NULL AUTO_INCREMENT,
     item_id BIGINT NOT NULL,
     warehouse_id BIGINT NOT NULL,
+    location VARCHAR(100) NOT NULL,
     current_stock INT NOT NULL DEFAULT 0,
     allocated_stock INT NOT NULL DEFAULT 0,
     safety_stock INT NOT NULL DEFAULT 0,
@@ -151,6 +184,7 @@ CREATE TABLE IF NOT EXISTS purchase_orders (
     id BIGINT NOT NULL AUTO_INCREMENT,
     purchase_order_no VARCHAR(50) NOT NULL,
     vendor_id BIGINT NOT NULL,
+    warehouse_id BIGINT NOT NULL,
     requested_by_member_id BIGINT NOT NULL,
     approved_by_member_id BIGINT NULL,
     order_date DATE NOT NULL,
@@ -163,10 +197,15 @@ CREATE TABLE IF NOT EXISTS purchase_orders (
     PRIMARY KEY (id),
     UNIQUE KEY uk_purchase_orders_no (purchase_order_no),
     KEY idx_purchase_orders_vendor_id (vendor_id),
+    KEY idx_purchase_orders_warehouse_id (warehouse_id),
     KEY idx_purchase_orders_requested_by (requested_by_member_id),
     KEY idx_purchase_orders_approved_by (approved_by_member_id),
     CONSTRAINT fk_purchase_orders_vendor
         FOREIGN KEY (vendor_id) REFERENCES vendors (id)
+        ON DELETE RESTRICT
+        ON UPDATE CASCADE,
+    CONSTRAINT fk_purchase_orders_warehouse
+        FOREIGN KEY (warehouse_id) REFERENCES warehouses (id)
         ON DELETE RESTRICT
         ON UPDATE CASCADE,
     CONSTRAINT fk_purchase_orders_requested_by
@@ -178,6 +217,12 @@ CREATE TABLE IF NOT EXISTS purchase_orders (
         ON DELETE SET NULL
         ON UPDATE CASCADE
 ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci;
+
+ALTER TABLE inventories
+    ADD COLUMN IF NOT EXISTS location VARCHAR(100) NULL AFTER warehouse_id;
+
+ALTER TABLE purchase_orders
+    ADD COLUMN IF NOT EXISTS warehouse_id BIGINT NULL AFTER vendor_id;
 
 CREATE TABLE IF NOT EXISTS purchase_order_items (
     id BIGINT NOT NULL AUTO_INCREMENT,

@@ -64,6 +64,9 @@ public class IntegrationVerifyTest {
     @Autowired
     private AccountingDashboardService accountingDashboardService;
 
+    @Autowired
+    private com.dduk.service.inventory.InventoryQueryService inventoryQueryService;
+
     @Test
     public void verifyAllE2E() {
         System.out.println("==================================================");
@@ -149,6 +152,16 @@ public class IntegrationVerifyTest {
             System.out.println("  차대 평형 일치 여부: " + db.getPeriodSummary().isBalanced());
         } catch (Exception e) {
             System.out.println("[DASHBOARD_STATS_VERIFY] failed: " + e.getMessage());
+        }
+
+        // 5. Inventory Dashboard API 검증
+        try {
+            System.out.println("[INVENTORY_DASHBOARD_VERIFY] Calling getDashboardStats()...");
+            com.dduk.dto.inventory.InventoryDashboardResponseDto idb = inventoryQueryService.getDashboardStats();
+            System.out.println("[INVENTORY_DASHBOARD_VERIFY] Success: totalQuantity=" + idb.getTotalQuantity() + ", totalValue=" + idb.getTotalValue());
+        } catch (Exception e) {
+            System.out.println("[INVENTORY_DASHBOARD_VERIFY] Failed: " + e.getMessage());
+            e.printStackTrace();
         }
 
         System.out.println("=== [DEBUG] END ERP INTEGRATION E2E VERIFY ===");

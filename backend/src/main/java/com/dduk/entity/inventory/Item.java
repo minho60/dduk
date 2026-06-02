@@ -62,7 +62,7 @@ public class Item {
     private BigDecimal unitPrice;
 
     @Builder.Default
-    @Column(nullable = false)
+    @Column(name = "is_active", nullable = false)
     private boolean active = true;
 
     @Column(name = "created_at", nullable = false, updatable = false)

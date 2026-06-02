@@ -302,7 +302,7 @@ try {
         Write-Host ">>> Building backend boot jar..." -ForegroundColor Cyan
         Push-Location $backendDir
         try {
-            & .\gradlew.bat bootJar | Tee-Object -FilePath $backendLog
+            & .\gradlew.bat clean bootJar | Tee-Object -FilePath $backendLog
             if ($LASTEXITCODE -ne 0) {
                 throw "Backend bootJar build failed. Check logs: $backendLog / $backendErrLog"
             }

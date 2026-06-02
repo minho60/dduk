@@ -16,6 +16,7 @@ spring:
   sql:
     init:
       mode: always
+      continue-on-error: true
       schema-locations:
         - classpath:db/mysql/dduk_bootstrap_schema.sql
         - classpath:db/mysql/task_history_schema.sql
