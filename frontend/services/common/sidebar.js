@@ -163,10 +163,10 @@
                         <span data-template-id="workspace-name" class="canva-text dduk-inline-006">아망티</span>
                     </div>
                     <div class="dduk-inline-008">
-                        <button class="sidebar_icon_btn" aria-label="AI"><i class="dduk-inline-009" data-lucide="bot"></i></button>
-                        <button class="sidebar_icon_btn" aria-label="OCR"><i class="dduk-inline-009" data-lucide="scan"></i></button>
-                        <button class="sidebar_icon_btn" aria-label="승인"><i class="dduk-inline-009" data-lucide="check-circle"></i></button>
-                        <button class="sidebar_icon_btn" aria-label="설정"><i class="dduk-inline-009" data-lucide="settings"></i></button>
+                        <a class="sidebar_icon_btn" aria-label="AI" href="#" id="quickBtnAI"><i class="dduk-inline-009" data-lucide="bot"></i></a>
+                        <a class="sidebar_icon_btn" aria-label="OCR" href="${resolveHref('pages/ocr/ocr-box.html')}"><i class="dduk-inline-009" data-lucide="scan"></i></a>
+                        <a class="sidebar_icon_btn sidebar_icon_btn_disabled" aria-label="승인" href="#" onclick="return false;"><i class="dduk-inline-009" data-lucide="check-circle"></i></a>
+                        <a class="sidebar_icon_btn sidebar_icon_btn_disabled" aria-label="설정" href="#" onclick="return false;"><i class="dduk-inline-009" data-lucide="settings"></i></a>
                     </div>
                     <div class="recent_group dduk-inline-010">
                         <button class="recent_header dduk-inline-011" type="button" onclick="toggleRecentMenu()" aria-expanded="true">
@@ -432,6 +432,16 @@
         
         // AI Copilot Portal 위젯 초기화
         initAICopilotPortal();
+
+        // 퀵 AI 버튼 클릭 연동
+        const quickAI = document.getElementById('quickBtnAI');
+        if (quickAI) {
+            quickAI.addEventListener('click', (e) => {
+                e.preventDefault();
+                window.toggleFloatingChatbot(true);
+                switchPortalTab('chatbot');
+            });
+        }
     }
 
     if (document.readyState === 'loading') {

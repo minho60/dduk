@@ -328,7 +328,7 @@
             { name: '재고 조회', href: 'pages/inventory/list.html' },
             { name: '입출고 이력', href: 'pages/inventory/movements.html' },
             { name: '창고 이동', href: 'pages/inventory/transfers.html' },
-            { name: '회계 대시보드', href: 'pages/hr/accounting/dashboard.html' },
+            { name: '회계 대시보드', href: 'pages/hr/accounting/accounting_dashboard.html' },
             { name: '거래 내역 등록', href: 'pages/hr/accounting/transactions.html' },
             { name: '합계잔액시산표', href: 'pages/hr/accounting/trial-balance.html' },
             { name: '계정 및 권한 관리', href: 'pages/admin/account-security.html' },

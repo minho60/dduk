@@ -41,7 +41,7 @@
         fiscalYear: byId("filterYear").value,
         fiscalMonth: byId("filterMonth").value
       });
-      const payload = await window.ddukApi.get(`accounting/dashboard?${query}`);
+      const payload = await window.ddukApi.get(`/api/v1/accounting/dashboard?${query}`);
       renderDashboard(payload.data);
     } catch (error) {
       toast(error.message || "대시보드 데이터를 불러오지 못했습니다.");
