@@ -249,9 +249,17 @@
           <div class="section_card_header section_flex_header">
             <h3>전표 현황 및 승인관리</h3>
             <div class="flex_gap_8_center">
+              <select id="statusFilter" class="erp_select" style="width: 130px; height: 36px; padding: 4px 8px; font-size: 0.85rem;">
+                <option value="">전체 상태</option>
+                <option value="DRAFT">DRAFT</option>
+                <option value="REQUESTED">REQUESTED</option>
+                <option value="APPROVED">APPROVED</option>
+                <option value="POSTED">POSTED</option>
+                <option value="CANCELLED">CANCELLED</option>
+              </select>
               <button type="button" class="erp_btn erp_btn_primary btn_new_voucher" id="newVoucherBtn">
                 <i data-lucide="plus" class="icon_size_small"></i>
-                <span>+ 신규 전표</span>
+                <span>신규 전표</span>
               </button>
               <button type="button" class="erp_btn erp_btn_secondary erp_btn_icon" id="reloadButton"><i data-lucide="refresh-cw"></i></button>
             </div>

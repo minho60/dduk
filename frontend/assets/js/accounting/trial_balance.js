@@ -184,7 +184,6 @@
       reportBasis: byId("reportBasis").value,
       accountLevel: byId("accountLevel").value,
       includeZeroBalance: byId("includeZeroBalance").checked,
-      includeSubAccounts: byId("includeSubAccounts").checked,
       summaryOnly: byId("summaryOnly").checked,
       profitLossFormat: byId("profitLossFormat").checked
     });

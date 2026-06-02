@@ -117,7 +117,7 @@
             `;
         }
         return `
-            <a class="menu_item${extraClass ? ` ${extraClass}` : ''}${currentClass}" href="${resolveHref(item.href)}"${rolesAttr} data-label="${item.label}" title="${item.label}">
+            <a class="menu_item${extraClass ? ` ${extraClass}` : ''}${currentClass}" href="${resolveHref(item.href)}"${rolesAttr} data-label="${item.label}" data-href-raw="${item.href}" title="${item.label}">
                 <i class="dduk-inline-012" data-lucide="${item.icon}"></i>
                 <span class="menu_label">${item.label}</span>
             </a>
@@ -160,8 +160,7 @@
                         </button>
                     </div>
                     <div class="dduk-inline-005">
-                        <span data-template-id="workspace-name" class="canva-text dduk-inline-006">(주) 업체명</span>
-                        <i class="dduk-inline-007" data-lucide="chevron-down"></i>
+                        <span data-template-id="workspace-name" class="canva-text dduk-inline-006">아망티</span>
                     </div>
                     <div class="dduk-inline-008">
                         <button class="sidebar_icon_btn" aria-label="AI"><i class="dduk-inline-009" data-lucide="bot"></i></button>
@@ -291,6 +290,7 @@
         const label = getMenuLabel(menuItem);
         if (!label) return;
 
+        const hrefRaw = menuItem.getAttribute('data-href-raw') || '';
         const icon = menuItem.querySelector('[data-lucide]');
         const iconName = icon ? icon.getAttribute('data-lucide') : 'circle';
         const now = Date.now();
@@ -298,11 +298,22 @@
         items.unshift({
             label,
             iconName,
+            hrefRaw,
             usedAt: now,
             expiresAt: now + RECENT_MENU_TTL
         });
         writeRecentMenus(items.slice(0, 5));
         renderRecentMenus();
+    }
+
+    function findHrefByLabel(label) {
+        if (label === '대시보드') return 'dashboard.html';
+        for (const group of MENU_GROUPS) {
+            for (const item of group.items) {
+                if (item.label === label) return item.href;
+            }
+        }
+        return '';
     }
 
     function renderRecentMenus() {
@@ -315,12 +326,15 @@
             return;
         }
 
-        container.innerHTML = items.map(item => `
-            <div class="menu_item recent_menu_item" data-label="${item.label}" title="${item.label}">
-                <i class="dduk-inline-012" data-lucide="${item.iconName}"></i>
-                <span class="menu_label">${item.label}</span>
-            </div>
-        `).join('');
+        container.innerHTML = items.map(item => {
+            const href = item.hrefRaw || findHrefByLabel(item.label) || '#';
+            return `
+                <a class="menu_item recent_menu_item" href="${resolveHref(href)}" data-label="${item.label}" data-href-raw="${href}" title="${item.label}">
+                    <i class="dduk-inline-012" data-lucide="${item.iconName}"></i>
+                    <span class="menu_label">${item.label}</span>
+                </a>
+            `;
+        }).join('');
         if (window.lucide) lucide.createIcons();
     }
 
