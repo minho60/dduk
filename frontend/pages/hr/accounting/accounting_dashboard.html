@@ -48,18 +48,31 @@
 
       <section class="kpi_grid grid grid-cols-1 sm:grid-cols-2 xl:grid-cols-3 2xl:grid-cols-6 gap-4 mb-6" id="kpiGrid"></section>
 
-      <section class="dashboard_grid grid grid-cols-1 md:grid-cols-3 gap-6">
-        <article class="dashboard_panel md:col-span-2">
+      <section class="dashboard_grid grid grid-cols-1 md:grid-cols-3 gap-4">
+        <!-- Row 1: 월별 손익 추이 (col-span-2) & 자산/부채/자본 (col-span-1) -->
+        <article class="dashboard_panel row-1-card md:col-span-2">
           <div class="panel_head border-b border-slate-100 pb-3 mb-4 flex justify-between items-center">
             <div>
               <h3 class="text-sm font-bold text-slate-800">월별 손익 추이</h3>
               <span class="text-xs text-slate-400">최근 6개월 손익분기 분석 차트</span>
             </div>
           </div>
-          <div class="chart_box h-64"><canvas id="profitLossChart"></canvas></div>
+          <div class="chart_box"><canvas id="profitLossChart"></canvas></div>
         </article>
 
-        <article class="dashboard_panel md:col-span-2">
+        <article class="dashboard_panel row-1-card">
+          <div class="panel_head border-b border-slate-100 pb-3 mb-4">
+            <div>
+              <h3 class="text-sm font-bold text-slate-800">자산 / 부채 / 자본</h3>
+              <span class="text-xs text-slate-400">계정 유형 구성 비율</span>
+            </div>
+          </div>
+          <div class="chart_box compact"><canvas id="compositionChart"></canvas></div>
+          <div class="composition_legend flex justify-around text-xs mt-2 border-t border-slate-100 pt-2" id="compositionLegend"></div>
+        </article>
+
+        <!-- Row 2: 전표 진행 상태 (col-span-1) & 자금 흐름 요약 (col-span-1) & 급여 지급 현황 (col-span-1) -->
+        <article class="dashboard_panel row-2-card">
           <div class="panel_head border-b border-slate-100 pb-3 mb-4">
             <div>
               <h3 class="text-sm font-bold text-slate-800">전표 진행 상태</h3>
@@ -69,17 +82,7 @@
           <div class="voucher_status_grid flex flex-col gap-2" id="voucherStatusGrid"></div>
         </article>
 
-        <article class="dashboard_panel">
-          <div class="panel_head border-b border-slate-100 pb-3 mb-4">
-            <div>
-              <h3 class="text-sm font-bold text-slate-800">자산 / 부채 / 자본</h3>
-              <span class="text-xs text-slate-400">계정 유형 구성 비율</span>
-            </div>
-          </div>
-          <div class="chart_box compact h-52"><canvas id="compositionChart"></canvas></div>
-        </article>
-
-        <article class="dashboard_panel">
+        <article class="dashboard_panel row-2-card">
           <div class="panel_head border-b border-slate-100 pb-3 mb-4">
             <div>
               <h3 class="text-sm font-bold text-slate-800">자금 흐름 요약</h3>
@@ -89,7 +92,7 @@
           <div class="metric_list flex flex-col gap-2 text-sm text-slate-600" id="cashFlowList"></div>
         </article>
 
-        <article class="dashboard_panel">
+        <article class="dashboard_panel row-2-card">
           <div class="panel_head border-b border-slate-100 pb-3 mb-4">
             <div>
               <h3 class="text-sm font-bold text-slate-800">급여 지급 현황</h3>
@@ -99,7 +102,8 @@
           <div class="metric_list flex flex-col gap-2 text-sm text-slate-600" id="payrollList"></div>
         </article>
 
-        <article class="dashboard_panel">
+        <!-- Row 3: 회계 마감 현황 (col-span-1) & 시산 검증 요약 (col-span-1) & 빠른 실행 (col-span-1) -->
+        <article class="dashboard_panel row-3-card">
           <div class="panel_head border-b border-slate-100 pb-3 mb-4">
             <div>
               <h3 class="text-sm font-bold text-slate-800">회계 마감 현황</h3>
@@ -109,7 +113,7 @@
           <div class="metric_list flex flex-col gap-2 text-sm text-slate-600" id="periodList"></div>
         </article>
 
-        <article class="dashboard_panel">
+        <article class="dashboard_panel row-3-card">
           <div class="panel_head border-b border-slate-100 pb-3 mb-4">
             <div>
               <h3 class="text-sm font-bold text-slate-800">시산 검증 요약</h3>
@@ -120,7 +124,18 @@
           <div class="account_rank border-t border-slate-100 pt-3 flex flex-col gap-2 text-xs" id="majorAccounts"></div>
         </article>
 
-        <article class="dashboard_panel md:col-span-3">
+        <article class="dashboard_panel row-3-card">
+          <div class="panel_head border-b border-slate-100 pb-3 mb-4">
+            <div>
+              <h3 class="text-sm font-bold text-slate-800">빠른 실행</h3>
+              <span class="text-xs text-slate-400">회계 주요 업무 바로가기</span>
+            </div>
+          </div>
+          <div class="quick_actions flex flex-wrap gap-2 text-xs" id="quickActions"></div>
+        </article>
+
+        <!-- Row 4: 최근 회계 활동 (col-span-3) -->
+        <article class="dashboard_panel row-4-card md:col-span-3">
           <div class="panel_head border-b border-slate-100 pb-3 mb-4">
             <div>
               <h3 class="text-sm font-bold text-slate-800">최근 회계 활동</h3>
@@ -133,16 +148,6 @@
             </div>
             <div id="activityRows" class="flex flex-col gap-1 mt-2"></div>
           </div>
-        </article>
-
-        <article class="dashboard_panel">
-          <div class="panel_head border-b border-slate-100 pb-3 mb-4">
-            <div>
-              <h3 class="text-sm font-bold text-slate-800">빠른 실행</h3>
-              <span class="text-xs text-slate-400">회계 주요 업무 바로가기</span>
-            </div>
-          </div>
-          <div class="quick_actions flex flex-wrap gap-2 text-xs" id="quickActions"></div>
         </article>
       </section>
     </main>
