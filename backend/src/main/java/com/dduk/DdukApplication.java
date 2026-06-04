@@ -8,6 +8,9 @@ import org.springframework.boot.autoconfigure.SpringBootApplication;
 import java.nio.file.Files;
 import java.nio.file.Path;
 
+import org.springframework.scheduling.annotation.EnableAsync;
+
+@EnableAsync
 @SpringBootApplication
 public class DdukApplication {
 

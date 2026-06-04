@@ -297,7 +297,7 @@ VALUES
     ((SELECT id FROM items WHERE item_code = 'AMANTI-ITEM-005'), (SELECT id FROM warehouses WHERE warehouse_code = 'WH-SEASON'), 'WH-SEASON', 11, 18, 20, 5500.0000, 60500.0000, 0, NOW(), NOW()),
     ((SELECT id FROM items WHERE item_code = 'AMANTI-ITEM-006'), (SELECT id FROM warehouses WHERE warehouse_code = 'WH-SEASON'), 'WH-SEASON', 24, 2, 18, 7000.0000, 168000.0000, 0, NOW(), NOW()),
     ((SELECT id FROM items WHERE item_code = 'AMANTI-ITEM-007'), (SELECT id FROM warehouses WHERE warehouse_code = 'WH-SEASON'), 'WH-SEASON', 14, 2, 15, 5800.0000, 81200.0000, 0, NOW(), NOW()),
-    ((SELECT id FROM items WHERE item_code = 'AMANTI-ITEM-008'), (SELECT id FROM warehouses WHERE warehouse_code = 'WH-SEASON'), 'WH-SEASON', 25, 0, 12, 6800.0000, 170000.0000, 0, NOW(), NOW()),
+    ((SELECT id FROM items WHERE item_code = 'AMANTI-ITEM-008'), (SELECT id FROM warehouses WHERE warehouse_code = 'WH-SEASON'), 'WH-SEASON', 25, 0, 12, 6800.0000, 170000.0000, 0, NOW() - INTERVAL 110 DAY, NOW() - INTERVAL 110 DAY),
     ((SELECT id FROM items WHERE item_code = 'AMANTI-ITEM-009'), (SELECT id FROM warehouses WHERE warehouse_code = 'WH-SEASON'), 'WH-SEASON', 5, 1, 10, 8200.0000, 41000.0000, 0, NOW(), NOW()),
     ((SELECT id FROM items WHERE item_code = 'AMANTI-ITEM-010'), (SELECT id FROM warehouses WHERE warehouse_code = 'WH-SEASON'), 'WH-SEASON', 16, 1, 15, 11000.0000, 176000.0000, 0, NOW(), NOW()),
     ((SELECT id FROM items WHERE item_code = 'AMANTI-ITEM-011'), (SELECT id FROM warehouses WHERE warehouse_code = 'WH-SEASON'), 'WH-SEASON', 2, 0, 8, 6000.0000, 12000.0000, 0, NOW(), NOW()),
@@ -419,7 +419,9 @@ VALUES
     ((SELECT id FROM items WHERE item_code = 'AMANTI-RAW-001'), (SELECT id FROM warehouses WHERE warehouse_code = 'WH-RAW'), 'INBOUND', 'PURCHASE_RECEIVED', 'SM-AMANTI-011', 5, 45000.0000, 225000.0000, 18, 23, 'SAMPLE_AMANTI', 'AMANTI-RAW-001-1', NOW() - INTERVAL 75 DAY),
     ((SELECT id FROM items WHERE item_code = 'AMANTI-RAW-001'), (SELECT id FROM warehouses WHERE warehouse_code = 'WH-RAW'), 'OUTBOUND', 'PRODUCTION_CONSUMED', 'SM-AMANTI-012', 1, 45000.0000, 45000.0000, 23, 22, 'SAMPLE_AMANTI', 'AMANTI-RAW-001-2', NOW() - INTERVAL 10 DAY),
     ((SELECT id FROM items WHERE item_code = 'AMANTI-ITEM-010'), (SELECT id FROM warehouses WHERE warehouse_code = 'WH-SEASON'), 'INBOUND', 'PURCHASE_RECEIVED', 'SM-AMANTI-013', 15, 11000.0000, 165000.0000, 5, 20, 'SAMPLE_AMANTI', 'AMANTI-ITEM-010-1', NOW() - INTERVAL 115 DAY),
-    ((SELECT id FROM items WHERE item_code = 'AMANTI-ITEM-010'), (SELECT id FROM warehouses WHERE warehouse_code = 'WH-SEASON'), 'OUTBOUND', 'SALES_SHIPPED', 'SM-AMANTI-014', 4, 11000.0000, 44000.0000, 20, 16, 'SAMPLE_AMANTI', 'AMANTI-ITEM-010-2', NOW() - INTERVAL 15 DAY);
+    ((SELECT id FROM items WHERE item_code = 'AMANTI-ITEM-010'), (SELECT id FROM warehouses WHERE warehouse_code = 'WH-SEASON'), 'OUTBOUND', 'SALES_SHIPPED', 'SM-AMANTI-014', 4, 11000.0000, 44000.0000, 20, 16, 'SAMPLE_AMANTI', 'AMANTI-ITEM-010-2', NOW() - INTERVAL 15 DAY),
+    ((SELECT id FROM items WHERE item_code = 'AMANTI-ITEM-003'), (SELECT id FROM warehouses WHERE warehouse_code = 'WH-SEASON'), 'INBOUND', 'PURCHASE_RECEIVED', 'SM-AMANTI-015', 25, 9800.0000, 245000.0000, 0, 25, 'SAMPLE_AMANTI', 'AMANTI-ITEM-003-1', NOW() - INTERVAL 100 DAY),
+    ((SELECT id FROM items WHERE item_code = 'AMANTI-ITEM-003'), (SELECT id FROM warehouses WHERE warehouse_code = 'WH-SEASON'), 'OUTBOUND', 'SALES_SHIPPED', 'SM-AMANTI-016', 7, 9800.0000, 68600.0000, 25, 18, 'SAMPLE_AMANTI', 'AMANTI-ITEM-003-2', NOW() - INTERVAL 95 DAY);
 
 -- -----------------------------------------------------------------
 -- warehouse transfers (창고 간 재고 이동)

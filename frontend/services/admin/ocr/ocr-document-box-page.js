@@ -22,6 +22,8 @@
         parseApiResponse,
         safeParseJson,
         buildPurchaseItemDraft,
+        buildExpenseDraft,
+        buildVoucherDraft,
         renderSearchResults,
         clampAmount,
         buildReviewDraft
@@ -102,7 +104,7 @@ function initDocumentBoxPage() {
         async function loadDocuments() {
             tableBody.innerHTML = `
                 <tr>
-                    <td colspan="9" class="px-6 py-10 text-center text-gray-400">OCR 臾몄꽌瑜?遺덈윭?ㅻ뒗 以묒씠??</td>
+                    <td colspan="9" class="px-6 py-10 text-center text-gray-400">OCR 문서를 불러오는 중이야.</td>
                 </tr>
             `;
 
@@ -129,7 +131,7 @@ function initDocumentBoxPage() {
                     params.set("documentType", typeFilter.value);
                 }
 
-                const pageData = await requestApi(`/api/v1/admin/ocr-documents?${params.toString()}`, "OCR 臾몄꽌 紐⑸줉??遺덈윭?ㅼ? 紐삵뻽??", {
+                const pageData = await requestApi(`/api/v1/admin/ocr-documents?${params.toString()}`, "OCR 문서 목록을 불러오지 못했어.", {
                     headers: { "Content-Type": "application/json" }
                 });
                 renderDocuments(pageData.content || []);
@@ -137,7 +139,7 @@ function initDocumentBoxPage() {
                 setMessage(message, error.message, "error");
                 tableBody.innerHTML = `
                     <tr>
-                        <td colspan="9" class="px-6 py-10 text-center text-red-500">OCR 臾몄꽌 紐⑸줉??遺덈윭?ㅼ? 紐삵뻽??</td>
+                        <td colspan="9" class="px-6 py-10 text-center text-red-500">OCR 문서 목록을 불러오지 못했어.</td>
                     </tr>
                 `;
             }
@@ -147,7 +149,7 @@ function initDocumentBoxPage() {
             if (!documents.length) {
                 tableBody.innerHTML = `
                     <tr>
-                        <td colspan="9" class="px-6 py-10 text-center text-gray-400">議곌굔??留욌뒗 OCR 臾몄꽌媛 ?놁뼱.</td>
+                        <td colspan="9" class="px-6 py-10 text-center text-gray-400">조건에 맞는 OCR 문서가 없어.</td>
                     </tr>
                 `;
                 return;
@@ -175,7 +177,7 @@ function initDocumentBoxPage() {
                         <td class="px-6 py-4 text-sm text-gray-600 text-center">${formatCurrency(document.extractedAmount)}</td>
                         <td class="px-6 py-4 text-center">
                             <button type="button" class="view-ocr-detail rounded-lg border border-indigo-100 bg-indigo-50 px-3 py-1.5 text-xs font-semibold text-indigo-600 hover:bg-indigo-100" data-id="${document.id}">
-                                ?곸꽭 蹂닿린
+                                상세 보기
                             </button>
                         </td>
                     </tr>
@@ -191,12 +193,12 @@ function initDocumentBoxPage() {
 
         async function openDocumentDetail(id) {
             try {
-                const detail = await requestApi(`/api/v1/admin/ocr-documents/${id}`, "OCR 臾몄꽌 ?곸꽭瑜?遺덈윭?ㅼ? 紐삵뻽??", {
+                const detail = await requestApi(`/api/v1/admin/ocr-documents/${id}`, "OCR 문서 상세를 불러오지 못했어.", {
                     headers: { "Content-Type": "application/json" }
                 });
                 selectedDocument = detail;
 
-                // ?뚯씠釉????섏씠?쇱씠???ㅼ떆媛?媛깆떊
+                // 선택한 행에 강조 스타일을 적용한다.
                 tableBody.querySelectorAll("tr[data-row-id]").forEach(function (row) {
                     if (Number(row.dataset.rowId) === Number(id)) {
                         row.className = "border-b border-indigo-100 bg-indigo-50/40 hover:bg-indigo-50/60 text-center font-medium";
@@ -211,23 +213,23 @@ function initDocumentBoxPage() {
 
                 detailSummary.innerHTML = `
                     <div class="grid grid-cols-1 gap-3 md:grid-cols-2">
-                        <div><span class="font-semibold text-gray-500">臾몄꽌 ID</span><div class="mt-1 text-sm text-gray-900">${detail.id}</div></div>
-                        <div><span class="font-semibold text-gray-500">泥섎━ ?곹깭</span><div class="mt-1 text-sm text-gray-900">${translateProcessingStatus(detail.processingStatus)}</div></div>
-                        <div><span class="font-semibold text-gray-500">臾몄꽌 ?좏삎</span><div class="mt-1 text-sm text-gray-900">${translateDocumentType(detail.documentType)}</div></div>
-                        <div><span class="font-semibold text-gray-500">?낅줈???쒓컖</span><div class="mt-1 text-sm text-gray-900">${formatDateTime(detail.createdAt)}</div></div>
-                        <div><span class="font-semibold text-gray-500">寃???곹깭</span><div class="mt-1 text-sm text-gray-900">${translateReviewStatus(detail.reviewStatus)}</div></div>
-                        <div><span class="font-semibold text-gray-500">留곹겕 ?곹깭</span><div class="mt-1 text-sm text-gray-900">${linkLabel}</div></div>
-                        <div><span class="font-semibold text-gray-500">嫄곕옒泥?/span><div class="mt-1 text-sm text-gray-900">${detail.extractedVendor || "-"}</div></div>
-                        <div><span class="font-semibold text-gray-500">湲덉븸</span><div class="mt-1 text-sm text-gray-900">${formatCurrency(detail.extractedAmount)}</div></div>
-                        <div><span class="font-semibold text-gray-500">留곹겕 ?쒓컖</span><div class="mt-1 text-sm text-gray-900">${formatDateTime(detail.linkedAt)}</div></div>
-                        <div><span class="font-semibold text-gray-500">留곹겕 ?묒뾽??/span><div class="mt-1 text-sm text-gray-900">${detail.linkedByMemberId || "-"}</div></div>
+                        <div><span class="font-semibold text-gray-500">문서 ID</span><div class="mt-1 text-sm text-gray-900">${detail.id}</div></div>
+                        <div><span class="font-semibold text-gray-500">처리 상태</span><div class="mt-1 text-sm text-gray-900">${translateProcessingStatus(detail.processingStatus)}</div></div>
+                        <div><span class="font-semibold text-gray-500">문서 유형</span><div class="mt-1 text-sm text-gray-900">${translateDocumentType(detail.documentType)}</div></div>
+                        <div><span class="font-semibold text-gray-500">생성 일시</span><div class="mt-1 text-sm text-gray-900">${formatDateTime(detail.createdAt)}</div></div>
+                        <div><span class="font-semibold text-gray-500">검토 상태</span><div class="mt-1 text-sm text-gray-900">${translateReviewStatus(detail.reviewStatus)}</div></div>
+                        <div><span class="font-semibold text-gray-500">연결 상태</span><div class="mt-1 text-sm text-gray-900">${linkLabel}</div></div>
+                        <div><span class="font-semibold text-gray-500">거래처</span><div class="mt-1 text-sm text-gray-900">${detail.extractedVendor || "-"}</div></div>
+                        <div><span class="font-semibold text-gray-500">금액</span><div class="mt-1 text-sm text-gray-900">${formatCurrency(detail.extractedAmount)}</div></div>
+                        <div><span class="font-semibold text-gray-500">연결 일시</span><div class="mt-1 text-sm text-gray-900">${formatDateTime(detail.linkedAt)}</div></div>
+                        <div><span class="font-semibold text-gray-500">연결 담당자</span><div class="mt-1 text-sm text-gray-900">${detail.linkedByMemberId || "-"}</div></div>
                     </div>
                 `;
 
-                rawResult.textContent = detail.rawOcrResult || detail.errorMessage || "?쒖떆??OCR 寃곌낵媛 ?놁뼱.";
+                rawResult.textContent = detail.rawOcrResult || detail.errorMessage || "표시할 OCR 원본 결과가 없어.";
                 reviewedResultInput.value = detail.reviewedResult || detail.rawOcrResult || "";
                 reviewStatusBadge.className = `rounded-full px-3 py-1 text-xs font-semibold ${badgeClass(detail.reviewStatus)}`;
-                reviewStatusBadge.textContent = translateReviewStatus(detail.reviewStatus) || "검토 대기";
+                reviewStatusBadge.textContent = translateReviewStatus(detail.reviewStatus) || "상태 없음";
 
                 prefillReviewForm(detail);
                 prefillPurchaseLinkForm(detail);
@@ -286,10 +288,10 @@ function initDocumentBoxPage() {
                     <thead>
                         <tr class="bg-slate-100 text-slate-600 font-semibold border-b border-slate-200">
                             <th class="border border-slate-200 px-3 py-2.5 w-10 text-center bg-slate-50/80"></th>
-                            <th class="border border-slate-200 px-3 py-2.5 text-left text-slate-700">?덈ぉ紐?/th>
-                            <th class="border border-slate-200 px-3 py-2.5 w-20 text-center text-slate-700">?섎웾</th>
-                            <th class="border border-slate-200 px-3 py-2.5 w-28 text-right text-slate-700">?④?</th>
-                            <th class="border border-slate-200 px-3 py-2.5 w-28 text-right text-slate-700">湲덉븸</th>
+                            <th class="border border-slate-200 px-3 py-2.5 text-left text-slate-700">품목명</th>
+                            <th class="border border-slate-200 px-3 py-2.5 w-20 text-center text-slate-700">수량</th>
+                            <th class="border border-slate-200 px-3 py-2.5 w-28 text-right text-slate-700">단가</th>
+                            <th class="border border-slate-200 px-3 py-2.5 w-28 text-right text-slate-700">금액</th>
                         </tr>
                     </thead>
                     <tbody>
@@ -299,7 +301,7 @@ function initDocumentBoxPage() {
                 html += `
                     <tr>
                         <td class="border border-slate-200 px-3 py-8 text-center text-slate-400 font-medium" colspan="5">
-                            異붿텧???몃? ?덈ぉ ?뺣낫媛 ?놁뒿?덈떎.
+                            추출된 품목 데이터가 없어.
                         </td>
                     </tr>
                 `;
@@ -327,30 +329,30 @@ function initDocumentBoxPage() {
                 </table>
             `;
 
-            // 湲곕낯 硫뷀??곗씠???붿빟 ?뚯씠釉?異붽?
+            // 요약 정보를 표 형태로 함께 보여준다.
             html += `
                 <div class="mt-4 border-t border-slate-200 pt-4 px-1 pb-1">
                     <span class="mb-2.5 block text-xs font-bold text-slate-600 flex items-center gap-1.5">
                       <span class="inline-block w-1.5 h-3 bg-indigo-500 rounded-sm"></span>
-                      異붿텧 湲곕낯 ?뺣낫 ?붿빟
+                      검토 입력 요약
                     </span>
                     <div class="overflow-x-auto rounded-xl border border-slate-200 max-w-md bg-white">
                         <table class="min-w-full border-collapse text-xs">
                             <tbody>
                                 <tr class="border-b border-slate-100">
-                                    <td class="px-4 py-2 w-32 bg-slate-50/60 font-semibold text-slate-500 text-center border-r border-slate-100">嫄곕옒泥섎챸</td>
+                                    <td class="px-4 py-2 w-32 bg-slate-50/60 font-semibold text-slate-500 text-center border-r border-slate-100">거래처명</td>
                                     <td class="px-4 py-2 text-slate-800 font-medium">${payload.vendorName || "-"}</td>
                                 </tr>
                                 <tr class="border-b border-slate-100">
-                                    <td class="px-4 py-2 bg-slate-50/60 font-semibold text-slate-500 text-center border-r border-slate-100">嫄곕옒?쇱옄</td>
+                                    <td class="px-4 py-2 bg-slate-50/60 font-semibold text-slate-500 text-center border-r border-slate-100">거래일자</td>
                                     <td class="px-4 py-2 text-slate-800 font-medium">${payload.transactionDate || "-"}</td>
                                 </tr>
                                 <tr class="border-b border-slate-100">
-                                    <td class="px-4 py-2 bg-slate-50/60 font-semibold text-slate-500 text-center border-r border-slate-100">珥?湲덉븸</td>
+                                    <td class="px-4 py-2 bg-slate-50/60 font-semibold text-slate-500 text-center border-r border-slate-100">총 금액</td>
                                     <td class="px-4 py-2 text-slate-800 font-bold font-mono">${formatCurrency(payload.totalAmount)}</td>
                                 </tr>
                                 <tr>
-                                    <td class="px-4 py-2 bg-slate-50/60 font-semibold text-slate-500 text-center border-r border-slate-100">?듯솕</td>
+                                    <td class="px-4 py-2 bg-slate-50/60 font-semibold text-slate-500 text-center border-r border-slate-100">통화</td>
                                     <td class="px-4 py-2 text-slate-800 font-medium">${payload.currency || "KRW"}</td>
                                 </tr>
                             </tbody>
@@ -366,7 +368,7 @@ function initDocumentBoxPage() {
             if (!detail) {
                 if (reviewedResultInput) reviewedResultInput.value = "";
                 const container = document.getElementById("ocrExcelTableContainer");
-                if (container) container.innerHTML = '<div class="text-xs text-slate-400 p-4 text-center">臾몄꽌瑜??좏깮?섎㈃ ?묒? ?쒗듃 ?붿빟???ш린???쒖떆?⑸땲??</div>';
+                if (container) container.innerHTML = "<div class=\"text-xs text-slate-400 p-4 text-center\">문서를 선택하면 검토 요약이 여기에 표시돼.</div>";
                 return;
             }
             const payload = buildReviewPayload(detail);
@@ -393,13 +395,13 @@ function initDocumentBoxPage() {
                     <thead>
                         <tr class="bg-slate-100 text-slate-600 font-semibold border-b border-slate-200">
                             <th class="border border-slate-200 px-2 py-2.5 w-10 text-center bg-slate-50/80"></th>
-                            <th class="border border-slate-200 px-3 py-2.5 text-left text-slate-700">?덈ぉ紐?/th>
-                            <th class="border border-slate-200 px-3 py-2.5 w-24 text-center text-slate-700">?섎웾</th>
-                            <th class="border border-slate-200 px-3 py-2.5 w-28 text-right text-slate-700">?④?</th>
-                            <th class="border border-slate-200 px-3 py-2.5 w-28 text-right text-slate-700">湲덉븸</th>
-                            <th class="border border-slate-200 px-3 py-2.5 w-32 text-center text-slate-700">?⑷린??/th>
-                            <th class="border border-slate-200 px-3 py-2.5 text-left text-slate-700">鍮꾧퀬</th>
-                            <th class="border border-slate-200 px-2 py-2.5 w-12 text-center text-slate-700">??젣</th>
+                            <th class="border border-slate-200 px-3 py-2.5 text-left text-slate-700">품목명</th>
+                            <th class="border border-slate-200 px-3 py-2.5 w-24 text-center text-slate-700">수량</th>
+                            <th class="border border-slate-200 px-3 py-2.5 w-28 text-right text-slate-700">단가</th>
+                            <th class="border border-slate-200 px-3 py-2.5 w-28 text-right text-slate-700">금액</th>
+                            <th class="border border-slate-200 px-3 py-2.5 w-32 text-center text-slate-700">납기일</th>
+                            <th class="border border-slate-200 px-3 py-2.5 text-left text-slate-700">메모</th>
+                            <th class="border border-slate-200 px-2 py-2.5 w-12 text-center text-slate-700">삭제</th>
                         </tr>
                     </thead>
                     <tbody>
@@ -409,7 +411,7 @@ function initDocumentBoxPage() {
                 html += `
                     <tr>
                         <td class="border border-slate-200 px-3 py-8 text-center text-slate-400 font-medium" colspan="8">
-                            諛쒖＜ ?덈ぉ???놁뒿?덈떎. ?곗륫 ?덈ぉ 李얘린??嫄곕옒泥?寃?됱쑝濡?異붽???二쇱꽭??
+                            아직 발주 항목이 없어. 품목 검색으로 항목을 추가해 줘.
                         </td>
                     </tr>
                 `;
@@ -544,8 +546,8 @@ function initDocumentBoxPage() {
             vendorSearchKeyword.value = detail.extractedVendor || "";
             purchaseExpectedDate.value = detail.extractedDate || "";
             purchaseNote.value = detail.linkStatus === "LINKED"
-                ? `OCR 臾몄꽌 ${detail.id}???대? ?곌껐???곹깭??`
-                : `OCR 臾몄꽌 ${detail.id} (${detail.originalFilename}) 湲곕컲 諛쒖＜`;
+                ? `OCR 문서 ${detail.id}에 이미 연결된 발주 메모야.`
+                : `OCR 문서 ${detail.id} (${detail.originalFilename}) 기반 발주`;
             purchaseItemsJson.value = JSON.stringify(buildPurchaseItemDraft(detail), null, 2);
             vendorSearchResults.innerHTML = "";
             itemSearchResults.innerHTML = "";
@@ -645,13 +647,13 @@ function initDocumentBoxPage() {
         async function searchVendors() {
             const keyword = vendorSearchKeyword.value.trim();
             if (!keyword) {
-                vendorSearchResults.innerHTML = `<div class="text-xs text-slate-400">寃?됱뼱瑜??낅젰??</div>`;
+                vendorSearchResults.innerHTML = `<div class="text-xs text-slate-400">거래처 검색어를 입력해.</div>`;
                 return;
             }
 
-            vendorSearchResults.innerHTML = `<div class="text-xs text-slate-400">嫄곕옒泥섎? 李얜뒗 以묒씠??</div>`;
+            vendorSearchResults.innerHTML = `<div class="text-xs text-slate-400">거래처를 찾는 중이야.</div>`;
             try {
-                const vendors = await requestJsonList(`/api/v1/inventory/vendors/search?keyword=${encodeURIComponent(keyword)}`, "嫄곕옒泥?寃?됱뿉 ?ㅽ뙣?덉뼱.", {
+                const vendors = await requestJsonList(`/api/v1/inventory/vendors/search?keyword=${encodeURIComponent(keyword)}`, "거래처 검색에 실패했어.", {
                     headers: { "Content-Type": "application/json" }
                 });
                 renderVendorSearchResults(vendors || []);
@@ -662,7 +664,7 @@ function initDocumentBoxPage() {
 
         function renderVendorSearchResults(vendors) {
             if (!vendors.length) {
-                vendorSearchResults.innerHTML = `<div class="text-xs text-slate-400">寃??寃곌낵媛 ?놁뼱.</div>`;
+                vendorSearchResults.innerHTML = `<div class="text-xs text-slate-400">검색 결과가 없어.</div>`;
                 return;
             }
 
@@ -684,7 +686,7 @@ function initDocumentBoxPage() {
                     voucherVendorId.value = button.dataset.vendorId || "";
                     voucherVendorName.value = button.dataset.vendorName || "";
                     vendorSearchKeyword.value = button.dataset.vendorName || "";
-                    setMessage(message, `嫄곕옒泥?${button.dataset.vendorName}瑜??좏깮?덉뼱.`, "success");
+                    setMessage(message, `거래처 ${button.dataset.vendorName}을 선택했어.`, "success");
                 });
             });
         }
@@ -692,13 +694,13 @@ function initDocumentBoxPage() {
         async function searchItems() {
             const keyword = itemSearchKeyword.value.trim();
             if (!keyword) {
-                itemSearchResults.innerHTML = `<div class="text-xs text-slate-400">寃?됱뼱瑜??낅젰??</div>`;
+                itemSearchResults.innerHTML = `<div class="text-xs text-slate-400">품목 검색어를 입력해.</div>`;
                 return;
             }
 
-            itemSearchResults.innerHTML = `<div class="text-xs text-slate-400">?덈ぉ??李얜뒗 以묒씠??</div>`;
+            itemSearchResults.innerHTML = `<div class="text-xs text-slate-400">품목을 찾는 중이야.</div>`;
             try {
-                const items = await requestJsonList(`/api/v1/inventory/items/search?name=${encodeURIComponent(keyword)}`, "?덈ぉ 寃?됱뿉 ?ㅽ뙣?덉뼱.", {
+                const items = await requestJsonList(`/api/v1/inventory/items/search?name=${encodeURIComponent(keyword)}`, "품목 검색에 실패했어.", {
                     headers: { "Content-Type": "application/json" }
                 });
                 renderItemSearchResults(items || []);
@@ -709,7 +711,7 @@ function initDocumentBoxPage() {
 
         function renderItemSearchResults(items) {
             if (!items.length) {
-                itemSearchResults.innerHTML = `<div class="text-xs text-slate-400">寃??寃곌낵媛 ?놁뼱.</div>`;
+                itemSearchResults.innerHTML = `<div class="text-xs text-slate-400">검색 결과가 없어.</div>`;
                 return;
             }
 
@@ -745,11 +747,11 @@ function initDocumentBoxPage() {
                         quantity: 1,
                         unitPrice: button.dataset.unitPrice ? Number(button.dataset.unitPrice) : 0,
                         expectedDate: purchaseExpectedDate.value || null,
-                        note: "?덈ぉ 寃?됱쑝濡?異붽?"
+                        note: "OCR 문서 기반 추가"
                     });
                     purchaseItemsJson.value = JSON.stringify(itemsDraft, null, 2);
                     itemSearchKeyword.value = button.dataset.itemName || "";
-                    setMessage(message, `?덈ぉ ${button.dataset.itemName}瑜?諛쒖＜ 珥덉븞??異붽??덉뼱.`, "success");
+                    setMessage(message, `품목 ${button.dataset.itemName}을 발주 항목에 추가했어.`, "success");
                     renderPurchaseItemsTable();
                 });
             });
@@ -757,19 +759,19 @@ function initDocumentBoxPage() {
 
         function validateReviewForm(detail) {
             if (!detail) {
-                return "Select an OCR document first.";
+                return "먼저 OCR 문서를 선택해.";
             }
 
             if (reviewTransactionDate.value && Number.isNaN(new Date(reviewTransactionDate.value).getTime())) {
-                return "Transaction date is invalid.";
+                return "거래 일자 형식이 올바르지 않아.";
             }
 
             if (reviewTotalAmount.value.trim() !== "" && Number.isNaN(Number(reviewTotalAmount.value.trim()))) {
-                return "Total amount must be numeric.";
+                return "총 금액은 숫자로 입력해.";
             }
 
             if (!reviewCurrency.value.trim()) {
-                return "Currency is required.";
+                return "통화 값을 입력해.";
             }
 
             return null;
@@ -777,11 +779,11 @@ function initDocumentBoxPage() {
 
         async function searchAccounts(keyword, type, cashOnly, resultContainer, onSelect) {
             if (!keyword.trim()) {
-                resultContainer.innerHTML = `<div class="text-xs text-slate-400">寃?됱뼱瑜??낅젰??</div>`;
+                resultContainer.innerHTML = `<div class="text-xs text-slate-400">계정 검색어를 입력해.</div>`;
                 return;
             }
 
-            resultContainer.innerHTML = `<div class="text-xs text-slate-400">怨꾩젙??李얜뒗 以묒씠??</div>`;
+            resultContainer.innerHTML = `<div class="text-xs text-slate-400">계정을 찾는 중이야.</div>`;
             try {
                 const params = new URLSearchParams();
                 params.set("keyword", keyword.trim());
@@ -790,11 +792,11 @@ function initDocumentBoxPage() {
                 }
                 params.set("cashOnly", cashOnly ? "true" : "false");
 
-                const accounts = await requestApi(`/api/v1/accounting/vouchers/accounts/search?${params.toString()}`, "怨꾩젙 寃?됱뿉 ?ㅽ뙣?덉뼱.", {
+                const accounts = await requestApi(`/api/v1/accounting/vouchers/accounts/search?${params.toString()}`, "계정 검색에 실패했어.", {
                     headers: { "Content-Type": "application/json" }
                 });
                 if (!accounts.length) {
-                    resultContainer.innerHTML = `<div class="text-xs text-slate-400">寃??寃곌낵媛 ?놁뼱.</div>`;
+                    resultContainer.innerHTML = `<div class="text-xs text-slate-400">검색 결과가 없어.</div>`;
                     return;
                 }
                 resultContainer.innerHTML = accounts.slice(0, 10).map(function (account) {
@@ -827,21 +829,21 @@ function initDocumentBoxPage() {
                 searchAccounts(voucherBusinessAccountKeyword.value, type, false, businessAccountResults, function (dataset) {
                     voucherBusinessAccountId.value = dataset.accountId || "";
                     voucherBusinessAccountKeyword.value = `${dataset.accountCode} ${dataset.accountName}`.trim();
-                    setMessage(message, `?ъ뾽 怨꾩젙 ${dataset.accountName}瑜??좏깮?덉뼱.`, "success");
+                    setMessage(message, `사업 계정 ${dataset.accountName}을 선택했어.`, "success");
                 });
             });
             searchSettlementAccountBtn.addEventListener("click", function () {
                 searchAccounts(voucherSettlementAccountKeyword.value, "ASSET", true, settlementAccountResults, function (dataset) {
                     voucherSettlementAccountId.value = dataset.accountId || "";
                     voucherSettlementAccountKeyword.value = `${dataset.accountCode} ${dataset.accountName}`.trim();
-                    setMessage(message, `寃곗젣 怨꾩젙 ${dataset.accountName}瑜??좏깮?덉뼱.`, "success");
+                    setMessage(message, `결제 계정 ${dataset.accountName}을 선택했어.`, "success");
                 });
             });
         }
 
         async function updateReview(reviewStatus) {
             if (!selectedDocument) {
-                setMessage(message, "癒쇱? OCR 臾몄꽌瑜??좏깮??", "error");
+                setMessage(message, "먼저 OCR 문서를 선택해.", "error");
                 return;
             }
 
@@ -862,8 +864,8 @@ function initDocumentBoxPage() {
                         reviewedResult: reviewedPayload
                     })
                 });
-                const detail = await parseApiResponse(response, "OCR 寃???곹깭瑜?蹂寃쏀븯吏 紐삵뻽??");
-                setMessage(message, `OCR 臾몄꽌 ${detail.id} 寃???곹깭瑜?${detail.reviewStatus}濡?蹂寃쏀뻽??`, "success");
+                const detail = await parseApiResponse(response, "OCR 문서 검토 저장에 실패했어.");
+                setMessage(message, `OCR 문서 ${detail.id} 검토 상태를 ${translateReviewStatus(detail.reviewStatus)}로 저장했어.`, "success");
                 await openDocumentDetail(detail.id);
                 await loadDocuments();
             } catch (error) {
@@ -873,7 +875,7 @@ function initDocumentBoxPage() {
 
         async function retryDocument() {
             if (!selectedDocument) {
-                setMessage(message, "癒쇱? OCR 臾몄꽌瑜??좏깮??", "error");
+                setMessage(message, "먼저 OCR 문서를 선택해.", "error");
                 return;
             }
             try {
@@ -881,8 +883,8 @@ function initDocumentBoxPage() {
                     method: "POST",
                     headers: getAuthHeaders({ "Content-Type": "application/json" })
                 });
-                const detail = await parseApiResponse(response, "OCR ?ъ쿂由ъ뿉 ?ㅽ뙣?덉뼱.");
-                setMessage(message, `OCR 臾몄꽌 ${detail.id}瑜??ㅼ떆 遺꾩꽍?덉뼱.`, "success");
+                const detail = await parseApiResponse(response, "OCR 재처리 요청에 실패했어.");
+                setMessage(message, `OCR 문서 ${detail.id} 재처리를 요청했어.`, "success");
                 await openDocumentDetail(detail.id);
                 await loadDocuments();
             } catch (error) {
@@ -892,11 +894,11 @@ function initDocumentBoxPage() {
 
         async function deleteDocument() {
             if (!selectedDocument) {
-                setMessage(message, "癒쇱? OCR 臾몄꽌瑜??좏깮??", "error");
+                setMessage(message, "먼저 OCR 문서를 선택해.", "error");
                 return;
             }
 
-            if (!confirm(`OCR 臾몄꽌 ${selectedDocument.id} (${selectedDocument.originalFilename})瑜??뺣쭚 ??젣?섏떆寃좎뒿?덇퉴?`)) {
+            if (!confirm(`OCR 문서 ${selectedDocument.id} (${selectedDocument.originalFilename})를 정말 삭제할까?`)) {
                 return;
             }
 
@@ -915,13 +917,13 @@ function initDocumentBoxPage() {
                 }
 
                 if (!response.ok) {
-                    throw new Error(data && data.message ? data.message : "OCR 臾몄꽌 ??젣???ㅽ뙣?덉뼱.");
+                    throw new Error(data && data.message ? data.message : "OCR 문서 삭제에 실패했어.");
                 }
 
-                setMessage(message, data && data.message ? data.message : "OCR 臾몄꽌瑜???젣?덉뼱.", "success");
+                setMessage(message, data && data.message ? data.message : "OCR 문서를 삭제했어.", "success");
                 selectedDocument = null;
-                detailSummary.innerHTML = "臾몄꽌瑜??좏깮?섎㈃ ?곸꽭 ?뺣낫媛 ?ш린 ?쒖떆??";
-                rawResult.textContent = "?꾩쭅 ?좏깮??臾몄꽌媛 ?놁뼱.";
+                detailSummary.innerHTML = "문서를 선택하면 상세 정보가 여기에 표시돼.";
+                rawResult.textContent = "아직 선택한 문서가 없어.";
                 previewImage.classList.add("hidden");
                 previewImage.removeAttribute("src");
                 previewHint.classList.remove("hidden");
@@ -939,7 +941,7 @@ function initDocumentBoxPage() {
 
         async function unlinkDocument() {
             if (!selectedDocument) {
-                setMessage(message, "癒쇱? OCR 臾몄꽌瑜??좏깮??", "error");
+                setMessage(message, "먼저 OCR 문서를 선택해.", "error");
                 return;
             }
 
@@ -948,8 +950,8 @@ function initDocumentBoxPage() {
                     method: "DELETE",
                     headers: getAuthHeaders({ "Content-Type": "application/json" })
                 });
-                const detail = await parseApiResponse(response, "OCR 臾몄꽌 ?곌껐 ?댁젣???ㅽ뙣?덉뼱.");
-                setMessage(message, `OCR 臾몄꽌 ${detail.id} ?곌껐???댁젣?덉뼱.`, "success");
+                const detail = await parseApiResponse(response, "OCR 연결 해제에 실패했어.");
+                setMessage(message, `OCR 문서 ${detail.id} 연결을 해제했어.`, "success");
                 await openDocumentDetail(detail.id);
                 await loadDocuments();
             } catch (error) {
@@ -959,7 +961,7 @@ function initDocumentBoxPage() {
 
         async function unlinkSelectedDocument() {
             if (!selectedDocument) {
-                setMessage(message, "Select an OCR document first.", "error");
+                setMessage(message, "먼저 OCR 문서를 선택해.", "error");
                 return;
             }
 
@@ -968,8 +970,8 @@ function initDocumentBoxPage() {
                     method: "DELETE",
                     headers: getAuthHeaders({ "Content-Type": "application/json" })
                 });
-                const detail = await parseApiResponse(response, "Failed to unlink the OCR document.");
-                setMessage(message, `OCR document ${detail.id} unlinked.`, "success");
+                const detail = await parseApiResponse(response, "OCR 연결 해제에 실패했어.");
+                setMessage(message, `OCR 문서 ${detail.id} 연결을 해제했어.`, "success");
                 await openDocumentDetail(detail.id);
                 await loadDocuments();
             } catch (error) {
@@ -979,7 +981,7 @@ function initDocumentBoxPage() {
 
         async function linkPurchaseOrder() {
             if (!selectedDocument) {
-                setMessage(message, "癒쇱? OCR 臾몄꽌瑜??좏깮??", "error");
+                setMessage(message, "먼저 OCR 문서를 선택해.", "error");
                 return;
             }
 
@@ -987,7 +989,7 @@ function initDocumentBoxPage() {
             try {
                 items = JSON.parse(purchaseItemsJson.value);
             } catch (error) {
-                setMessage(message, "諛쒖＜ ?덈ぉ JSON ?뺤떇???щ컮瑜댁? ?딆븘.", "error");
+                setMessage(message, "발주 항목 JSON 형식이 올바르지 않아.", "error");
                 return;
             }
 
@@ -1011,8 +1013,8 @@ function initDocumentBoxPage() {
                         }) : []
                     })
                 });
-                const purchaseOrder = await parseApiResponse(response, "援щℓ 諛쒖＜ ?곌껐???ㅽ뙣?덉뼱.");
-                setMessage(message, `援щℓ 諛쒖＜ ${purchaseOrder.purchaseOrderNo}瑜??앹꽦?섍퀬 OCR 臾몄꽌? ?곌껐?덉뼱.`, "success");
+                const purchaseOrder = await parseApiResponse(response, "구매 발주 연결에 실패했어.");
+                setMessage(message, `구매 발주 ${purchaseOrder.purchaseOrderNo}로 OCR 문서를 연결했어.`, "success");
                 await openDocumentDetail(selectedDocument.id);
                 await loadDocuments();
             } catch (error) {
@@ -1022,7 +1024,7 @@ function initDocumentBoxPage() {
 
         async function linkExpense() {
             if (!selectedDocument) {
-                setMessage(message, "癒쇱? OCR 臾몄꽌瑜??좏깮??", "error");
+                setMessage(message, "먼저 OCR 문서를 선택해.", "error");
                 return;
             }
             try {
@@ -1038,8 +1040,8 @@ function initDocumentBoxPage() {
                         status: expenseStatus.value || null
                     })
                 });
-                const expense = await parseApiResponse(response, "鍮꾩슜 ?곌껐???ㅽ뙣?덉뼱.");
-                setMessage(message, `鍮꾩슜 ${expense.id}瑜??앹꽦?섍퀬 OCR 臾몄꽌? ?곌껐?덉뼱.`, "success");
+                const expense = await parseApiResponse(response, "비용 연결에 실패했어.");
+                setMessage(message, `비용 ${expense.id}로 OCR 문서를 연결했어.`, "success");
                 await openDocumentDetail(selectedDocument.id);
                 await loadDocuments();
             } catch (error) {
@@ -1049,7 +1051,7 @@ function initDocumentBoxPage() {
 
         async function linkVoucher() {
             if (!selectedDocument) {
-                setMessage(message, "癒쇱? OCR 臾몄꽌瑜??좏깮??", "error");
+                setMessage(message, "먼저 OCR 문서를 선택해.", "error");
                 return;
             }
             try {
@@ -1070,8 +1072,8 @@ function initDocumentBoxPage() {
                         settlementAccountId: voucherSettlementAccountId.value ? Number(voucherSettlementAccountId.value) : null
                     })
                 });
-                const voucher = await parseApiResponse(response, "?꾪몴 ?곌껐???ㅽ뙣?덉뼱.");
-                setMessage(message, `?꾪몴 ${voucher.voucherNo}瑜??앹꽦?섍퀬 OCR 臾몄꽌? ?곌껐?덉뼱.`, "success");
+                const voucher = await parseApiResponse(response, "전표 연결에 실패했어.");
+                setMessage(message, `전표 ${voucher.voucherNo}로 OCR 문서를 연결했어.`, "success");
                 await openDocumentDetail(selectedDocument.id);
                 await loadDocuments();
             } catch (error) {
@@ -1110,7 +1112,7 @@ function initDocumentBoxPage() {
 
         async function legacyUpdateReview(reviewStatus) {
             if (!selectedDocument) {
-                setMessage(message, "癒쇱? OCR 臾몄꽌瑜??좏깮??", "error");
+                setMessage(message, "먼저 OCR 문서를 선택해.", "error");
                 return;
             }
 
@@ -1123,7 +1125,7 @@ function initDocumentBoxPage() {
             try {
                 const reviewedPayload = JSON.stringify(buildReviewPayload(selectedDocument), null, 2);
                 reviewedResultInput.value = reviewedPayload;
-                const detail = await requestApi(`/api/v1/admin/ocr-documents/${selectedDocument.id}/review`, "OCR 寃???곹깭瑜?蹂寃쏀븯吏 紐삵뻽??", {
+                const detail = await requestApi(`/api/v1/admin/ocr-documents/${selectedDocument.id}/review`, "OCR 문서 검토 저장에 실패했어.", {
                     method: "PATCH",
                     headers: { "Content-Type": "application/json" },
                     body: JSON.stringify({
@@ -1131,7 +1133,7 @@ function initDocumentBoxPage() {
                         reviewedResult: reviewedPayload
                     })
                 });
-                setMessage(message, `OCR 臾몄꽌 ${detail.id} 寃???곹깭瑜?${detail.reviewStatus}濡?蹂寃쏀뻽??`, "success");
+                setMessage(message, `OCR 문서 ${detail.id} 검토 상태를 ${translateReviewStatus(detail.reviewStatus)}로 저장했어.`, "success");
                 await openDocumentDetail(detail.id);
                 await loadDocuments();
             } catch (error) {
@@ -1141,15 +1143,15 @@ function initDocumentBoxPage() {
 
         async function legacyRetryDocument() {
             if (!selectedDocument) {
-                setMessage(message, "癒쇱? OCR 臾몄꽌瑜??좏깮??", "error");
+                setMessage(message, "먼저 OCR 문서를 선택해.", "error");
                 return;
             }
             try {
-                const detail = await requestApi(`/api/v1/admin/ocr-documents/${selectedDocument.id}/retry`, "OCR ?ъ쿂由ъ뿉 ?ㅽ뙣?덉뼱.", {
+                const detail = await requestApi(`/api/v1/admin/ocr-documents/${selectedDocument.id}/retry`, "OCR 재처리 요청에 실패했어.", {
                     method: "POST",
                     headers: { "Content-Type": "application/json" }
                 });
-                setMessage(message, `OCR 臾몄꽌 ${detail.id}瑜??ㅼ떆 遺꾩꽍?덉뼱.`, "success");
+                setMessage(message, `OCR 문서 ${detail.id} 재처리를 요청했어.`, "success");
                 await openDocumentDetail(detail.id);
                 await loadDocuments();
             } catch (error) {
@@ -1159,16 +1161,16 @@ function initDocumentBoxPage() {
 
         async function legacyUnlinkDocument() {
             if (!selectedDocument) {
-                setMessage(message, "癒쇱? OCR 臾몄꽌瑜??좏깮??", "error");
+                setMessage(message, "먼저 OCR 문서를 선택해.", "error");
                 return;
             }
 
             try {
-                const detail = await requestApi(`/api/v1/admin/ocr-documents/${selectedDocument.id}/link`, "OCR 臾몄꽌 ?곌껐 ?댁젣???ㅽ뙣?덉뼱.", {
+                const detail = await requestApi(`/api/v1/admin/ocr-documents/${selectedDocument.id}/link`, "OCR 연결 해제에 실패했어.", {
                     method: "DELETE",
                     headers: { "Content-Type": "application/json" }
                 });
-                setMessage(message, `OCR 臾몄꽌 ${detail.id} ?곌껐???댁젣?덉뼱.`, "success");
+                setMessage(message, `OCR 문서 ${detail.id} 연결을 해제했어.`, "success");
                 await openDocumentDetail(detail.id);
                 await loadDocuments();
             } catch (error) {
@@ -1178,16 +1180,16 @@ function initDocumentBoxPage() {
 
         async function legacyUnlinkSelectedDocument() {
             if (!selectedDocument) {
-                setMessage(message, "癒쇱? OCR 臾몄꽌瑜??좏깮??", "error");
+                setMessage(message, "먼저 OCR 문서를 선택해.", "error");
                 return;
             }
 
             try {
-                const detail = await requestApi(`/api/v1/admin/ocr-documents/${selectedDocument.id}/link`, "OCR 臾몄꽌 ?곌껐 ?댁젣???ㅽ뙣?덉뼱.", {
+                const detail = await requestApi(`/api/v1/admin/ocr-documents/${selectedDocument.id}/link`, "OCR 연결 해제에 실패했어.", {
                     method: "DELETE",
                     headers: { "Content-Type": "application/json" }
                 });
-                setMessage(message, `OCR 臾몄꽌 ${detail.id} ?곌껐???댁젣?덉뼱.`, "success");
+                setMessage(message, `OCR 문서 ${detail.id} 연결을 해제했어.`, "success");
                 await openDocumentDetail(detail.id);
                 await loadDocuments();
             } catch (error) {
@@ -1197,7 +1199,7 @@ function initDocumentBoxPage() {
 
         async function legacyLinkPurchaseOrder() {
             if (!selectedDocument) {
-                setMessage(message, "癒쇱? OCR 臾몄꽌瑜??좏깮??", "error");
+                setMessage(message, "먼저 OCR 문서를 선택해.", "error");
                 return;
             }
 
@@ -1205,12 +1207,12 @@ function initDocumentBoxPage() {
             try {
                 items = JSON.parse(purchaseItemsJson.value);
             } catch (error) {
-                setMessage(message, "諛쒖＜ ?덈ぉ JSON ?뺤떇???щ컮瑜댁? ?딆븘.", "error");
+                setMessage(message, "발주 항목 JSON 형식이 올바르지 않아.", "error");
                 return;
             }
 
             try {
-                const purchaseOrder = await requestApi(`/api/v1/admin/ocr-documents/${selectedDocument.id}/link/purchase-orders`, "援щℓ 諛쒖＜ ?곌껐???ㅽ뙣?덉뼱.", {
+                const purchaseOrder = await requestApi(`/api/v1/admin/ocr-documents/${selectedDocument.id}/link/purchase-orders`, "구매 발주 연결에 실패했어.", {
                     method: "POST",
                     headers: { "Content-Type": "application/json" },
                     body: JSON.stringify({
@@ -1229,7 +1231,7 @@ function initDocumentBoxPage() {
                         }) : []
                     })
                 });
-                setMessage(message, `援щℓ 諛쒖＜ ${purchaseOrder.purchaseOrderNo}瑜??앹꽦?섍퀬 OCR 臾몄꽌? ?곌껐?덉뼱.`, "success");
+                setMessage(message, `구매 발주 ${purchaseOrder.purchaseOrderNo}로 OCR 문서를 연결했어.`, "success");
                 await openDocumentDetail(selectedDocument.id);
                 await loadDocuments();
             } catch (error) {
@@ -1239,11 +1241,11 @@ function initDocumentBoxPage() {
 
         async function legacyLinkExpense() {
             if (!selectedDocument) {
-                setMessage(message, "癒쇱? OCR 臾몄꽌瑜??좏깮??", "error");
+                setMessage(message, "먼저 OCR 문서를 선택해.", "error");
                 return;
             }
             try {
-                const expense = await requestApi(`/api/v1/admin/ocr-documents/${selectedDocument.id}/link/expenses`, "鍮꾩슜 ?곌껐???ㅽ뙣?덉뼱.", {
+                const expense = await requestApi(`/api/v1/admin/ocr-documents/${selectedDocument.id}/link/expenses`, "비용 연결에 실패했어.", {
                     method: "POST",
                     headers: { "Content-Type": "application/json" },
                     body: JSON.stringify({
@@ -1255,7 +1257,7 @@ function initDocumentBoxPage() {
                         status: expenseStatus.value || null
                     })
                 });
-                setMessage(message, `鍮꾩슜 ${expense.id}瑜??앹꽦?섍퀬 OCR 臾몄꽌? ?곌껐?덉뼱.`, "success");
+                setMessage(message, `비용 ${expense.id}로 OCR 문서를 연결했어.`, "success");
                 await openDocumentDetail(selectedDocument.id);
                 await loadDocuments();
             } catch (error) {
@@ -1265,11 +1267,11 @@ function initDocumentBoxPage() {
 
         async function legacyLinkVoucher() {
             if (!selectedDocument) {
-                setMessage(message, "癒쇱? OCR 臾몄꽌瑜??좏깮??", "error");
+                setMessage(message, "먼저 OCR 문서를 선택해.", "error");
                 return;
             }
             try {
-                const voucher = await requestApi(`/api/v1/admin/ocr-documents/${selectedDocument.id}/link/vouchers`, "?꾪몴 ?곌껐???ㅽ뙣?덉뼱.", {
+                const voucher = await requestApi(`/api/v1/admin/ocr-documents/${selectedDocument.id}/link/vouchers`, "전표 연결에 실패했어.", {
                     method: "POST",
                     headers: { "Content-Type": "application/json" },
                     body: JSON.stringify({
@@ -1286,7 +1288,7 @@ function initDocumentBoxPage() {
                         settlementAccountId: voucherSettlementAccountId.value ? Number(voucherSettlementAccountId.value) : null
                     })
                 });
-                setMessage(message, `?꾪몴 ${voucher.voucherNo}瑜??앹꽦?섍퀬 OCR 臾몄꽌? ?곌껐?덉뼱.`, "success");
+                setMessage(message, `전표 ${voucher.voucherNo}로 OCR 문서를 연결했어.`, "success");
                 await openDocumentDetail(selectedDocument.id);
                 await loadDocuments();
             } catch (error) {

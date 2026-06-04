@@ -1,12 +1,12 @@
 (function () {
     const shared = window.OcrDocumentsShared;
     if (!shared) {
-        throw new Error('OcrDocumentsShared is required before ocr-upload-page.js');
+        throw new Error("OcrDocumentsShared is required before ocr-upload-page.js");
     }
 
     const { requestApi, setMessage } = shared;
 
-function initUploadPage() {
+    function initUploadPage() {
         const form = document.getElementById("ocrUploadForm");
         if (!form) {
             return;
@@ -27,7 +27,7 @@ function initUploadPage() {
             const documentType = document.getElementById("documentType").value;
 
             if (!fileInput.files || fileInput.files.length === 0) {
-                setMessage(message, "?낅줈?쒗븷 ?뚯씪???좏깮??", "error");
+                setMessage(message, "업로드할 파일을 선택해 주세요.", "error");
                 return;
             }
 
@@ -36,12 +36,12 @@ function initUploadPage() {
             formData.append("documentType", documentType);
 
             submitButton.disabled = true;
-            submitButton.textContent = "?낅줈??以?..";
+            submitButton.textContent = "업로드 중...";
             setMessage(message, "", "");
             resultBox.classList.add("hidden");
 
             try {
-                const data = await requestApi("/api/v1/ai/ocr/documents", "OCR ?낅줈?쒖뿉 ?ㅽ뙣?덉뼱.", {
+                const data = await requestApi("/api/v1/ai/ocr/documents", "OCR 문서 업로드에 실패했습니다.", {
                     method: "POST",
                     body: formData
                 });
@@ -49,7 +49,7 @@ function initUploadPage() {
                 document.getElementById("resultFilename").textContent = data.originalFilename;
                 document.getElementById("resultStatus").textContent = data.processingStatus;
                 resultBox.classList.remove("hidden");
-                setMessage(message, data.message || "OCR 臾몄꽌瑜??깅줉?덉뼱.", "success");
+                setMessage(message, data.message || "OCR 문서를 등록했습니다.", "success");
                 form.reset();
             } catch (error) {
                 setMessage(message, error.message, "error");

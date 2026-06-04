@@ -93,7 +93,7 @@ function renderPayrollReferenceHistory(items) {
     }
 
     if (!Array.isArray(items) || !items.length) {
-        element.textContent = '최근 실행 이력이 아직 없어.';
+        element.textContent = '최근 실행 이력이 아직 없습니다.';
         return;
     }
 
@@ -106,7 +106,7 @@ function renderPayrollReferenceHistory(items) {
                 <div style="font-size:12px;color:#dc2626;margin-top:4px;">${escapeHtml(item.errorMessage || '')}</div>
             </div>
             <div>
-                <button class="hr_button" type="button" data-rerun-hr-reference>재실행</button>
+                <button class="hr_button" type="button" data-rerun-hr-reference>다시 실행</button>
             </div>
         </div>
     `).join('');
@@ -121,13 +121,13 @@ async function loadPayrollReferenceHistory() {
     const currentSession = getCurrentSession();
     if (!currentSession || !['ADMIN', 'HR'].includes(currentSession.role)) {
         if (element) {
-            element.textContent = '최근 RPA 실행 이력은 관리자만 볼 수 있어.';
+            element.textContent = '최근 RPA 실행 이력은 관리자만 볼 수 있습니다.';
         }
         return;
     }
 
     if (element) {
-        element.textContent = '최근 실행 이력을 불러오는 중이야.';
+        element.textContent = '최근 실행 이력을 불러오는 중...';
     }
 
     try {
@@ -137,7 +137,7 @@ async function loadPayrollReferenceHistory() {
         renderPayrollReferenceHistory(items);
     } catch (error) {
         if (element) {
-            element.textContent = error.message || '최근 실행 이력을 불러오지 못했어.';
+            element.textContent = error.message || '최근 실행 이력을 불러오지 못했습니다.';
         }
     }
 }
@@ -153,7 +153,7 @@ function renderPayrollReference(summary) {
     setText('hr_reference_source', rpa.referenceSource || '-');
     setText('hr_reference_effective_date', rpa.effectiveDate || '-');
     setText('hr_reference_collected_at', formatDateTime(rpa.latestCollectedAt));
-    setText('hr_reference_message', rpa.message || '최근 HR 기준 정보가 아직 없어.');
+    setText('hr_reference_message', rpa.message || '최근 HR 기준 정보가 아직 없습니다.');
 
     const statusBadge = byId('hr_reference_status_badge');
     if (statusBadge) {
@@ -177,7 +177,7 @@ async function loadPayrollReferenceSummary() {
         renderPayrollReference(unwrapData(response));
         loadPayrollReferenceHistory();
     } catch (error) {
-        setText('hr_reference_message', error.message || 'HR 기준 정보를 불러오지 못했어.');
+        setText('hr_reference_message', error.message || 'HR 기준 정보를 불러오지 못했습니다.');
         const statusBadge = byId('hr_reference_status_badge');
         if (statusBadge) {
             statusBadge.textContent = '조회 실패';
@@ -185,7 +185,7 @@ async function loadPayrollReferenceSummary() {
         }
         const history = byId('hr_reference_history');
         if (history) {
-            history.textContent = '최근 실행 이력을 불러오지 못했어.';
+            history.textContent = '최근 실행 이력을 불러오지 못했습니다.';
         }
     }
 }
@@ -193,7 +193,7 @@ async function loadPayrollReferenceSummary() {
 async function triggerPayrollReference() {
     const session = window.ddukSession?.getSession?.();
     if (!session || !['ADMIN', 'HR'].includes(session.role)) {
-        showToast('RPA 실행은 관리자만 가능해.', 'warning');
+        showToast('RPA 실행은 관리자만 가능합니다.', 'warning');
         return;
     }
 
@@ -204,7 +204,7 @@ async function triggerPayrollReference() {
 
     try {
         const response = await hrBackendApi.triggerAdminRpa('HR_MIN_WAGE');
-        setText('hr_reference_message', `HR 기준 조회를 요청했어. Task ID: ${response?.data?.taskId || '-'}`);
+        setText('hr_reference_message', `HR 기준 조회를 요청했습니다. Task ID: ${response?.data?.taskId || '-'}`);
         const statusBadge = byId('hr_reference_status_badge');
         if (statusBadge) {
             statusBadge.textContent = '실행 요청 중';
@@ -213,7 +213,7 @@ async function triggerPayrollReference() {
         loadPayrollReferenceHistory();
         window.setTimeout(loadPayrollReferenceSummary, 2000);
     } catch (error) {
-        showToast(error.message || 'HR 기준 조회 실행 요청이 실패했어.', 'error');
+        showToast(error.message || 'HR 기준 조회 실행 요청에 실패했습니다.', 'error');
     } finally {
         if (button) {
             button.disabled = false;
@@ -241,9 +241,9 @@ export function initPayrollCalculate() {
         const triggerButton = byId('btn_trigger_hr_reference');
         if (triggerButton) {
             triggerButton.disabled = true;
-            triggerButton.title = 'RPA 실행은 관리자만 가능해.';
+            triggerButton.title = 'RPA 실행은 관리자만 가능합니다.';
         }
-        setText('hr_reference_history', '최근 RPA 실행 이력은 관리자만 볼 수 있어.');
+        setText('hr_reference_history', '최근 RPA 실행 이력은 관리자만 볼 수 있습니다.');
     }
 
     loadPayrollReferenceSummary();
@@ -262,7 +262,7 @@ export function initPayrollCalculate() {
             };
 
             if (!payload.employeeId || !payload.payMonth) {
-                throw new Error('직원 ID와 지급월을 입력해줘.');
+                throw new Error('직원 ID와 지급월을 입력해 주세요.');
             }
 
             const result = await hrBackendApi.calculatePayroll(payload);
@@ -297,7 +297,7 @@ export function initPayrollDetail() {
             };
 
             if (!id || !payload.nextStatus) {
-                throw new Error('급여 ID와 다음 상태를 입력해줘.');
+                throw new Error('급여 ID와 다음 상태를 입력해 주세요.');
             }
 
             const result = await hrBackendApi.transitionPayroll(id, payload);

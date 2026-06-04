@@ -1,4 +1,4 @@
-/* Accounting Dashboard Specific Styles (Underscore Version) */
+/* Accounting Dashboard Specific Styles */
 
 .accounting_dashboard {
     padding: 28px 32px 40px;
@@ -8,7 +8,7 @@
     display: flex;
     justify-content: space-between;
     gap: 20px;
-    align-items: flex-end;
+    align-items: center;
     padding: 22px 24px;
     border: 1px solid var(--border);
     border-radius: 12px;
@@ -17,19 +17,25 @@
     margin-bottom: 24px;
 }
 
-.eyebrow {
-    color: var(--accent);
-    font-size: 12px;
-    font-weight: 700;
-    text-transform: uppercase;
-    letter-spacing: 0.05em;
+.hero_title_block {
+    min-width: 0;
+    display: flex;
+    flex-direction: column;
+    gap: 6px;
 }
 
-.dashboard_hero h2 {
-    margin-top: 4px;
-    font-size: 24px;
+.hero_meta_label {
+    font-size: 11px;
     font-weight: 700;
-    color: var(--text-primary);
+    letter-spacing: 0.08em;
+    color: var(--text-secondary);
+    text-transform: uppercase;
+}
+
+.hero_generated_at {
+    display: block;
+    font-size: 12px;
+    color: var(--text-secondary);
 }
 
 .hero_status {
@@ -56,58 +62,79 @@
 }
 
 .dashboard_panel:hover {
-    box-shadow: 0 4px 12px rgba(0,0,0,0.02);
+    box-shadow: 0 4px 12px rgba(0, 0, 0, 0.02);
 }
 
 .dashboard_panel.span_2 {
     grid-column: span 2;
 }
 
-/* Premium SaaS ERP Visual Polishing */
 .kpi_card {
-  background: var(--card-bg);
-  border-radius: 12px;
-  padding: 16px 18px;
-  border: 1px solid var(--border);
-  transition: all 0.25s cubic-bezier(0.4, 0, 0.2, 1);
-  position: relative;
-  overflow: hidden;
-  min-width: 0;
+    background: var(--card-bg);
+    border-radius: 12px;
+    padding: 16px 18px;
+    border: 1px solid var(--border);
+    transition: all 0.25s cubic-bezier(0.4, 0, 0.2, 1);
+    position: relative;
+    overflow: hidden;
+    min-width: 0;
 }
 
 .kpi_label,
 .kpi_value,
 .kpi_change {
-  white-space: nowrap;
-  text-overflow: ellipsis;
-  overflow: hidden;
-  display: block;
-}
-.kpi_card:hover {
-  transform: translateY(-4px);
-  box-shadow: 0 10px 22px rgba(79, 70, 229, 0.08);
-  border-color: var(--accent);
-}
-.kpi_card::after {
-  content: '';
-  position: absolute;
-  top: 0; left: 0; width: 4px; height: 100%;
-  background: var(--accent);
-  opacity: 0;
-  transition: opacity 0.2s;
-}
-.kpi_card:hover::after {
-  opacity: 1;
+    display: block;
+    min-width: 0;
 }
 
-/* Extracted from inline styles */
-.filter_year_input {
-  width: 100px;
-  height: 38px;
+.kpi_label {
+    white-space: normal;
+    line-height: 1.45;
+    word-break: keep-all;
 }
+
+.kpi_value {
+    white-space: normal;
+    line-height: 1.35;
+    overflow-wrap: anywhere;
+}
+
+.kpi_change {
+    white-space: normal;
+    line-height: 1.4;
+    word-break: keep-all;
+}
+
+.kpi_card:hover {
+    transform: translateY(-4px);
+    box-shadow: 0 10px 22px rgba(79, 70, 229, 0.08);
+    border-color: var(--accent);
+}
+
+.kpi_card::after {
+    content: '';
+    position: absolute;
+    top: 0;
+    left: 0;
+    width: 4px;
+    height: 100%;
+    background: var(--accent);
+    opacity: 0;
+    transition: opacity 0.2s;
+}
+
+.kpi_card:hover::after {
+    opacity: 1;
+}
+
+.filter_year_input {
+    width: 100px;
+    height: 38px;
+}
+
 .filter_month_select {
-  width: 90px;
-  height: 38px;
+    width: 90px;
+    height: 38px;
 }
 
 .panel_head {
@@ -176,7 +203,7 @@
 
 .metric_row {
     display: flex;
-    align-items: center;
+    align-items: flex-start;
     justify-content: space-between;
     gap: 12px;
     padding: 10px 14px;
@@ -189,6 +216,9 @@
     font-size: 12px;
     color: var(--text-secondary);
     font-weight: 500;
+    line-height: 1.45;
+    word-break: keep-all;
+    flex: 1 1 auto;
 }
 
 .metric_row strong {
@@ -196,6 +226,10 @@
     font-size: 13px;
     font-weight: 600;
     color: var(--text-primary);
+    line-height: 1.45;
+    flex: 0 0 auto;
+    max-width: 52%;
+    overflow-wrap: anywhere;
 }
 
 .account_rank {
@@ -222,12 +256,15 @@
 .rank_row strong {
     color: var(--text-primary);
     font-weight: 500;
+    word-break: keep-all;
 }
 
 .rank_row span:last-child {
     font-family: monospace;
     font-weight: 600;
     color: var(--text-primary);
+    overflow-wrap: anywhere;
+    text-align: right;
 }
 
 .alert_list {
@@ -246,10 +283,18 @@
     border-bottom: 1px solid var(--border);
 }
 
-.alert_item.WARNING { border-left-color: var(--warning); }
+.alert_item.WARNING {
+    border-left-color: var(--warning);
+}
+
 .alert_item.ERROR,
-.alert_item.CRITICAL { border-left-color: var(--danger); }
-.alert_item.INFO { border-left-color: var(--accent); }
+.alert_item.CRITICAL {
+    border-left-color: var(--danger);
+}
+
+.alert_item.INFO {
+    border-left-color: var(--accent);
+}
 
 .alert_item strong {
     display: block;
@@ -380,7 +425,27 @@
         grid-column: auto;
     }
 
-    .quick_actions {
+    .quick_actions,
+    .voucher_status_grid {
         grid-template-columns: 1fr;
+    }
+
+    .metric_row {
+        flex-direction: column;
+        gap: 6px;
+    }
+
+    .metric_row strong {
+        max-width: 100%;
+        text-align: left;
+    }
+
+    .rank_row {
+        grid-template-columns: 56px 1fr;
+    }
+
+    .rank_row span:last-child {
+        grid-column: 1 / -1;
+        text-align: left;
     }
 }
