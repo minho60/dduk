@@ -1,0 +1,108 @@
+<!DOCTYPE html>
+<html lang="ko">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>DDUK ERP - 월 마감</title>
+    <script src="https://cdn.jsdelivr.net/npm/lucide@0.263.0/dist/umd/lucide.min.js"></script>
+    <link rel="stylesheet" href="../../../styles/common/app-shell.css">
+    <link rel="stylesheet" href="../../../styles/common/dashboard.css">
+    <link rel="stylesheet" href="../../../styles/hr/hr-backend-pages.css">
+    <style>
+        .status-open { background: #28a745; color: #fff; }
+        .status-closed { background: #dc3545; color: #fff; }
+        .toast-container {
+            position: fixed;
+            top: 20px;
+            right: 20px;
+            z-index: 9999;
+        }
+        .toast {
+            padding: 12px 20px;
+            margin-bottom: 10px;
+            border-radius: 4px;
+            color: white;
+            animation: slideIn 0.3s ease-out;
+        }
+        .toast-success { background: #28a745; }
+        .toast-error { background: #dc3545; }
+        .toast-info { background: #17a2b8; }
+        @keyframes slideIn {
+            from { transform: translateX(100%); opacity: 0; }
+            to { transform: translateX(0); opacity: 1; }
+        }
+    </style>
+</head>
+<body data-hr-page="accounting-settlement">
+    <aside data-dduk-sidebar></aside>
+    <div class="main_wrap">
+        <main class="app-main hr_page">
+            <header class="hr_topbar">
+                <button class="sidebar_icon_btn dduk-inline-027" onclick="toggleSidebar()" id="mobile_menu_btn" aria-label="메뉴">
+                    <i class="dduk-inline-028" data-lucide="menu"></i>
+                </button>
+                <div class="hr_title">
+                    <h2>월 마감</h2>
+                    <p>회계 기간 마감 상태를 조회하고 마감/재오픈을 처리한다.</p>
+                </div>
+                <div class="hr_actions">
+                    <button class="hr_button" id="btn_refresh_settlement" type="button"><i data-lucide="refresh-cw"></i>새로고침</button>
+                </div>
+            </header>
+
+            <section class="hr_grid">
+                <article class="hr_card span_12">
+                    <div class="hr_card_header">
+                        <h3>회계 기간 목록</h3>
+                        <div class="hr_card_actions">
+                            <select class="hr_input" id="year_filter" style="width: auto; margin-right: 10px;">
+                                <option value="">전체 연도</option>
+                            </select>
+                            <select class="hr_input" id="status_filter" style="width: auto; margin-right: 10px;">
+                                <option value="">전체 상태</option>
+                                <option value="OPEN">OPEN</option>
+                                <option value="CLOSED">CLOSED</option>
+                            </select>
+                        </div>
+                    </div>
+                    <table class="hr_table">
+                        <thead>
+                            <tr>
+                                <th>연도</th>
+                                <th>월</th>
+                                <th>기간</th>
+                                <th>상태</th>
+                                <th>마감일시</th>
+                                <th>마감자</th>
+                                <th>작업</th>
+                            </tr>
+                        </thead>
+                        <tbody id="period_list_rows"></tbody>
+                    </table>
+                </article>
+
+                <article class="hr_card span_12">
+                    <div class="hr_card_header">
+                        <h3>도움말</h3>
+                    </div>
+                    <div class="hr_help_content">
+                        <ul style="padding-left: 20px; color: #666; font-size: 0.9em;">
+                            <li>OPEN 상태에서만 전표 생성과 기표가 가능하다.</li>
+                            <li>CLOSED 상태에서는 전표 생성, 기표, 취소가 막힌다.</li>
+                            <li>마감 전 해당 기간에 DRAFT 상태 전표가 남아 있으면 안 된다.</li>
+                            <li>재오픈은 이미 마감된 기간에만 가능하다.</li>
+                        </ul>
+                    </div>
+                </article>
+            </section>
+        </main>
+    </div>
+
+    <div class="toast-container" id="toast_container"></div>
+
+    <script src="../../../services/common/session.js"></script>
+    <script src="../../../services/common/app-shell.js"></script>
+    <script src="../../../services/common/sidebar.js"></script>
+    <script type="module" src="../../../services/hr/hr-backend-pages.js"></script>
+</body>
+</html>

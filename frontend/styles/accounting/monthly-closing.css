@@ -1,0 +1,63 @@
+/* ============================================================
+   monthly-closing.css
+   월 마감 페이지 전용 스타일
+   - erp_components.css 의 erp_dialog, erp_form_grid 공용
+   - 이 파일: 2분할 레이아웃, 타임라인 액션, 상태 배지 변형
+   ============================================================ */
+
+/* 2분할 레이아웃 */
+.closing_layout {
+  display: grid;
+  grid-template-columns: 320px 1fr;
+  gap: 16px;
+  align-items: start;
+}
+
+.closing_timeline_card {
+  position: sticky;
+  top: 16px;
+}
+
+/* 마감 액션 버튼 그룹 */
+.closing_action_group {
+  display: flex;
+  flex-direction: column;
+  gap: 8px;
+  margin-top: 20px;
+  padding-top: 20px;
+  border-top: 1px solid var(--border);
+}
+
+.closing_action_group .erp_btn {
+  width: 100%;
+  justify-content: flex-start;
+}
+
+/* 상태 배지 변형 (마감 전용) */
+.status_badge.closed {
+  background-color: rgba(99, 102, 241, 0.08);
+  color: var(--accent);
+  border-color: rgba(99, 102, 241, 0.2);
+}
+
+.status_badge.pre_closing {
+  background-color: rgba(245, 158, 11, 0.08);
+  color: var(--warning);
+  border-color: rgba(245, 158, 11, 0.2);
+}
+
+.status_badge.reopened {
+  background-color: rgba(239, 68, 68, 0.08);
+  color: var(--danger);
+  border-color: rgba(239, 68, 68, 0.2);
+}
+
+/* 반응형 */
+@media (max-width: 1024px) {
+  .closing_layout {
+    grid-template-columns: 1fr;
+  }
+  .closing_timeline_card {
+    position: static;
+  }
+}
