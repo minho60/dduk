@@ -1,0 +1,45 @@
+spring:
+  datasource:
+    url: ${DB_URL}
+    username: ${DB_USERNAME}
+    password: ${DB_PASSWORD}
+    driver-class-name: com.mysql.cj.jdbc.Driver
+
+  jpa:
+    hibernate:
+      ddl-auto: ${JPA_DDL_AUTO:none}
+    show-sql: true
+    properties:
+      hibernate:
+        format_sql: true
+
+  sql:
+    init:
+      mode: always
+      continue-on-error: true
+      schema-locations:
+        - classpath:db/mysql/dduk_bootstrap_schema.sql
+        - classpath:db/mysql/task_history_schema.sql
+        - classpath:db/mysql/anomaly_log_schema.sql
+        - classpath:db/mysql/notice_schema.sql
+        - classpath:db/mysql/ocr_schema.sql
+        - classpath:db/mysql/tax_invoice_schema.sql
+      data-locations:
+        - classpath:db/mysql/dduk_bootstrap_data.sql
+        - classpath:db/mysql/dduk_sample_data.sql
+
+app:
+  accounting:
+    seed: true
+    seed-mode: true
+
+jwt:
+  secret: ${JWT_SECRET}
+  expiration: ${JWT_EXPIRATION:86400000}
+
+ai-server:
+  url: ${AI_SERVER_URL:http://localhost:5000}
+
+rpa-server:
+  url: ${RPA_SERVER_URL:http://localhost:5050}
+  callback-token: ${RPA_CALLBACK_TOKEN}
