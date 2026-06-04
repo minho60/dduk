@@ -11,8 +11,8 @@
             items: [
                 { label: '구매/발주 대시보드', icon: 'bar-chart-3', href: 'pages/inventory/purchase-dashboard.html', roles: ['ADMIN', 'INVENTORY'] },
                 { label: '구매 요청', icon: 'file-plus', href: 'pages/inventory/purchase-request.html', roles: ['ADMIN', 'INVENTORY'] },
-                { label: '발주 관리', icon: 'clipboard-list', href: 'pages/inventory/purchase-orders.html', roles: ['ADMIN', 'INVENTORY'] },
-                { label: '발주 현황', icon: 'trending-up', href: 'pages/inventory/purchase-status.html', roles: ['ADMIN', 'INVENTORY'] },
+                { label: '발주조회', icon: 'clipboard-list', href: 'pages/inventory/purchase-orders.html', roles: ['ADMIN', 'INVENTORY'] },
+                { label: '발주 상태 관리', icon: 'trending-up', href: 'pages/inventory/purchase-status.html', roles: ['ADMIN', 'INVENTORY'] },
                 { label: '입고 등록', icon: 'package-check', href: 'pages/inventory/receiving.html', roles: ['ADMIN', 'INVENTORY'] },
                 { label: '거래처 관리', icon: 'building', href: 'pages/inventory/vendors.html', roles: ['ADMIN', 'INVENTORY'] }
             ]

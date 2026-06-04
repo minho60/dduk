@@ -29,6 +29,12 @@
         .approval-btn:disabled{cursor:not-allowed;background:#f3f4f6;color:#9ca3af;border:1px solid #e5e7eb}
         .approval-btn:not(:disabled){background:#4f46e5;color:#fff}
         .approval-btn:not(:disabled):hover{background:#4338ca}
+        .pagination{display:flex;align-items:center;justify-content:center;gap:.375rem;flex-wrap:wrap}
+        .page-btn{min-width:2.25rem;height:2.25rem;display:inline-flex;align-items:center;justify-content:center;border-radius:.5rem;border:1px solid #e5e7eb;background:#fff;font-size:.8125rem;font-weight:700;color:#374151;cursor:pointer;transition:all .15s}
+        .page-btn:hover:not(:disabled):not(.active){background:#f3f4f6}
+        .page-btn.active{background:#4f46e5;color:#fff;border-color:#4f46e5}
+        .page-btn:disabled{cursor:not-allowed;opacity:.4}
+        .page-btn.nav-btn{padding:0 .625rem;font-weight:800}
     </style>
 </head>
 <body class="bg-gray-50 min-h-screen">
@@ -46,16 +52,13 @@
         </header>
         <main class="content_area p-6 max-w-7xl mx-auto">
             <section class="bg-white rounded-lg shadow-sm border border-gray-100 overflow-hidden mb-6">
-                <form id="search-form" class="p-5 grid grid-cols-1 lg:grid-cols-[minmax(0,1fr)_auto_auto] gap-3 items-end">
+                <form id="search-form" class="p-5 grid grid-cols-1 lg:grid-cols-[minmax(0,1fr)_auto] gap-3 items-end">
                     <label>
                         <span class="form-label">검색어</span>
-                        <input id="keyword" class="form-input" placeholder="발주번호, 거래처명, 요청자명 또는 요청자 ID를 입력하세요" autocomplete="off" required>
+                        <input id="keyword" class="form-input" placeholder="발주번호, 거래처명, 요청자명 또는 요청자 ID를 입력하세요" autocomplete="off">
                     </label>
                     <button type="submit" class="h-11 px-5 text-sm font-bold text-white bg-gray-900 rounded-lg hover:bg-gray-800 flex items-center justify-center gap-2">
                         <i data-lucide="search" class="w-4 h-4"></i> 검색
-                    </button>
-                    <button type="button" id="btn-all" class="h-11 px-5 text-sm font-bold rounded-lg border border-gray-200 bg-white text-gray-700 hover:bg-gray-50 flex items-center justify-center gap-2">
-                        <i data-lucide="list" class="w-4 h-4"></i> 전체 조회
                     </button>
                 </form>
             </section>
@@ -63,7 +66,7 @@
             <section class="bg-white rounded-lg shadow-sm border border-gray-100 overflow-hidden">
                 <div class="p-5 border-b border-gray-100">
                     <h2 class="text-base font-bold text-gray-800">발주 목록</h2>
-                    <p id="message" class="text-sm text-gray-500 mt-1">검색어를 입력한 뒤 조회하세요.</p>
+                    <p id="message" class="text-sm text-gray-500 mt-1">데이터를 불러오는 중입니다...</p>
                 </div>
                 <div class="overflow-x-auto">
                     <table class="data-table">
@@ -79,12 +82,11 @@
                             </tr>
                         </thead>
                         <tbody id="orders-body">
-                            <tr><td colspan="7" class="text-center text-gray-400 font-semibold py-8">검색 전에는 목록을 조회하지 않습니다.</td></tr>
+                            <tr><td colspan="7" class="text-center text-gray-400 font-semibold py-8">데이터를 불러오는 중입니다...</td></tr>
                         </tbody>
                     </table>
                 </div>
-                <div class="p-5 flex justify-center border-t border-gray-100">
-                    <button type="button" id="btn-more" class="hidden px-5 py-2.5 text-sm font-bold rounded-lg border border-gray-200 bg-white text-gray-700 hover:bg-gray-50">더보기</button>
+                <div id="pagination-area" class="p-5 flex justify-center border-t border-gray-100">
                 </div>
             </section>
         </main>

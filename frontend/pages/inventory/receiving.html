@@ -18,6 +18,12 @@
         .action-cell{white-space:nowrap}
         .select-order{display:inline-flex;align-items:center;justify-content:center;min-width:3.25rem;white-space:nowrap}
         .select-order:disabled{cursor:not-allowed;background:#f3f4f6;color:#9ca3af}
+        .rv-pagination{display:flex;align-items:center;justify-content:center;gap:.375rem;padding:1rem;flex-wrap:wrap}
+        .rv-btn{min-width:2.25rem;height:2.25rem;display:inline-flex;align-items:center;justify-content:center;border-radius:.5rem;border:1px solid #e5e7eb;background:#fff;font-size:.8125rem;font-weight:700;color:#374151;cursor:pointer;transition:all .15s}
+        .rv-btn:hover:not(:disabled):not(.active){background:#f3f4f6}
+        .rv-btn.active{background:#4f46e5;color:#fff;border-color:#4f46e5}
+        .rv-btn:disabled{cursor:not-allowed;opacity:.4}
+        .rv-btn.nav{padding:0 .625rem;font-weight:800}
     </style>
 </head>
 <body class="bg-gray-50 min-h-screen">
@@ -28,12 +34,9 @@
                 <button id="mobile_menu_btn" class="lg:hidden p-2 hover:bg-gray-100 rounded-lg"><i data-lucide="menu"></i></button>
                 <div>
                     <h1 class="text-xl font-bold text-gray-800">입고 등록</h1>
-                    <p id="message" class="text-sm text-gray-500 mt-1">검색어를 입력하거나 전체 조회로 입고 전 발주서를 확인하세요.</p>
+                    <p id="message" class="text-sm text-gray-500 mt-1">데이터를 불러오는 중입니다...</p>
                 </div>
             </div>
-            <button type="button" id="btn-load-all" class="px-4 py-2 text-sm font-bold rounded-lg bg-gray-900 text-white hover:bg-gray-800 flex items-center gap-2">
-                <i data-lucide="list" class="w-4 h-4"></i> 입고 전 전체 조회
-            </button>
         </header>
 
         <main class="content_area p-6 max-w-7xl mx-auto">
@@ -67,10 +70,11 @@
                                 </tr>
                             </thead>
                             <tbody id="orders-body">
-                                <tr><td colspan="5" class="text-center text-gray-400 font-semibold py-8">검색어를 입력해 조회하거나 전체 조회를 클릭하세요.</td></tr>
-                            </tbody>
-                        </table>
-                    </div>
+                                <tr><td colspan="5" class="text-center text-gray-400 font-semibold py-8">데이터를 불러오는 중입니다...</td></tr>
+                        </tbody>
+                    </table>
+                </div>
+                <div id="orders-pagination" class="rv-pagination"></div>
                 </section>
 
                 <section class="bg-white rounded-lg shadow-sm border border-gray-100 overflow-hidden">
