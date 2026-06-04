@@ -32,8 +32,8 @@ spring:
 
 app:
   accounting:
-    seed: false
-    seed-mode: false
+    seed: true
+    seed-mode: true
 
 jwt:
   secret: ${JWT_SECRET}
