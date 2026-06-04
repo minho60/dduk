@@ -140,23 +140,23 @@
                     <h4>공급자</h4>
                     <span>세금계산서를 발행하는 사업자</span>
                   </div>
-                  <button class="erp_btn erp_btn_secondary" type="button" data-vendor-lookup="supplier">
-                    <i data-lucide="search"></i>
-                    검색
-                  </button>
+                  <span class="erp_badge" style="font-size:.75rem;font-weight:700;color:#047857;background:#ecfdf5;border:1px solid #a7f3d0;border-radius:.375rem;padding:.25rem .625rem;display:inline-flex;align-items:center;gap:.25rem;">
+                    <i data-lucide="building-2" style="width:.875rem;height:.875rem"></i>
+                    (주)아망티 기본 적용
+                  </span>
                 </div>
                 <div class="party_fields">
                   <label class="erp_form_group">
                     <span class="erp_label">상호</span>
-                    <input id="supplierName" class="erp_input" required placeholder="공급자 상호">
+                    <input id="supplierName" class="erp_input" required placeholder="공급자 상호" readonly style="background:#f9fafb;cursor:default">
                   </label>
                   <label class="erp_form_group">
                     <span class="erp_label">사업자번호</span>
-                    <input id="supplierBusinessNo" class="erp_input" inputmode="numeric" required placeholder="123-45-67890">
+                    <input id="supplierBusinessNo" class="erp_input" inputmode="numeric" required placeholder="123-45-67890" readonly style="background:#f9fafb;cursor:default">
                   </label>
                   <label class="erp_form_group">
                     <span class="erp_label">이메일</span>
-                    <input id="supplierEmail" class="erp_input" type="email" placeholder="tax@example.com">
+                    <input id="supplierEmail" class="erp_input" type="email" placeholder="tax@example.com" readonly style="background:#f9fafb;cursor:default">
                   </label>
                   <input id="supplierRepresentativeName" type="hidden">
                 </div>

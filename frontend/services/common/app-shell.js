@@ -11,7 +11,8 @@
             items: [
                 { href: "pages/inventory/purchase-dashboard.html", label: "구매/발주 대시보드", roles: ["ADMIN", "INVENTORY"] },
                 { href: "pages/inventory/purchase-request.html", label: "구매 요청", roles: ["ADMIN", "INVENTORY"] },
-                { href: "pages/inventory/purchase-orders.html", label: "발주 관리", roles: ["ADMIN", "INVENTORY"] },
+                { href: "pages/inventory/purchase-orders.html", label: "발주조회", roles: ["ADMIN", "INVENTORY"] },
+                { href: "pages/inventory/purchase-status.html", label: "발주 상태 관리", roles: ["ADMIN", "INVENTORY"] },
                 { href: "pages/inventory/receiving.html", label: "입고 등록", roles: ["ADMIN", "INVENTORY"] },
                 { href: "pages/inventory/vendors.html", label: "거래처 관리", roles: ["ADMIN", "INVENTORY"] }
             ]

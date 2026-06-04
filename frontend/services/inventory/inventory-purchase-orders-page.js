@@ -8,12 +8,11 @@ document.addEventListener('DOMContentLoaded', () => {
 
     const body = document.getElementById('orders-body');
     const message = document.getElementById('message');
-    const moreButton = document.getElementById('btn-more');
+    const paginationArea = document.getElementById('pagination-area');
     const searchForm = document.getElementById('search-form');
     const keywordInput = document.getElementById('keyword');
-    const allButton = document.getElementById('btn-all');
     const currentUser = document.getElementById('current-user');
-    const pageSize = 15;
+    const pageSize = 10;
 
     const memberProfiles = {
         1: { loginId: 'admin', label: 'Admin' },
@@ -22,7 +21,8 @@ document.addEventListener('DOMContentLoaded', () => {
     };
 
     let orders = [];
-    let visibleCount = pageSize;
+    let currentPage = 1;
+    let totalPages = 1;
 
     function escapeHtml(value) {
         return String(value ?? '').replace(/[&<>"']/g, (char) => ({
@@ -120,12 +120,16 @@ document.addEventListener('DOMContentLoaded', () => {
     }
 
     function render() {
-        const visibleOrders = orders.slice(0, visibleCount);
+        totalPages = Math.max(1, Math.ceil(orders.length / pageSize));
+        if (currentPage > totalPages) currentPage = totalPages;
 
-        if (visibleOrders.length === 0) {
-            body.innerHTML = '<tr><td colspan="7" class="text-center text-gray-400 font-semibold py-8">No purchase orders found.</td></tr>';
+        const startIdx = (currentPage - 1) * pageSize;
+        const pageOrders = orders.slice(startIdx, startIdx + pageSize);
+
+        if (orders.length === 0) {
+            body.innerHTML = '<tr><td colspan="7" class="text-center text-gray-400 font-semibold py-8">조회된 발주가 없습니다.</td></tr>';
         } else {
-            body.innerHTML = visibleOrders.map((order) => `
+            body.innerHTML = pageOrders.map((order) => `
                 <tr>
                     <td>
                         <a class="font-extrabold text-indigo-700 hover:text-indigo-900 hover:underline" href="purchase-order-detail.html?id=${encodeURIComponent(order.purchaseOrderId)}">
@@ -153,7 +157,7 @@ document.addEventListener('DOMContentLoaded', () => {
             `).join('');
         }
 
-        moreButton.classList.toggle('hidden', visibleCount >= orders.length);
+        renderPagination();
         document.querySelectorAll('.approval-btn[data-id]').forEach((button) => {
             button.addEventListener('click', () => approveOrder(Number(button.dataset.id)));
         });
@@ -163,49 +167,100 @@ document.addEventListener('DOMContentLoaded', () => {
         }
     }
 
-    async function searchOrders() {
-        const keyword = keywordInput.value.trim();
-        if (!keyword) {
-            orders = [];
-            visibleCount = pageSize;
-            body.innerHTML = '<tr><td colspan="7" class="text-center text-gray-400 font-semibold py-8">Enter a keyword first.</td></tr>';
-            moreButton.classList.add('hidden');
-            setMessage('Keyword is required.', 'error');
-            keywordInput.focus();
+    function renderPagination() {
+        if (totalPages <= 1) {
+            paginationArea.innerHTML = '';
             return;
         }
 
-        body.innerHTML = '<tr><td colspan="7" class="text-center text-gray-400 font-semibold py-8">Loading purchase orders...</td></tr>';
-        moreButton.classList.add('hidden');
-        setMessage('Loading purchase orders...');
+        let html = '<div class="pagination">';
+
+        // 이전 버튼
+        html += `<button type="button" class="page-btn nav-btn" data-page="${currentPage - 1}" ${currentPage <= 1 ? 'disabled' : ''}>&laquo; 이전</button>`;
+
+        // 페이지 번호 (최대 5개 표시)
+        const maxVisible = 5;
+        let startPage = Math.max(1, currentPage - Math.floor(maxVisible / 2));
+        let endPage = Math.min(totalPages, startPage + maxVisible - 1);
+        if (endPage - startPage + 1 < maxVisible) {
+            startPage = Math.max(1, endPage - maxVisible + 1);
+        }
+
+        if (startPage > 1) {
+            html += `<button type="button" class="page-btn" data-page="1">1</button>`;
+            if (startPage > 2) html += `<span style="padding:0 .25rem;color:#9ca3af">…</span>`;
+        }
+
+        for (let i = startPage; i <= endPage; i++) {
+            html += `<button type="button" class="page-btn ${i === currentPage ? 'active' : ''}" data-page="${i}">${i}</button>`;
+        }
+
+        if (endPage < totalPages) {
+            if (endPage < totalPages - 1) html += `<span style="padding:0 .25rem;color:#9ca3af">…</span>`;
+            html += `<button type="button" class="page-btn" data-page="${totalPages}">${totalPages}</button>`;
+        }
+
+        // 다음 버튼
+        html += `<button type="button" class="page-btn nav-btn" data-page="${currentPage + 1}" ${currentPage >= totalPages ? 'disabled' : ''}>다음 &raquo;</button>`;
+
+        html += '</div>';
+        paginationArea.innerHTML = html;
+
+        // 페이지 버튼 이벤트 바인딩
+        paginationArea.querySelectorAll('.page-btn[data-page]').forEach((btn) => {
+            btn.addEventListener('click', () => {
+                const page = Number(btn.dataset.page);
+                if (page >= 1 && page <= totalPages && page !== currentPage) {
+                    currentPage = page;
+                    const startIdx = (currentPage - 1) * pageSize;
+                    setMessage(`총 ${orders.length}건 중 ${startIdx + 1}~${Math.min(startIdx + pageSize, orders.length)}건 표시`, 'ok');
+                    render();
+                    // 테이블 상단으로 스크롤
+                    body.closest('section')?.scrollIntoView({ behavior: 'smooth', block: 'start' });
+                }
+            });
+        });
+    }
+
+    async function searchOrders() {
+        const keyword = keywordInput.value.trim();
+
+        body.innerHTML = '<tr><td colspan="7" class="text-center text-gray-400 font-semibold py-8">데이터를 불러오는 중입니다...</td></tr>';
+        paginationArea.innerHTML = '';
+        setMessage('데이터를 불러오는 중입니다...');
 
         try {
-            orders = await requestList(`/api/v1/inventory/purchase-orders?keyword=${encodeURIComponent(keyword)}`);
-            visibleCount = pageSize;
-            setMessage(`Showing ${Math.min(visibleCount, orders.length)} of ${orders.length} orders.`, 'ok');
+            const url = keyword
+                ? `/api/v1/inventory/purchase-orders?keyword=${encodeURIComponent(keyword)}`
+                : '/api/v1/inventory/purchase-orders?all=true';
+            orders = await requestList(url);
+            currentPage = 1;
+            const showCount = Math.min(pageSize, orders.length);
+            setMessage(`총 ${orders.length}건 중 1~${showCount}건 표시`, 'ok');
             render();
         } catch (error) {
             orders = [];
-            body.innerHTML = `<tr><td colspan="7" class="text-center text-red-600 font-semibold py-8">Search failed: ${escapeHtml(error.message)}</td></tr>`;
-            setMessage(`Search failed: ${error.message}`, 'error');
+            body.innerHTML = `<tr><td colspan="7" class="text-center text-red-600 font-semibold py-8">조회 실패: ${escapeHtml(error.message)}</td></tr>`;
+            setMessage(`조회 실패: ${error.message}`, 'error');
         }
     }
 
     async function loadAllOrders() {
         keywordInput.value = '';
-        body.innerHTML = '<tr><td colspan="7" class="text-center text-gray-400 font-semibold py-8">Loading all purchase orders...</td></tr>';
-        moreButton.classList.add('hidden');
-        setMessage('Loading all purchase orders...');
+        body.innerHTML = '<tr><td colspan="7" class="text-center text-gray-400 font-semibold py-8">데이터를 불러오는 중입니다...</td></tr>';
+        paginationArea.innerHTML = '';
+        setMessage('데이터를 불러오는 중입니다...');
 
         try {
             orders = await requestList('/api/v1/inventory/purchase-orders?all=true');
-            visibleCount = pageSize;
-            setMessage(`Showing ${Math.min(visibleCount, orders.length)} of ${orders.length} orders.`, 'ok');
+            currentPage = 1;
+            const showCount = Math.min(pageSize, orders.length);
+            setMessage(`총 ${orders.length}건 중 1~${showCount}건 표시`, 'ok');
             render();
         } catch (error) {
             orders = [];
-            body.innerHTML = `<tr><td colspan="7" class="text-center text-red-600 font-semibold py-8">Load failed: ${escapeHtml(error.message)}</td></tr>`;
-            setMessage(`Load failed: ${error.message}`, 'error');
+            body.innerHTML = `<tr><td colspan="7" class="text-center text-red-600 font-semibold py-8">조회 실패: ${escapeHtml(error.message)}</td></tr>`;
+            setMessage(`조회 실패: ${error.message}`, 'error');
         }
     }
 
@@ -237,10 +292,7 @@ document.addEventListener('DOMContentLoaded', () => {
         event.preventDefault();
         searchOrders();
     });
-    allButton?.addEventListener('click', loadAllOrders);
-    moreButton?.addEventListener('click', () => {
-        visibleCount += pageSize;
-        setMessage(`Showing ${Math.min(visibleCount, orders.length)} of ${orders.length} orders.`, 'ok');
-        render();
-    });
+
+    // 페이지 접속 시 자동으로 전체 데이터 로드
+    loadAllOrders();
 });
