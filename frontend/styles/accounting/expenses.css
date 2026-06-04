@@ -425,11 +425,6 @@
   align-items: center;
   justify-content: center;
   flex-shrink: 0;
-  width: 26px;
-  height: 26px;
-  border-radius: 50%;
-  background: #eff6ff;
-  border: 1px solid #bfdbfe;
   color: #2563eb;
   cursor: pointer;
   transition: all 0.2s ease;
@@ -442,9 +437,7 @@
 }
 
 .filter_info_badge:hover {
-  background: #dbeafe;
-  border-color: #93c5fd;
-  box-shadow: 0 0 0 3px rgba(37, 99, 235, 0.12);
+  color: #1d4ed8;
 }
 
 .filter_info_tooltip {
