@@ -1,0 +1,11 @@
+.git
+.gitignore
+
+backend/build
+backend/.gradle
+
+docs
+rpa
+ai-server
+
+node_modules

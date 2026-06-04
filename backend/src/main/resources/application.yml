@@ -1,3 +1,5 @@
+server:
+  port: ${PORT:8080}
 spring:
   datasource:
     url: ${DB_URL}
@@ -44,4 +46,4 @@ ai-server:
 
 rpa-server:
   url: ${RPA_SERVER_URL:http://localhost:5050}
-  callback-token: ${RPA_CALLBACK_TOKEN}
+  callback-token: ${RPA_CALLBACK_TOKEN:dev-token-123}

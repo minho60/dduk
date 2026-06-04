@@ -363,6 +363,43 @@ CREATE TABLE IF NOT EXISTS payroll_contracts (
     CONSTRAINT fk_payroll_contracts_employee FOREIGN KEY (employee_id) REFERENCES employees (id) ON DELETE CASCADE
 ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci;
 
+CREATE TABLE IF NOT EXISTS accounting_periods (
+    id BIGINT NOT NULL AUTO_INCREMENT,
+    fiscal_year INT NOT NULL,
+    fiscal_month INT NOT NULL,
+    start_date DATE NULL,
+    end_date DATE NULL,
+    status VARCHAR(30) NOT NULL,
+    closed_at DATETIME NULL,
+    closed_by VARCHAR(80) NULL,
+    reopened_at DATETIME NULL,
+    reopened_by VARCHAR(80) NULL,
+    reopen_count INT NOT NULL DEFAULT 0,
+    created_at DATETIME NOT NULL DEFAULT CURRENT_TIMESTAMP,
+    updated_at DATETIME NOT NULL DEFAULT CURRENT_TIMESTAMP ON UPDATE CURRENT_TIMESTAMP,
+    PRIMARY KEY (id),
+    UNIQUE KEY uk_accounting_period_year_month (fiscal_year, fiscal_month)
+) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci;
+
+CREATE TABLE IF NOT EXISTS accounting_closing_logs (
+    id BIGINT NOT NULL AUTO_INCREMENT,
+    accounting_period_id BIGINT NOT NULL,
+    action_type VARCHAR(40) NOT NULL,
+    from_status VARCHAR(30) NULL,
+    to_status VARCHAR(30) NULL,
+    actor VARCHAR(80) NOT NULL,
+    action_at DATETIME NOT NULL DEFAULT CURRENT_TIMESTAMP,
+    ip_address VARCHAR(80) NULL,
+    message VARCHAR(1000) NULL,
+    PRIMARY KEY (id),
+    KEY idx_closing_logs_period (accounting_period_id),
+    KEY idx_closing_logs_action_at (action_at),
+    CONSTRAINT fk_closing_logs_period
+        FOREIGN KEY (accounting_period_id) REFERENCES accounting_periods (id)
+        ON DELETE CASCADE
+        ON UPDATE CASCADE
+) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci;
+
 CREATE TABLE IF NOT EXISTS accounts (
     id BIGINT NOT NULL AUTO_INCREMENT,
     code VARCHAR(20) NOT NULL,

@@ -19,15 +19,27 @@ public class JwtAuthenticationFilter extends GenericFilterBean {
 
     @Override
     public void doFilter(ServletRequest request, ServletResponse response, FilterChain chain) throws IOException, ServletException {
-        String token = jwtTokenProvider.resolveToken((HttpServletRequest) request);
+        try {
+            if (request instanceof HttpServletRequest) {
+                HttpServletRequest httpRequest = (HttpServletRequest) request;
+                String header = httpRequest.getHeader("Authorization");
 
-        if (token != null && jwtTokenProvider.validateToken(token)) {
-            try {
-                Authentication authentication = jwtTokenProvider.getAuthentication(token);
-                SecurityContextHolder.getContext().setAuthentication(authentication);
-            } catch (Exception ignored) {
-                SecurityContextHolder.clearContext();
+                // Authorization 헤더 null, empty, "Bearer " 미포함 여부를 안전하게 검증
+                if (header != null && !header.trim().isEmpty() && header.startsWith("Bearer ")) {
+                    try {
+                        String token = jwtTokenProvider.resolveToken(httpRequest);
+                        if (token != null && jwtTokenProvider.validateToken(token)) {
+                            Authentication authentication = jwtTokenProvider.getAuthentication(token);
+                            SecurityContextHolder.getContext().setAuthentication(authentication);
+                        }
+                    } catch (Exception e) {
+                        SecurityContextHolder.clearContext();
+                    }
+                }
             }
+        } catch (Exception e) {
+            // 어떠한 예외 상황이 발생해도 SecurityContextHolder를 정리하고 필터 통과를 보장
+            SecurityContextHolder.clearContext();
         }
 
         chain.doFilter(request, response);
