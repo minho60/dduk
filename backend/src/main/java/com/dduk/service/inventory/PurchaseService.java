@@ -72,7 +72,7 @@ public class PurchaseService {
             return List.of();
         }
 
-        String sql = """
+        StringBuilder sql = new StringBuilder("""
                 SELECT
                     po.id,
                     po.purchase_order_no,
@@ -93,20 +93,26 @@ public class PurchaseService {
                 LEFT JOIN members requested ON requested.id = po.requested_by_member_id
                 LEFT JOIN members approved ON approved.id = po.approved_by_member_id
                 WHERE UPPER(po.status) IN ('ORDERED', 'PENDING', 'REQUESTED', 'PENDING-PO', 'PENDING_PO')
+                """);
+
+        if (!all) {
+            sql.append("""
                   AND (
-                      :all = true
-                      OR LOWER(po.purchase_order_no) LIKE LOWER(CONCAT('%', :keyword, '%'))
+                      LOWER(po.purchase_order_no) LIKE LOWER(CONCAT('%', :keyword, '%'))
                       OR LOWER(v.name) LIKE LOWER(CONCAT('%', :keyword, '%'))
                       OR LOWER(requested.name) LIKE LOWER(CONCAT('%', :keyword, '%'))
                       OR LOWER(requested.login_id) LIKE LOWER(CONCAT('%', :keyword, '%'))
                       OR CAST(requested.id AS CHAR) LIKE CONCAT('%', :keyword, '%')
                   )
-                ORDER BY po.created_at DESC
-                """;
+                """);
+        }
 
-        Query query = entityManager.createNativeQuery(sql);
-        query.setParameter("all", all);
-        query.setParameter("keyword", normalizedKeyword);
+        sql.append(" ORDER BY po.created_at DESC");
+
+        Query query = entityManager.createNativeQuery(sql.toString());
+        if (!all) {
+            query.setParameter("keyword", normalizedKeyword);
+        }
 
         return ((List<Object[]>) query.getResultList()).stream()
                 .map(this::toPurchaseOrderResponse)
@@ -120,7 +126,7 @@ public class PurchaseService {
             return List.of();
         }
 
-        String sql = """
+        StringBuilder sql = new StringBuilder("""
                 SELECT
                     po.id,
                     po.purchase_order_no,
@@ -141,20 +147,26 @@ public class PurchaseService {
                 LEFT JOIN members requested ON requested.id = po.requested_by_member_id
                 LEFT JOIN members approved ON approved.id = po.approved_by_member_id
                 WHERE UPPER(po.status) IN ('ORDERED', 'PENDING', 'REQUESTED', 'PENDING-PO', 'PENDING_PO')
+                """);
+
+        if (!all) {
+            sql.append("""
                   AND (
-                      :all = true
-                      OR LOWER(po.purchase_order_no) LIKE LOWER(CONCAT('%', :keyword, '%'))
+                      LOWER(po.purchase_order_no) LIKE LOWER(CONCAT('%', :keyword, '%'))
                       OR LOWER(v.name) LIKE LOWER(CONCAT('%', :keyword, '%'))
                       OR LOWER(requested.name) LIKE LOWER(CONCAT('%', :keyword, '%'))
                       OR LOWER(requested.login_id) LIKE LOWER(CONCAT('%', :keyword, '%'))
                       OR CAST(requested.id AS CHAR) LIKE CONCAT('%', :keyword, '%')
                   )
-                ORDER BY po.created_at DESC
-                """;
+                """);
+        }
 
-        Query query = entityManager.createNativeQuery(sql);
-        query.setParameter("all", all);
-        query.setParameter("keyword", normalizedKeyword);
+        sql.append(" ORDER BY po.created_at DESC");
+
+        Query query = entityManager.createNativeQuery(sql.toString());
+        if (!all) {
+            query.setParameter("keyword", normalizedKeyword);
+        }
 
         return ((List<Object[]>) query.getResultList()).stream()
                 .map(this::toPurchaseOrderResponse)
