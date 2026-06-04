@@ -103,7 +103,7 @@
         const currentUserRole = localStorage.getItem('role') || '';
 
         const actionRoles = {
-            'purchase-order-request': ['ADMIN', 'INVENTORY'],
+            'purchase-request': ['ADMIN', 'INVENTORY'],
             'transactions': ['ADMIN'],
             'wip': ['ADMIN', 'HR', 'INVENTORY'],
             'transfers': ['ADMIN', 'INVENTORY']
@@ -322,8 +322,8 @@
         const menus = [
             { name: '통합 대시보드', href: 'dashboard.html' },
             { name: '구매/발주 대시보드', href: 'pages/inventory/dashboard.html' },
-            { name: '발주 요청', href: 'pages/inventory/purchase-order-request.html' },
-            { name: '발주 관리', href: 'pages/inventory/purchase-order-request.html' },
+            { name: '발주 요청', href: 'pages/inventory/purchase-request.html' },
+            { name: '발주 관리', href: 'pages/inventory/purchase-orders.html' },
             { name: '입고 등록', href: 'pages/inventory/movements.html' },
             { name: '재고 조회', href: 'pages/inventory/list.html' },
             { name: '입출고 이력', href: 'pages/inventory/movements.html' },

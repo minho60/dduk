@@ -338,6 +338,32 @@ document.addEventListener('DOMContentLoaded', () => {
         }
     });
 
+    // 추천 발주 페이지에서 넘어온 파라미터 처리
+    const urlParams = new URLSearchParams(window.location.search);
+    const queryItemId = urlParams.get('itemId');
+    const queryQty = urlParams.get('qty');
+    const queryItemName = urlParams.get('itemName');
+    const queryUnit = urlParams.get('unit');
+
+    console.log('[DDUK ERP Query Auto-Fill] Detected params:', { queryItemId, queryQty, queryItemName, queryUnit });
+
+    if (queryItemId && queryItemName) {
+        console.log('[DDUK ERP Query Auto-Fill] Adding recommended item to order:', queryItemName);
+        addItem({
+            id: Number(queryItemId),
+            name: queryItemName,
+            unit: queryUnit || 'EA',
+            unitPrice: 0
+        });
+        if (queryQty) {
+            const added = orderItems.find((candidate) => candidate.itemId === Number(queryItemId));
+            if (added) {
+                added.quantity = Math.max(1, Number(queryQty));
+                renderOrder();
+            }
+        }
+    }
+
     document.getElementById('btn-vendor-search')?.addEventListener('click', searchVendors);
     document.getElementById('btn-item-search')?.addEventListener('click', searchItems);
     saveButton?.addEventListener('click', save);
