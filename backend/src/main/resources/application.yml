@@ -23,6 +23,7 @@ spring:
         - classpath:db/mysql/anomaly_log_schema.sql
         - classpath:db/mysql/notice_schema.sql
         - classpath:db/mysql/ocr_schema.sql
+        - classpath:db/mysql/tax_invoice_schema.sql
       data-locations:
         - classpath:db/mysql/dduk_bootstrap_data.sql
         - classpath:db/mysql/dduk_sample_data.sql

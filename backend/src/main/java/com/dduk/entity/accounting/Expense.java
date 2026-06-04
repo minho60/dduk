@@ -74,4 +74,22 @@ public class Expense {
         this.receiptFilePath = receiptFilePath;
         this.status = status;
     }
+
+    public void updateDetails(
+            Long employeeId,
+            LocalDate expenseDate,
+            String category,
+            BigDecimal amount,
+            String description
+    ) {
+        this.employeeId = employeeId;
+        this.expenseDate = expenseDate;
+        this.category = category;
+        this.amount = amount;
+        this.description = description;
+    }
+
+    public void updateStatus(String status) {
+        this.status = status;
+    }
 }

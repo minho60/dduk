@@ -108,6 +108,18 @@
         }
     };
 
+    window.switchPortalTab = function (tabName) {
+        if (window.DDUK_FLOATING_PORTAL && typeof window.DDUK_FLOATING_PORTAL.switchPortalTab === 'function') {
+            window.DDUK_FLOATING_PORTAL.switchPortalTab(tabName);
+        }
+    };
+
+    window.renderDynamicRpaWidget = function () {
+        if (window.DDUK_RPA_WIDGET && typeof window.DDUK_RPA_WIDGET.renderDynamicRpaWidget === 'function') {
+            window.DDUK_RPA_WIDGET.renderDynamicRpaWidget();
+        }
+    };
+
     window.handleLogout = function () {
         localStorage.clear();
         sessionStorage.clear();
@@ -128,14 +140,16 @@
 
     const root = getRootPath();
     const commonPath = root + 'services/common/';
+    const cacheBuster = '20260604-sidebar-v3';
+    const withVersion = (file) => `${commonPath}${file}?v=${cacheBuster}`;
 
     const scripts = [];
     if (!window.ddukSession) {
-        scripts.push(commonPath + 'session.js');
+        scripts.push(withVersion('session.js'));
     }
-    scripts.push(commonPath + 'sidebar-menu.js');
-    scripts.push(commonPath + 'floating-rpa-widget.js');
-    scripts.push(commonPath + 'floating-portal.js');
+    scripts.push(withVersion('sidebar-menu.js'));
+    scripts.push(withVersion('floating-rpa-widget.js'));
+    scripts.push(withVersion('floating-portal.js'));
 
     function loadAllScripts() {
         return scripts.reduce((promise, src) => {
@@ -153,7 +167,7 @@
                     window.DDUK_FLOATING_PORTAL.initAICopilotPortal();
                 }
             })
-            .catch(err => {
+            .catch((err) => {
                 console.error('사이드바 서비스 스크립트 로드 중 오류 발생:', err);
             });
     }

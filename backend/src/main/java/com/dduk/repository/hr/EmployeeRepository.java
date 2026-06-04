@@ -13,6 +13,7 @@ import java.util.Optional;
 public interface EmployeeRepository extends JpaRepository<Employee, Long> {
     Optional<Employee> findByEmployeeNo(String employeeNo);
     Optional<Employee> findByEmail(String email);
+    Optional<Employee> findByMemberId(Long memberId);
 
     @Query("""
             SELECT e

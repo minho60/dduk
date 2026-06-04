@@ -1,6 +1,8 @@
 (function () {
     const RECENT_MENU_KEY = 'dduk_dashboard_recent_menu';
     const RECENT_MENU_TTL = 3 * 24 * 60 * 60 * 1000;
+    const EXPANDED_MENU_KEY = 'dduk_sidebar_expanded_menus';
+    const SIDEBAR_SCROLL_KEY = 'dduk_sidebar_scroll_top';
 
     const MENU_GROUPS = [
         {
@@ -31,15 +33,16 @@
             label: '회계관리',
             items: [
                 { label: '회계 대시보드', icon: 'bar-chart-3', href: 'pages/hr/accounting/accounting_dashboard.html', roles: ['ADMIN', 'HR'] },
-                { label: '계정과목 관리', icon: 'folder-tree', href: 'pages/hr/accounting/accounts.html', roles: ['ADMIN', 'HR'] },
+                { label: '거래내역 등록', icon: 'file-plus', href: 'pages/hr/accounting/transactions.html', roles: ['ADMIN', 'HR'] },
                 { label: '전표 관리', icon: 'receipt', href: 'pages/hr/accounting/voucher_management.html', roles: ['ADMIN', 'HR'] },
-                { label: '잔액시산표', icon: 'trending-up', href: 'pages/hr/accounting/trial_balance.html', roles: ['ADMIN', 'HR'] },
+                { label: '계정과목 관리', icon: 'folder-tree', href: 'pages/hr/accounting/accounts.html', roles: ['ADMIN', 'HR'] },
+                { label: '합계잔액시산표', icon: 'trending-up', href: 'pages/hr/accounting/trial_balance.html', roles: ['ADMIN', 'HR'] },
                 { label: '재무제표', icon: 'file-text', href: 'pages/hr/accounting/reports.html', roles: ['ADMIN', 'HR'] },
                 { label: '회계 분석 리포트', icon: 'file-bar-chart', href: 'pages/hr/accounting/accounting_reports.html', roles: ['ADMIN', 'HR'] },
                 { label: '월 마감', icon: 'calendar-check', href: 'pages/hr/accounting/monthly_closing.html', roles: ['ADMIN', 'HR'] },
                 { label: '급여 계산/대장', icon: 'wallet', href: 'pages/hr/accounting/payroll_management.html', match: 'pages/hr/accounting/payroll_management.html', roles: ['ADMIN', 'HR'] },
-                { label: '정산 관리', icon: 'file-check', href: 'pages/hr/accounting/wip.html', disabled: true, roles: ['ADMIN', 'HR'] },
-                { label: '비용 처리', icon: 'credit-card', href: 'pages/hr/accounting/wip.html', disabled: true, roles: ['ADMIN', 'HR'] }
+                { label: '세금계산서', icon: 'file-check', href: 'pages/hr/accounting/tax_invoice.html', roles: ['ADMIN', 'HR'] },
+                { label: '비용 처리', icon: 'credit-card', href: 'pages/hr/accounting/expenses.html', roles: ['ADMIN', 'HR'] }
             ]
         },
         {
@@ -56,7 +59,7 @@
             label: 'AI 업무지원',
             items: [
                 { label: 'AI 챗봇', icon: 'bot', href: '#', roles: ['ADMIN', 'HR', 'INVENTORY'] },
-                { label: '이상 감지', icon: 'alert-triangle', href: 'pages/admin/anomaly-detection.html', roles: ['ADMIN'] },
+                { label: '이상 탐지', icon: 'alert-triangle', href: 'pages/admin/anomaly-detection.html', roles: ['ADMIN'] },
                 { label: '예측 분석', icon: 'brain', href: '#', roles: ['ADMIN', 'HR', 'INVENTORY'] }
             ]
         },
@@ -86,7 +89,12 @@
         const path = window.location.pathname.replace(/\\/g, '/');
         if (item.match && path.includes('/' + item.match)) return true;
         if (!item.href || item.href === '#') return false;
-        return path.endsWith('/frontend/' + item.href) || path.endsWith('/' + item.href);
+
+        const cleanHref = item.href.replace(/^\//, '');
+        return path.endsWith('/' + cleanHref)
+            || path.includes('/' + cleanHref)
+            || path.endsWith('/frontend/' + cleanHref)
+            || (path.includes(cleanHref) && path.endsWith(cleanHref.split('/').pop()));
     }
 
     function renderMenuItem(item, extraClass) {
@@ -101,8 +109,9 @@
                 </span>
             `;
         }
+
         return `
-            <a class="menu_item${extraClass ? ` ${extraClass}` : ''}${currentClass}" href="${resolveHref(item.href)}"${rolesAttr} data-label="${item.label}" title="${item.label}">
+            <a class="menu_item${extraClass ? ` ${extraClass}` : ''}${currentClass}" href="${resolveHref(item.href)}"${rolesAttr} data-label="${item.label}" data-href-raw="${item.href}" title="${item.label}">
                 <i class="dduk-inline-012" data-lucide="${item.icon}"></i>
                 <span class="menu_label">${item.label}</span>
             </a>
@@ -110,12 +119,12 @@
     }
 
     function renderGroups() {
-        return MENU_GROUPS.map(group => `
+        return MENU_GROUPS.map((group) => `
             <div class="menu_group_title dduk-inline-014" onclick="toggleMenu('menu_${group.id}')">
                 <span>${group.label}</span> <i class="dduk-inline-015" data-lucide="chevron-down" id="icon_${group.id}"></i>
             </div>
             <div class="submenu collapsed dduk-inline-016" id="menu_${group.id}">
-                ${group.items.map(item => renderMenuItem(item)).join('')}
+                ${group.items.map((item) => renderMenuItem(item)).join('')}
             </div>
         `).join('');
     }
@@ -145,14 +154,14 @@
                         </button>
                     </div>
                     <div class="dduk-inline-005">
-                        <span data-template-id="workspace-name" class="canva-text dduk-inline-006">(주) 업체명</span>
+                        <span data-template-id="workspace-name" class="canva-text dduk-inline-006">아망티</span>
                         <i class="dduk-inline-007" data-lucide="chevron-down"></i>
                     </div>
                     <div class="dduk-inline-008">
-                        <button class="sidebar_icon_btn" aria-label="AI"><i class="dduk-inline-009" data-lucide="bot"></i></button>
-                        <button class="sidebar_icon_btn" aria-label="OCR"><i class="dduk-inline-009" data-lucide="scan"></i></button>
-                        <button class="sidebar_icon_btn" aria-label="승인"><i class="dduk-inline-009" data-lucide="check-circle"></i></button>
-                        <button class="sidebar_icon_btn" aria-label="설정"><i class="dduk-inline-009" data-lucide="settings"></i></button>
+                        <a class="sidebar_icon_btn" aria-label="AI" href="#" id="quickBtnAI"><i class="dduk-inline-009" data-lucide="bot"></i></a>
+                        <a class="sidebar_icon_btn" aria-label="OCR" href="${resolveHref('pages/ocr/ocr-box.html')}"><i class="dduk-inline-009" data-lucide="scan"></i></a>
+                        <a class="sidebar_icon_btn sidebar_icon_btn_disabled" aria-label="승인" href="#" onclick="return false;"><i class="dduk-inline-009" data-lucide="check-circle"></i></a>
+                        <a class="sidebar_icon_btn sidebar_icon_btn_disabled" aria-label="설정" href="#" onclick="return false;"><i class="dduk-inline-009" data-lucide="settings"></i></a>
                     </div>
                     <div class="recent_group dduk-inline-010">
                         <button class="recent_header dduk-inline-011" type="button" onclick="toggleRecentMenu()" aria-expanded="true">
@@ -192,7 +201,57 @@
         const icon = document.getElementById('icon_' + id.replace('menu_', ''));
         if (!icon) return;
         icon.setAttribute('data-lucide', isOpen ? 'chevron-up' : 'chevron-down');
-        if (window.lucide) lucide.createIcons();
+        if (window.lucide) window.lucide.createIcons();
+    }
+
+    function readExpandedMenus() {
+        try {
+            const parsed = JSON.parse(localStorage.getItem(EXPANDED_MENU_KEY) || '[]');
+            if (!Array.isArray(parsed)) return [];
+            return parsed.filter((id) => typeof id === 'string' && id.startsWith('menu_'));
+        } catch (error) {
+            localStorage.removeItem(EXPANDED_MENU_KEY);
+            return [];
+        }
+    }
+
+    function writeExpandedMenus(menuIds) {
+        const uniqueIds = Array.from(new Set(menuIds.filter((id) => typeof id === 'string' && id.startsWith('menu_'))));
+        localStorage.setItem(EXPANDED_MENU_KEY, JSON.stringify(uniqueIds));
+    }
+
+    function syncExpandedMenusFromDom() {
+        const expandedMenus = Array.from(document.querySelectorAll('.submenu'))
+            .filter((submenu) => !submenu.classList.contains('collapsed'))
+            .map((submenu) => submenu.id);
+        writeExpandedMenus(expandedMenus);
+    }
+
+    function readSidebarScrollTop() {
+        const rawValue = sessionStorage.getItem(SIDEBAR_SCROLL_KEY);
+        if (!rawValue) return 0;
+
+        const parsed = Number(rawValue);
+        return Number.isFinite(parsed) && parsed >= 0 ? parsed : 0;
+    }
+
+    function writeSidebarScrollTop(value) {
+        sessionStorage.setItem(SIDEBAR_SCROLL_KEY, String(Math.max(0, Math.floor(value || 0))));
+    }
+
+    function restoreSidebarScrollTop(sidebar) {
+        if (!sidebar) return;
+        window.requestAnimationFrame(() => {
+            sidebar.scrollTop = readSidebarScrollTop();
+        });
+    }
+
+    function bindSidebarScrollPersistence(sidebar) {
+        if (!sidebar) return;
+
+        const persistScroll = () => writeSidebarScrollTop(sidebar.scrollTop);
+        sidebar.addEventListener('scroll', persistScroll, { passive: true });
+        window.addEventListener('beforeunload', persistScroll);
     }
 
     function toggleMenu(id) {
@@ -202,14 +261,9 @@
         if (!el) return;
 
         const shouldOpen = el.classList.contains('collapsed');
-        document.querySelectorAll('.submenu').forEach(submenu => {
-            if (submenu.id !== id) {
-                submenu.classList.add('collapsed');
-                updateMenuIcon(submenu.id, false);
-            }
-        });
         el.classList.toggle('collapsed', !shouldOpen);
         updateMenuIcon(id, shouldOpen);
+        syncExpandedMenusFromDom();
     }
 
     function toggleRecentMenu() {
@@ -221,7 +275,7 @@
         const isCollapsed = items.classList.toggle('collapsed');
         icon.setAttribute('data-lucide', isCollapsed ? 'chevron-down' : 'chevron-up');
         if (header) header.setAttribute('aria-expanded', String(!isCollapsed));
-        if (window.lucide) lucide.createIcons();
+        if (window.lucide) window.lucide.createIcons();
     }
 
     function toggleSidebar() {
@@ -233,12 +287,26 @@
             return;
         }
 
-        document.body.classList.toggle('sidebar-collapsed');
+        const willCollapse = !document.body.classList.contains('sidebar-collapsed');
+        document.body.classList.toggle('sidebar-collapsed', willCollapse);
+        localStorage.setItem('dduk_sidebar_collapsed', String(willCollapse));
+
+        if (willCollapse) {
+            document.querySelectorAll('.submenu').forEach((submenu) => {
+                submenu.classList.add('collapsed');
+                updateMenuIcon(submenu.id, false);
+            });
+        } else {
+            restoreExpandedMenus();
+            openCurrentMenuGroup();
+            syncExpandedMenusFromDom();
+        }
+
         const icon = sidebar.querySelector('[data-lucide="panel-left-close"], [data-lucide="panel-left-open"]');
         if (icon) {
-            icon.setAttribute('data-lucide', document.body.classList.contains('sidebar-collapsed') ? 'panel-left-open' : 'panel-left-close');
+            icon.setAttribute('data-lucide', willCollapse ? 'panel-left-open' : 'panel-left-close');
         }
-        if (window.lucide) lucide.createIcons();
+        if (window.lucide) window.lucide.createIcons();
     }
 
     function getMenuLabel(menuItem) {
@@ -250,7 +318,7 @@
         const now = Date.now();
         try {
             return JSON.parse(localStorage.getItem(RECENT_MENU_KEY) || '[]')
-                .filter(item => item.expiresAt > now)
+                .filter((item) => item.expiresAt > now)
                 .sort((a, b) => b.usedAt - a.usedAt)
                 .slice(0, 5);
         } catch (error) {
@@ -269,18 +337,30 @@
         const label = getMenuLabel(menuItem);
         if (!label) return;
 
+        const hrefRaw = menuItem.getAttribute('data-href-raw') || '';
         const icon = menuItem.querySelector('[data-lucide]');
         const iconName = icon ? icon.getAttribute('data-lucide') : 'circle';
         const now = Date.now();
-        const items = readRecentMenus().filter(item => item.label !== label);
+        const items = readRecentMenus().filter((item) => item.label !== label);
         items.unshift({
             label,
             iconName,
+            hrefRaw,
             usedAt: now,
             expiresAt: now + RECENT_MENU_TTL
         });
         writeRecentMenus(items.slice(0, 5));
         renderRecentMenus();
+    }
+
+    function findHrefByLabel(label) {
+        if (label === '대시보드') return 'dashboard.html';
+        for (const group of MENU_GROUPS) {
+            for (const item of group.items) {
+                if (item.label === label) return item.href;
+            }
+        }
+        return '#';
     }
 
     function renderRecentMenus() {
@@ -293,13 +373,16 @@
             return;
         }
 
-        container.innerHTML = items.map(item => `
-            <div class="menu_item recent_menu_item" data-label="${item.label}" title="${item.label}">
-                <i class="dduk-inline-012" data-lucide="${item.iconName}"></i>
-                <span class="menu_label">${item.label}</span>
-            </div>
-        `).join('');
-        if (window.lucide) lucide.createIcons();
+        container.innerHTML = items.map((item) => {
+            const href = item.hrefRaw || findHrefByLabel(item.label);
+            return `
+                <a class="menu_item recent_menu_item" href="${resolveHref(href)}" data-label="${item.label}" data-href-raw="${href}" title="${item.label}">
+                    <i class="dduk-inline-012" data-lucide="${item.iconName}"></i>
+                    <span class="menu_label">${item.label}</span>
+                </a>
+            `;
+        }).join('');
+        if (window.lucide) window.lucide.createIcons();
     }
 
     function checkMobile() {
@@ -313,22 +396,59 @@
 
     function openCurrentMenuGroup() {
         const current = document.querySelector('.menu_item.active');
-        const submenu = current ? current.closest('.submenu') : null;
-        if (!submenu) return;
-        submenu.classList.remove('collapsed');
-        updateMenuIcon(submenu.id, true);
+        if (!current) return;
+
+        const expandedMenus = new Set(readExpandedMenus());
+        let parent = current.parentElement;
+        while (parent) {
+            if (parent.classList.contains('submenu')) {
+                parent.classList.remove('collapsed');
+                updateMenuIcon(parent.id, true);
+                expandedMenus.add(parent.id);
+            }
+            parent = parent.parentElement;
+        }
+        writeExpandedMenus(Array.from(expandedMenus));
+    }
+
+    function restoreExpandedMenus() {
+        const expandedMenus = readExpandedMenus();
+        document.querySelectorAll('.submenu').forEach((submenu) => {
+            const isExpanded = expandedMenus.includes(submenu.id);
+            submenu.classList.toggle('collapsed', !isExpanded);
+            updateMenuIcon(submenu.id, isExpanded);
+        });
     }
 
     function initSidebar() {
         const host = document.querySelector('[data-dduk-sidebar]');
         if (!host) return;
 
+        const isCollapsed = localStorage.getItem('dduk_sidebar_collapsed') === 'true';
+        if (isCollapsed && window.innerWidth > 1024) {
+            document.body.classList.add('sidebar-collapsed');
+        } else {
+            document.body.classList.remove('sidebar-collapsed');
+        }
+
         host.outerHTML = renderSidebar();
-        document.querySelectorAll('.submenu').forEach(submenu => updateMenuIcon(submenu.id, !submenu.classList.contains('collapsed')));
-        
+
+        const sidebar = document.getElementById('sidebar');
+        if (sidebar && isCollapsed && window.innerWidth > 1024) {
+            const icon = sidebar.querySelector('[data-lucide="panel-left-close"], [data-lucide="panel-left-open"]');
+            if (icon) {
+                icon.setAttribute('data-lucide', 'panel-left-open');
+            }
+        }
+
+        restoreSidebarScrollTop(sidebar);
+        bindSidebarScrollPersistence(sidebar);
+
+        restoreExpandedMenus();
+
         const currentUserRole = localStorage.getItem('role') || '';
 
-        document.querySelectorAll('.menu_item').forEach(menuItem => {
+        document.querySelectorAll('.menu_item').forEach((menuItem) => {
             menuItem.addEventListener('click', (e) => {
                 const rolesData = menuItem.getAttribute('data-roles');
                 if (rolesData) {
@@ -343,14 +463,33 @@
                 addRecentMenu(menuItem);
             });
         });
+
         renderRecentMenus();
-        openCurrentMenuGroup();
+
+        if (!document.body.classList.contains('sidebar-collapsed')) {
+            openCurrentMenuGroup();
+        }
+
+        syncExpandedMenusFromDom();
+
         checkMobile();
         window.addEventListener('resize', checkMobile);
-        if (window.lucide) lucide.createIcons();
+        if (window.lucide) window.lucide.createIcons();
+
+        const quickAI = document.getElementById('quickBtnAI');
+        if (quickAI) {
+            quickAI.addEventListener('click', (e) => {
+                e.preventDefault();
+                if (typeof window.toggleFloatingChatbot === 'function') {
+                    window.toggleFloatingChatbot(true);
+                }
+                if (typeof window.switchPortalTab === 'function') {
+                    window.switchPortalTab('chatbot');
+                }
+            });
+        }
     }
 
-    // Expose to window for delegation & orchestrator
     window.DDUK_SIDEBAR_MENU = {
         initSidebar,
         toggleMenu,
