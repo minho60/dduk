@@ -69,7 +69,7 @@
                 { label: '계정 및 권한 관리', icon: 'shield-check', href: 'pages/admin/account-security.html', roles: ['ADMIN'] },
                 { label: '시스템 운영 관리', icon: 'settings-2', href: 'pages/admin/system-admin.html', roles: ['ADMIN'] },
                 { label: '공지사항 관리', icon: 'megaphone', href: 'pages/admin/notice-admin.html', roles: ['ADMIN'] },
-                { label: '조직 및 부서 관리', icon: 'network', href: 'pages/admin/org-admin.html', roles: ['ADMIN'] },
+                { label: '조직 및 부서 관리', icon: 'network', href: 'pages/admin/org-admin.html', roles: ['ADMIN'], disabled: true },
                 { label: 'AI 챗봇 테스트', icon: 'bot', href: 'pages/admin/chatbot-test.html', roles: ['ADMIN'] },
                 { label: 'AI/RPA 작업 이력', icon: 'history', href: 'pages/admin/task-history.html', roles: ['ADMIN'] }
             ]
