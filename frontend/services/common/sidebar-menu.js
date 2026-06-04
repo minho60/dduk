@@ -33,9 +33,8 @@
             label: '회계관리',
             items: [
                 { label: '회계 대시보드', icon: 'bar-chart-3', href: 'pages/hr/accounting/accounting_dashboard.html', roles: ['ADMIN', 'HR'] },
-                { label: '거래내역 등록', icon: 'file-plus', href: 'pages/hr/accounting/transactions.html', roles: ['ADMIN', 'HR'] },
-                { label: '전표 관리', icon: 'receipt', href: 'pages/hr/accounting/voucher_management.html', roles: ['ADMIN', 'HR'] },
                 { label: '계정과목 관리', icon: 'folder-tree', href: 'pages/hr/accounting/accounts.html', roles: ['ADMIN', 'HR'] },
+                { label: '전표 관리', icon: 'receipt', href: 'pages/hr/accounting/voucher_management.html', roles: ['ADMIN', 'HR'] },
                 { label: '합계잔액시산표', icon: 'trending-up', href: 'pages/hr/accounting/trial_balance.html', roles: ['ADMIN', 'HR'] },
                 { label: '재무제표', icon: 'file-text', href: 'pages/hr/accounting/reports.html', roles: ['ADMIN', 'HR'] },
                 { label: '회계 분석 리포트', icon: 'file-bar-chart', href: 'pages/hr/accounting/accounting_reports.html', roles: ['ADMIN', 'HR'] },
