@@ -27,10 +27,31 @@
     byId("savePeriodButton").addEventListener("click", createPeriod);
     byId("periodMonth").addEventListener("change", setDefaultDates);
     byId("periodYear").addEventListener("change", setDefaultDates);
+
+    // 하단 마감 통제 버튼 이벤트 바인딩
+    byId("validateButton").addEventListener("click", () => {
+      if (state.selected) validatePeriod(state.selected);
+    });
+    byId("closeButton").addEventListener("click", () => {
+      if (state.selected) closePeriod(state.selected);
+    });
+    byId("reopenButton").addEventListener("click", () => {
+      if (state.selected) reopenPeriod(state.selected);
+    });
+    byId("logButton").addEventListener("click", () => {
+      if (state.selected) loadLogs(state.selected);
+    });
   }
 
   async function loadAll() {
     await Promise.all([loadPeriods(), loadSummary()]);
+    if (state.selected) {
+      const updated = state.periods.find(p => p.id === state.selected.id);
+      if (updated) {
+        state.selected = updated;
+        updateActionButtons(updated);
+      }
+    }
   }
 
   async function loadPeriods() {
@@ -102,6 +123,7 @@
       if (!period) return;
       state.selected = period;
       byId("selectedPeriodHint").textContent = `${period.periodKey} 선택됨`;
+      updateActionButtons(period);
       await loadSummary(period);
       resetChecklistAndAlertsBySummary(period);
       if (action === "select") return;
@@ -112,6 +134,26 @@
     } catch (error) {
       toast(error.message);
     }
+  }
+
+  function updateActionButtons(period) {
+    const actionsArea = byId("closingActions");
+    if (!period) {
+      if (actionsArea) actionsArea.style.display = "none";
+      return;
+    }
+    if (actionsArea) actionsArea.style.display = "flex";
+
+    const canClose = period.status === "OPEN" || period.status === "REOPENED" || period.status === "PRE_CLOSING";
+    const canReopen = period.status === "CLOSED";
+
+    const validateBtn = byId("validateButton");
+    const closeBtn = byId("closeButton");
+    const reopenBtn = byId("reopenButton");
+
+    if (validateBtn) validateBtn.disabled = !canClose;
+    if (closeBtn) closeBtn.disabled = !canClose;
+    if (reopenBtn) reopenBtn.disabled = !canReopen;
   }
 
   async function validatePeriod(period) {

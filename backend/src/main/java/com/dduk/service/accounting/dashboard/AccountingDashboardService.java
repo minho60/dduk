@@ -275,6 +275,14 @@ public class AccountingDashboardService {
                     .put(type, signedAmount(type, decimalAt(row, 3), decimalAt(row, 4)));
         }
         return monthly.entrySet().stream()
+                .filter(entry -> {
+                    String[] parts = entry.getKey().split("-");
+                    int y = Integer.parseInt(parts[0]);
+                    int m = Integer.parseInt(parts[1]);
+                    return accountingPeriodRepository.findByFiscalYearAndFiscalMonth(y, m)
+                            .map(p -> p.getStatus() == AccountingPeriodStatus.CLOSED)
+                            .orElse(false);
+                })
                 .map(entry -> {
                     BigDecimal revenue = entry.getValue().getOrDefault(AccountType.REVENUE, BigDecimal.ZERO);
                     BigDecimal expense = entry.getValue().getOrDefault(AccountType.EXPENSE, BigDecimal.ZERO);
