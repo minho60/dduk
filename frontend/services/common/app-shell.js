@@ -29,7 +29,7 @@
         {
             label: "회계관리",
             items: [
-                { href: "pages/accounting/dashboard.html", label: "회계 대시보드", roles: ["ADMIN", "HR"] },
+                { href: "pages/hr/accounting/accounting_dashboard.html", label: "회계 대시보드", roles: ["ADMIN", "HR"] },
                 { href: "pages/accounting/tax-invoice.html", label: "세금계산서", roles: ["ADMIN", "HR"] },
                 { href: "pages/accounting/expenses.html", label: "비용 처리", roles: ["ADMIN", "HR"] },
                 { href: "pages/accounting/sales-purchase.html", label: "매입/매출", roles: ["ADMIN", "HR"] },

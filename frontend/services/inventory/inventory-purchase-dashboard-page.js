@@ -418,10 +418,7 @@
                 loadRpaHistory();
             }
 
-            if (message) {
-                message.textContent = '구매/발주 대시보드를 최신 데이터로 갱신했어.';
-                message.className = 'text-sm text-emerald-600 mt-1 font-semibold';
-            }
+            window.ddukApi?.showToast?.('최신 데이터로 대시보드가 갱신되었습니다.', 'success');
         } catch (error) {
             if (message) {
                 message.textContent = `대시보드 조회 실패: ${error.message}`;

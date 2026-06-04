@@ -42,13 +42,13 @@ body {
     border-right: 1px solid var(--border);
     z-index: 50;
     overflow-y: auto;
-    transition: width 0.3s ease, transform 0.3s ease;
+    transition: width 0.45s cubic-bezier(0.34, 1.56, 0.64, 1), transform 0.45s cubic-bezier(0.34, 1.56, 0.64, 1);
 }
 
 .main_wrap {
     margin-left: var(--sidebar-width);
     min-height: calc(100 * min(var(--vh, 1vh), 1vh));
-    transition: margin-left 0.3s ease;
+    transition: margin-left 0.45s cubic-bezier(0.34, 1.56, 0.64, 1);
 }
 
 .canva-text img {
@@ -204,6 +204,12 @@ aside.sidebar .menu_group_title {
 
 .sidebar_icon_btn:hover {
     background: rgba(0, 0, 0, 0.03);
+}
+
+.sidebar_icon_btn_disabled {
+    opacity: 0.4;
+    cursor: not-allowed !important;
+    pointer-events: none;
 }
 
 .chart_bar {
@@ -624,8 +630,7 @@ body.sidebar-collapsed .recent_group,
 body.sidebar-collapsed .menu_group_title,
 body.sidebar-collapsed .sidebar_user_text,
 body.sidebar-collapsed .sidebar_status_text,
-body.sidebar-collapsed .menu_badge_wip,
-body.sidebar-collapsed .submenu {
+body.sidebar-collapsed .menu_badge_wip {
     display: none !important;
 }
 

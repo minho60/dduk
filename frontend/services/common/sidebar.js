@@ -149,7 +149,6 @@
                 if (window.DDUK_SIDEBAR_MENU && typeof window.DDUK_SIDEBAR_MENU.initSidebar === 'function') {
                     window.DDUK_SIDEBAR_MENU.initSidebar();
                 }
-                // AI Copilot Portal 위젯 초기화는 sidebar-menu가 init된 후에 이루어져도 되며, 내부에서 DOM 로딩이 완료되면 처리
                 if (window.DDUK_FLOATING_PORTAL && typeof window.DDUK_FLOATING_PORTAL.initAICopilotPortal === 'function') {
                     window.DDUK_FLOATING_PORTAL.initAICopilotPortal();
                 }

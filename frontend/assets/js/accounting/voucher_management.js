@@ -72,9 +72,13 @@
 
     document.getElementById('resetFormButton')?.addEventListener('click', resetForm);
 
-    // 5. 새로고침 버튼
+    // 5. 새로고침 버튼 및 상태 필터
     document.getElementById('reloadButton')?.addEventListener('click', () => {
       loadSummary();
+      loadVouchers();
+    });
+
+    document.getElementById('statusFilter')?.addEventListener('change', () => {
       loadVouchers();
     });
 
@@ -451,7 +455,8 @@
   async function loadVouchers() {
     setLoadingText('voucherListBody', 11, '전표 목록을 조회하고 있습니다.');
     try {
-      const response = await window.voucherQueryService.fetchVouchers(state.voucherType);
+      const status = document.getElementById('statusFilter')?.value || '';
+      const response = await window.voucherQueryService.fetchVouchers(state.voucherType, { status });
       const vouchers = response.data || [];
       const tbody = document.getElementById('voucherListBody');
       if (!tbody) return;

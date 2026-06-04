@@ -6,7 +6,7 @@
    ============================================================ */
 
 /* 트리 계층 버튼 */
-.tree_toggle_btn {
+.tree-button {
   display: inline-flex;
   align-items: center;
   justify-content: center;
@@ -22,45 +22,45 @@
   flex-shrink: 0;
 }
 
-.tree_toggle_btn:hover {
+.tree-button:hover {
   background-color: rgba(0, 0, 0, 0.06);
 }
 
-.tree_spacer {
+.tree-spacer {
   display: inline-block;
   width: 26px;
   flex-shrink: 0;
 }
 
 /* 계정명 셀 정렬 */
-.account_name_cell {
+.account-name-cell {
   display: flex;
   align-items: center;
 }
 
 /* 계층 레벨별 스타일 */
-.erp_table .level_1 td {
+.erp_table .level-1 td {
   font-weight: 700;
   color: var(--text-primary);
   background: #f8fafc;
 }
 
-.erp_table .level_2 td {
+.erp_table .level-2 td {
   font-weight: 600;
   color: var(--text-primary);
 }
 
-.erp_table .level_3 td {
+.erp_table .level-3 td {
   font-weight: 400;
   color: var(--text-secondary);
 }
 
-.erp_table .leaf_row td {
+.erp_table .leaf td {
   color: var(--text-primary);
   font-size: 0.8rem;
 }
 
-.erp_table .hidden_row {
+.erp_table .hidden-row {
   display: none;
 }
 
@@ -73,12 +73,12 @@
 }
 
 /* 잔액 일치 상태 */
-.balance_ok {
+.balance-ok {
   color: var(--success);
   font-weight: 700;
 }
 
-.balance_warning {
+.balance-warning {
   color: var(--danger);
   font-weight: 700;
 }
