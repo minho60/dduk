@@ -153,7 +153,7 @@
                         </button>
                     </div>
                     <div class="dduk-inline-005">
-                        <span data-template-id="workspace-name" class="canva-text dduk-inline-006">아망티</span>
+                        <span data-template-id="workspace-name" class="canva-text dduk-inline-006">(주)아망티</span>
                         <i class="dduk-inline-007" data-lucide="chevron-down"></i>
                     </div>
                     <div class="dduk-inline-008">
