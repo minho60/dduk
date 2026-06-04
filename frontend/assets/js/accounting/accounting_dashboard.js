@@ -13,7 +13,7 @@
     const now = new Date();
     const filterYear = byId("filterYear");
     const filterMonth = byId("filterMonth");
-    
+
     if (filterYear) {
       filterYear.value = now.getFullYear();
     }
@@ -29,7 +29,7 @@
     const reloadBtn = byId("reloadButton");
     const filterYear = byId("filterYear");
     const filterMonth = byId("filterMonth");
-    
+
     if (reloadBtn) reloadBtn.addEventListener("click", loadDashboard);
     if (filterYear) filterYear.addEventListener("change", loadDashboard);
     if (filterMonth) filterMonth.addEventListener("change", loadDashboard);
@@ -50,13 +50,13 @@
 
   function renderDashboard(data) {
     const period = data.periodSummary || {};
-    
-    const periodTitle = byId("periodTitle");
-    if (periodTitle) periodTitle.textContent = `${period.currentPeriod || "-"} 회계 통합 현황`;
-    
+
     const generatedAt = byId("generatedAt");
-    if (generatedAt) generatedAt.textContent = `생성 시각: ${formatDateTime(data.generatedAt)}`;
-    
+    if (generatedAt) {
+      const periodLabel = period.currentPeriod ? `${period.currentPeriod} 기준` : "기준 기간 미설정";
+      generatedAt.textContent = `${periodLabel} · 생성 시각 ${formatDateTime(data.generatedAt)}`;
+    }
+
     renderBadge(byId("periodStatusBadge"), period.status || "NOT_CREATED");
     renderBadge(byId("validationBadge"), period.validationStatus || "UNKNOWN");
     renderKpis(data.kpiSummary || {});
@@ -76,16 +76,16 @@
   function renderKpis(kpi) {
     const kpiGrid = byId("kpiGrid");
     if (!kpiGrid) return;
-    
+
     const items = [
       ["당월 총 매출", won(kpi.monthlyRevenue), rateLabel(kpi.monthlyRevenueChangeRate)],
       ["당월 총 비용", won(kpi.monthlyExpense), rateLabel(kpi.monthlyExpenseChangeRate)],
-      ["영업 이익", won(kpi.operatingIncome), "Sales - Expenses"],
-      ["당기 순이익", won(kpi.netIncome), "Ledger Base"],
-      ["총 자산", won(kpi.totalAssets), "ASSET 집계"],
-      ["총 부채", won(kpi.totalLiabilities), "LIABILITY 집계"]
+      ["영업 이익", won(kpi.operatingIncome), "매출 - 비용"],
+      ["당기 순이익", won(kpi.netIncome), "원장 기준"],
+      ["총 자산", won(kpi.totalAssets), "자산 계정 집계"],
+      ["총 부채", won(kpi.totalLiabilities), "부채 계정 집계"]
     ];
-    
+
     kpiGrid.innerHTML = items.map(([label, value, change]) => `
       <div class="kpi_card">
         <p class="kpi_label text-xs font-semibold text-slate-400">${label}</p>
@@ -117,12 +117,12 @@
     profitLossChart = new Chart(ctx, {
       type: "line",
       data: {
-        labels: rows.map(row => row.period),
+        labels: rows.map((row) => row.period),
         datasets: [
-          dataset("매출", rows.map(row => row.revenue), "#3b82f6"),
-          dataset("비용", rows.map(row => row.expense), "#ef4444"),
-          dataset("영업이익", rows.map(row => row.operatingIncome), "#10b981"),
-          dataset("당기순이익", rows.map(row => row.netIncome), "#8b5cf6")
+          dataset("매출", rows.map((row) => row.revenue), "#3b82f6"),
+          dataset("비용", rows.map((row) => row.expense), "#ef4444"),
+          dataset("영업이익", rows.map((row) => row.operatingIncome), "#10b981"),
+          dataset("당기순이익", rows.map((row) => row.netIncome), "#8b5cf6")
         ]
       },
       options: chartOptions()
@@ -136,9 +136,9 @@
     compositionChart = new Chart(ctx, {
       type: "doughnut",
       data: {
-        labels: rows.map(row => row.label),
+        labels: rows.map((row) => row.label),
         datasets: [{
-          data: rows.map(row => Number(row.amount || 0)),
+          data: rows.map((row) => Number(row.amount || 0)),
           backgroundColor: ["#3b82f6", "#ef4444", "#10b981"],
           borderWidth: 0
         }]
@@ -148,7 +148,7 @@
         maintainAspectRatio: false,
         plugins: {
           legend: { position: "bottom" },
-          tooltip: { callbacks: { label: context => `${context.label}: ${won(context.raw)}` } }
+          tooltip: { callbacks: { label: (context) => `${context.label}: ${won(context.raw)}` } }
         },
         cutout: "62%"
       }
@@ -198,7 +198,7 @@
   function renderTrialBalance(summary) {
     const list = byId("trialBalanceList");
     const major = byId("majorAccounts");
-    
+
     if (list) {
       list.innerHTML = metricRows([
         ["총 차변", won(summary.totalDebit)],
@@ -206,10 +206,10 @@
         ["불일치 여부", summary.balanced ? "정상" : "불일치 경고"]
       ]);
     }
-    
+
     if (major) {
       const rows = summary.majorAccounts || [];
-      major.innerHTML = rows.map(row => `
+      major.innerHTML = rows.map((row) => `
         <div class="rank_row">
           <span>${row.accountCode}</span>
           <strong>${row.accountName}</strong>
@@ -222,7 +222,7 @@
   function renderAlerts(alerts) {
     const list = byId("alertList");
     if (list) {
-      list.innerHTML = alerts.map(alert => `
+      list.innerHTML = alerts.map((alert) => `
         <div class="alert_item ${alert.severity}">
           <strong>${alert.title}</strong>
           <p>${alert.message}</p>
@@ -235,7 +235,7 @@
   function renderActivities(rows) {
     const container = byId("activityRows");
     if (container) {
-      container.innerHTML = rows.map(row => `
+      container.innerHTML = rows.map((row) => `
         <div class="activity_row">
           <span>${row.activityType}</span>
           <span>${row.target || "-"}</span>
@@ -275,7 +275,7 @@
   function dataset(label, data, color) {
     return {
       label,
-      data: data.map(value => Number(value || 0)),
+      data: data.map((value) => Number(value || 0)),
       borderColor: color,
       backgroundColor: color,
       tension: 0.35,
@@ -291,10 +291,10 @@
       interaction: { mode: "index", intersect: false },
       plugins: {
         legend: { position: "bottom" },
-        tooltip: { callbacks: { label: context => `${context.dataset.label}: ${won(context.raw)}` } }
+        tooltip: { callbacks: { label: (context) => `${context.dataset.label}: ${won(context.raw)}` } }
       },
       scales: {
-        y: { ticks: { callback: value => compactWon(value) }, grid: { color: "rgba(148, 163, 184, 0.18)" } },
+        y: { ticks: { callback: (value) => compactWon(value) }, grid: { color: "rgba(148, 163, 184, 0.18)" } },
         x: { grid: { display: false } }
       }
     };
