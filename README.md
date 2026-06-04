@@ -1,115 +1,101 @@
 # DDUK ERP Project
 
-기업 운영에 필요한 인사, 회계, 구매, 재고 업무를 한 곳에서 관리하는 통합 지능형 ERP 시스템이다.
-
----
+인사, 재고, 회계, 관리자 기능과 AI/OCR/RPA 보조 기능을 한 저장소에서 함께 다루는 ERP 포트폴리오 프로젝트다.
 
 ## 프로젝트 개요
 
-- **목표**: 구매/재고, 회계, AI 업무지원, 관리자 기능을 하나의 유기적인 ERP 흐름으로 통합한다.
-- **방향**: 백엔드 중심의 탄탄한 비즈니스 로직을 기반으로 직관적인 Modern UI와 비동기 AI/RPA 자동화 엔진을 결합하여 업무 생산성을 극대화한다.
-- **현재 상태**: 핵심 1차, 2차 MVP 설계 범위 및 3차 AI/RPA 연계 기능(OCR 증빙, 최저가 단가 비교, 최저임금 적정성 검증 등)까지 전체 구현 완료되어 안정적인 운영 및 통합 시연이 가능합니다.
+- 백엔드: Spring Boot 기반 ERP API
+- 프론트엔드: HTML/CSS/Vanilla JS 기반 멀티 페이지 UI
+- AI 서버: Flask 기반 챗봇/OCR 보조 API
+- RPA 서버: Flask + Playwright 기반 비동기 업무 자동화 트리거 서버
+- 데이터: 부트스트랩 데이터 + 데모 샘플 데이터로 로컬 시연 가능
 
----
+현재 저장소는 다음 흐름을 기준으로 구성돼 있다.
 
-## 핵심 도메인 및 담당 영역
+`frontend/pages -> frontend/services|styles|assets -> /api/v1/... -> backend`
 
-| 담당자              | 도메인                     | 주요 기능 |
-| :------------------ | :------------------------- | :--- |
-| **서우리**          | 구매/발주, 문서/증빙, 회계 일부 | 구매/발주 대시보드, 발주 요청, 발주 관리, 입고 등록, 거래처 관리, 세금계산서, 비용 처리, 증빙 업로드, OCR 문서함 (Unlink 매핑 포함) |
-| **김슬기**          | 재고관리, 회계관리 | 재고관리 대시보드, 재고 조회, 입출고 이력, 창고 이동, 자동 발주 추천, 회계 대시보드, 거래 내역 등록, 매입/매출 현황, 월 마감, 급여 계산 (최저임금 적정성 검증 포함), 회계 리포트 |
-| **김민호**          | AI 업무지원, 관리자 | AI 챗봇, 이상 탐지, 예측 분석, 사용자 관리, 권한 관리 (Spring Security/JWT), 시스템 로그, 서버 모니터링, RPA 비동기 태스크 엔진 제어 |
+## 주요 기능
 
----
+### 공통/관리자
 
-## MVP 범위 및 구현 현황
+- JWT 기반 로그인 및 권한 분기
+- 관리자 대시보드
+- 공지사항, 멤버 관리, 작업 이력, 이상 탐지 화면
+- 공통 사이드바, AI 포털, RPA 위젯
 
-본 프로젝트는 기획된 시연 가능한 필수 범위부터 차별화 기능까지 모두 성공적으로 구현을 완료했습니다.
+### 재고 / 구매
 
-### [x] 1차 필수 MVP (구현 완료)
-- [x] 로그인 / JWT 기반 인증 및 Spring Security 권한 분기
-- [x] 직원 기본 정보 조회 및 등록 (HR)
-- [x] 근태 기록 조회
-- [x] 거래처 등록 및 목록 조회
-- [x] 재고 품목 등록 및 수량 조회
-- [x] 발주 등록 및 상태 변경
-- [x] 관리자 대시보드 기본 통계 카드
+- 재고 대시보드
+- 발주 요청, 발주 목록, 발주 상태 관리
+- 입고 처리, 창고 이동, 재주문, 거래처 관리
+- RPA 기반 발주 단가 비교 / 재고 부족 분석 연계
 
-### [x] 2차 확장 기능 (구현 완료)
-- [x] 급여 계산 및 명세서 생성
-- [x] 매출/지출 통계 시각화
-- [x] 발주 승인 흐름
-- [x] 재고 부족 알림
-- [x] WebSocket 기반 실시간 대시보드 갱신
+### 인사 / 회계
 
-### [x] 3차 시연/차별화 기능 (구현 완료)
-- [x] OpenAI API 기반 ERP 자연어 질의 챗봇
-- [x] OCR 기반 영수증/발주서 텍스트 추출 및 증빙 문서함 연계
-- [x] Playwright 기반 반복 업무 자동화 (RPA)
-  - 아망티 등 공급업체 최신 단가 스크래핑 및 ERP 단가 비교 자동화
-  - 법정 최저임금 고시 데이터를 크롤링하여 당해 연도 급여 적정성 검증 자동화
-  - 재고 부족 경고 및 예측 RPA 분석
-- [x] 권한별 API 접근 제어 강화 및 RPA 결과물 파일 경로 이탈 방지(보안 하드닝)
+- 직원/근태/급여 기준 정보 화면
+- 회계 대시보드
+- 전표 관리, 시산표, 리포트, 월 마감
+- 비용 처리, 세금계산서 화면
 
----
+### OCR / AI / RPA
+
+- OCR 증빙 업로드 및 문서함
+- Gemini 기반 챗봇 API
+- Gemini 기반 OCR 파싱 API
+- Playwright 기반 외부 데이터 수집/검증 자동화
 
 ## 기술 스택
 
-| 영역 | 기술 |
+| 영역 | 현재 스택 |
 | :--- | :--- |
-| Frontend | HTML, CSS, Vanilla JS (반응형 모던 UI 테마) |
-| Backend | Spring Boot 3.2+, Java 21, JPA, QueryDSL, Spring Security (JWT) |
-| AI Server | Python 3.10+, Flask, OpenAI SDK, Pandas |
-| RPA | Playwright, OCR (PyTesseract 또는 EasyOCR) |
-| Database | TiDB (MySQL Compatible) |
-| Infra | Docker, Gradle, Postman |
+| Frontend | HTML5, CSS3, Vanilla JavaScript |
+| Backend | Java 21, Spring Boot 3.3, Spring Web, Spring Data JPA, Spring Security, Spring Validation |
+| Auth | JWT (`jjwt`) |
+| Database | MySQL Driver 기반 구성, MySQL 호환 DB 스키마/시드 사용 |
+| AI Server | Python, Flask, Flask-CORS, Waitress, `google-generativeai`, `python-dotenv` |
+| OCR | Gemini 기반 OCR 파싱 경로 |
+| RPA | Python, Flask, Requests, Playwright |
+| Build / Tooling | Gradle Wrapper, Lombok |
+| Local Config | `.env` 기반 환경 변수 주입 |
 
----
+### 스택 메모
 
-## 저장소 구조
+- 현재 `backend/build.gradle` 기준 QueryDSL 의존성은 없다.
+- 현재 `ai-server/requirements.txt` 기준 OpenAI SDK, Pandas 의존성은 없다.
+- 현재 프론트엔드는 `frontend/package.json` 없이 정적 HTML 페이지 방식으로 동작한다.
+- `.env.example`에는 TiDB Cloud 예시가 들어 있지만, 애플리케이션 설정은 MySQL 드라이버와 MySQL 호환 SQL 초기화 기준으로 작성돼 있다.
+
+## 디렉터리 구조
 
 ```text
-backend/    Spring Boot ERP API (Controller-Service-Repository 계층 구조)
-frontend/   HTML/CSS/Vanilla JS UI (페이지 단위 권한 라우팅 및 비동기 렌더링)
-ai-server/  Flask 기반 AI API 및 데이터 보조 처리
-rpa/        Playwright 자동화 작업
-docs/       협업 규칙, 구조 문서, API 초안
+backend/      Spring Boot ERP API
+frontend/     HTML/CSS/Vanilla JS UI
+ai-server/    Flask 기반 AI API
+rpa/          Flask + Playwright 기반 RPA 트리거 서버
+docs/         프로젝트 문서, 규칙, 가이드
 ```
 
-더 구체적인 구조 기준은 아래 문서를 보면 된다.
+## 실행 전 준비
 
-- 구조 문서: [docs/common/SYSTEM_ARCHITECTURE.md](/C:/kmh/dduk/docs/common/SYSTEM_ARCHITECTURE.md:1)
-- API 기준: [docs/common/API_STANDARD.md](/C:/kmh/dduk/docs/common/API_STANDARD.md:1)
-- DB 초안: [docs/common/ARCHIVE/DB_DRAFT.md](/C:/kmh/dduk/docs/common/ARCHIVE/DB_DRAFT.md:1)
-- 환경변수 가이드: [docs/common/ARCHIVE/ENV_GUIDE.md](/C:/kmh/dduk/docs/common/ARCHIVE/ENV_GUIDE.md:1) (통합 샘플: [.env.example](/.env.example))
-- 실행/테스트 가이드: [docs/common/ARCHIVE/RUN_TEST_GUIDE.md](/C:/kmh/dduk/docs/common/ARCHIVE/RUN_TEST_GUIDE.md:1)
-- AI 하네스: [docs/AI_HARNESS.md](/C:/kmh/dduk/docs/AI_HARNESS.md:1)
-- 협업 규칙: [docs/CONVENTION.md](/C:/kmh/dduk/docs/CONVENTION.md:1)
-
-문서 바로가기:
-
-- AI/RPA 실행 체크: [docs/ai-rpa/AI_RPA_EXECUTION_CHECK_GUIDE.md](/C:/kmh/dduk/docs/ai-rpa/AI_RPA_EXECUTION_CHECK_GUIDE.md:1)
-- AI/RPA 로드맵: [docs/ai-rpa/AI_RPA_ROADMAP.md](/C:/kmh/dduk/docs/ai-rpa/AI_RPA_ROADMAP.md:1)
-- 회계 문서: [docs/accounting/ACCOUNTING_DASHBOARD.md](/C:/kmh/dduk/docs/accounting/ACCOUNTING_DASHBOARD.md:1), [ACCOUNTING_TRANSACTION.md](/C:/kmh/dduk/docs/accounting/ACCOUNTING_TRANSACTION.md:1), [CHART_OF_ACCOUNTS.md](/C:/kmh/dduk/docs/accounting/CHART_OF_ACCOUNTS.md:1)
-- UI 공통 문서: [docs/ui/UI_GUIDE.md](/C:/kmh/dduk/docs/ui/UI_GUIDE.md:1), [DESIGN_SYSTEM.md](/C:/kmh/dduk/docs/ui/DESIGN_SYSTEM.md:1), [DASHBOARD_LAYOUT.md](/C:/kmh/dduk/docs/ui/DASHBOARD_LAYOUT.md:1)
-- 재고 문서: [docs/ui/inventory/INVENTORY_DASHBOARD.md](/C:/kmh/dduk/docs/ui/inventory/INVENTORY_DASHBOARD.md:1), [STOCK_MOVEMENT.md](/C:/kmh/dduk/docs/ui/inventory/STOCK_MOVEMENT.md:1), [WAREHOUSE_MANAGEMENT.md](/C:/kmh/dduk/docs/ui/inventory/WAREHOUSE_MANAGEMENT.md:1)
-
----
-
-## 빠른 시작
-
-### 요구 환경
+필수 런타임:
 
 - Java 21
-- Gradle Wrapper 또는 Gradle 실행 환경
 - Python 3.10+
-- MySQL 8.0
-- Node.js
+- MySQL 호환 DB
+
+권장:
+
+- Git
+- 정적 파일을 띄울 수 있는 로컬 서버
+
+환경 변수는 루트의 `.env.example`를 복사해서 `.env`로 맞추면 된다.
+
+## 로컬 실행
 
 ### 1. 저장소 준비
 
 ```bash
-git clone https://github.com/minho60/dduk.git
+git clone <repository-url>
 cd dduk
 ```
 
@@ -120,34 +106,79 @@ cd backend
 ./gradlew bootRun
 ```
 
-기본 목표:
-- 인증 API 응답 확인
-- 도메인별 CRUD 및 AI/RPA 연계 REST API 동작 확인
+기본 백엔드 주소:
 
-### 3. 프론트 확인
+- `http://localhost:8080`
 
-```bash
-cd frontend
-# 로컬 웹 서버 또는 Live Server를 사용하여 index.html 기준 구동 확인
-```
-
-### 4. AI/RPA 서버 실행
+### 3. AI 서버 실행
 
 ```bash
 cd ai-server
 python app.py
 ```
-- `http://localhost:5000/health` 등을 통해 OCR 및 OpenAI 챗봇 API 대기 상태 확인.
-- RPA Playwright 엔진 실행 준비 완료.
 
----
+기본 AI 서버 주소:
 
-## 팀 작업 및 협업 가이드
+- `http://localhost:5000`
+- 헬스 체크: `http://localhost:5000/health`
 
-1. **역할 준수**: `admin`, `hr`, `inventory` 계층에 맞는 REST API와 화면 라우팅 기준을 준수한다.
-2. **보안 지침**: 비밀번호 등 주요 접속 크레덴셜은 하드코딩하지 않고 `.env` 환경변수로 주입받도록 구성한다.
-3. **API 명세**: 신규 API 추가 시 [docs/common/API_STANDARD.md](/C:/kmh/dduk/docs/common/API_STANDARD.md:1) 문서를 먼저 갱신하고 개발에 착수한다.
+### 4. RPA 서버 실행
 
----
+```bash
+cd rpa
+python app.py
+```
 
-© 2026 Team DDUK
+기본 RPA 서버 주소:
+
+- `http://localhost:5050`
+- 헬스 체크: `http://localhost:5050/health`
+
+### 5. 프론트엔드 확인
+
+`frontend/`는 번들 빌드가 아니라 정적 페이지 구조라서, Live Server 같은 정적 서버로 열어서 확인하면 된다.
+
+주요 페이지는 `frontend/pages/` 아래에 도메인별로 정리돼 있다.
+
+- `frontend/pages/admin/`
+- `frontend/pages/hr/`
+- `frontend/pages/inventory/`
+- `frontend/pages/ocr/`
+
+## 데이터 초기화
+
+현재 백엔드는 `application.yml` 기준으로 아래 SQL을 초기화에 사용한다.
+
+- 스키마:
+  - `db/mysql/dduk_bootstrap_schema.sql`
+  - `db/mysql/task_history_schema.sql`
+  - `db/mysql/anomaly_log_schema.sql`
+  - `db/mysql/notice_schema.sql`
+  - `db/mysql/ocr_schema.sql`
+  - `db/mysql/tax_invoice_schema.sql`
+- 데이터:
+  - `db/mysql/dduk_bootstrap_data.sql`
+  - `db/mysql/dduk_sample_data.sql`
+
+즉 로컬 기동 시 최소 부트스트랩 데이터와 데모 샘플 데이터가 함께 올라가는 구성이 기본값이다.
+
+## 참고 문서
+
+- [AI Harness](./docs/AI_HARNESS.md)
+- [Convention](./docs/CONVENTION.md)
+- [System Architecture](./docs/common/SYSTEM_ARCHITECTURE.md)
+- [API Standard](./docs/common/API_STANDARD.md)
+
+## 현재 README 정리 기준
+
+이 README는 실제 저장소 기준으로 아래 파일을 확인해서 맞췄다.
+
+- `backend/build.gradle`
+- `backend/src/main/resources/application.yml`
+- `ai-server/requirements.txt`
+- `ai-server/app.py`
+- `rpa/requirements.txt`
+- `rpa/app.py`
+- `.env.example`
+
+기술 스택이나 실행 방법이 바뀌면 위 파일과 같이 업데이트하는 걸 권장한다.
