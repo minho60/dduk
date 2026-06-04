@@ -3,7 +3,6 @@
             if (!session) return;
             if (window.lucide) lucide.createIcons();
 
-            const apiOrigin = location.protocol === 'file:' ? 'http://localhost:8080' : location.origin;
             const body = document.getElementById('orders-body');
             const message = document.getElementById('message');
             const paginationArea = document.getElementById('pagination-area');
@@ -27,28 +26,10 @@
             ]);
             const statuses = [...statusLabels].filter(([value]) => !['ORDERED', 'APPROVED'].includes(value));
 
-            function headers(json) {
-                const token = localStorage.getItem('token');
-                const result = json ? { 'Content-Type': 'application/json' } : {};
-                if (token) result.Authorization = `Bearer ${token}`;
-                return result;
-            }
-
             function setMessage(text, type) {
                 const color = type === 'error' ? 'text-red-600' : type === 'ok' ? 'text-emerald-600' : 'text-gray-500';
                 message.className = `text-sm mt-1 font-semibold ${color}`;
                 message.textContent = text;
-            }
-
-            async function readError(response) {
-                const text = await response.text();
-                if (!text) return `HTTP ${response.status}`;
-                try {
-                    const parsed = JSON.parse(text);
-                    return parsed.message || parsed.error || text;
-                } catch {
-                    return text;
-                }
             }
 
             function escapeHtml(value) {
@@ -189,12 +170,15 @@
                 paginationArea.innerHTML = '';
                 setMessage('데이터를 불러오는 중입니다...');
                 try {
-                    const url = new URL(`${apiOrigin}/api/v1/inventory/purchase-orders/management`);
-                    if (all) url.searchParams.set('all', 'true');
-                    if (keyword) url.searchParams.set('keyword', keyword);
-                    const response = await fetch(url, { headers: headers(false) });
-                    if (!response.ok) throw new Error(await readError(response));
-                    orders = await response.json();
+                    const params = new URLSearchParams();
+                    if (all) params.set('all', 'true');
+                    if (keyword) params.set('keyword', keyword);
+                    const query = params.toString();
+                    orders = await window.ddukApi.requestList(
+                        query
+                            ? `/api/v1/inventory/purchase-orders/management?${query}`
+                            : '/api/v1/inventory/purchase-orders/management'
+                    );
                     currentPage = 1;
                     const showCount = Math.min(pageSize, orders.length);
                     setMessage(`총 ${orders.length}건 중 1~${showCount}건 표시`, 'ok');
@@ -234,13 +218,13 @@
                 select.disabled = true;
                 setMessage(`${order.purchaseOrderNo} 상태를 변경 중입니다.`);
                 try {
-                    const response = await fetch(`${apiOrigin}/api/v1/inventory/purchase-orders/${orderId}/management-status`, {
-                        method: 'PATCH',
-                        headers: headers(true),
-                        body: JSON.stringify({ status: nextStatus })
-                    });
-                    if (!response.ok) throw new Error(await readError(response));
-                    const updated = await response.json();
+                    const updated = await window.ddukApi.requestData(
+                        `/api/v1/inventory/purchase-orders/${orderId}/management-status`,
+                        {
+                            method: 'PATCH',
+                            body: { status: nextStatus }
+                        }
+                    );
                     updated.status = normalizeStatus(updated.status) || nextStatus;
                     changedOrderIds.add(orderId);
                     orders = orders.map(item => Number(item.purchaseOrderId) === orderId ? updated : item);
