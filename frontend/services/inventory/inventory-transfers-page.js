@@ -511,7 +511,10 @@
 
             try {
                 // ddukApi 를 통해 JWT 자동 포함 처리
-                const res = await InventoryService.cancelTransfer(activeReasonTransferId);
+                const res = await InventoryService.cancelTransfer(activeReasonTransferId, {
+                    reason: reason,
+                    type: activeReasonType
+                });
                 
                 if (res.status === 'success') {
                     if (window.ddukApi && window.ddukApi.showToast) {

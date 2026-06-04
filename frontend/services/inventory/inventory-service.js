@@ -53,6 +53,6 @@ const InventoryService = {
     completeTransfer: (id) =>
         window.ddukApi.post(`/api/v1/warehouse-transfers/${id}/complete`, {}),
 
-    cancelTransfer: (id) =>
-        window.ddukApi.post(`/api/v1/warehouse-transfers/${id}/cancel`, {})
+    cancelTransfer: (id, data = {}) =>
+        window.ddukApi.post(`/api/v1/warehouse-transfers/${id}/cancel`, data)
 };

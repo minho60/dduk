@@ -477,9 +477,9 @@ INSERT INTO notice (
     updated_at
 )
 VALUES
-    ('SYSTEM', 'DDUK ERP 2.0 시스템 정기 업데이트 점검 안내', '안녕하세요. DDUK ERP 운영팀입니다. 시스템 성능 개선 및 보안 업데이트를 위해 2026년 6월 15일(일) 01:00부터 05:00까지 정기 점검이 진행됩니다. 점검 시간 동안은 서비스 접속이 일시 제한되오니 업무에 참고하시기 바랍니다.', CURRENT_DATE - INTERVAL 3 DAY, CURRENT_DATE + INTERVAL 10 DAY, 45, 'admin', NOW(), NOW()),
-    ('GENERAL', '[인사] 2026년 하반기 전사 타운홀 미팅 개최 및 참석 요청', '임직원 여러분 안녕하십니까. 경영지원팀입니다. 당해 하반기 목표 달성 전략 공유 및 소통을 위해 전사 타운홀 미팅을 아래와 같이 개최하오니 전 임직원분들은 필히 참석해주시기 바랍니다. 일시: 2026년 6월 10일(수) 15:00, 장소: 대회의실 및 화상회의 줌 스트리밍.', CURRENT_DATE - INTERVAL 2 DAY, CURRENT_DATE + INTERVAL 7 DAY, 120, 'admin', NOW(), NOW()),
-    ('EVENT', '임직원 복지몰 아망티 브랜드 특가 제휴 이벤트 안내 (최대 40% 할인)', '복리후생 지원 프로그램의 일환으로 차(Tea) 전문 수입 제조사 아망티와 임직원 전용 특가 제휴를 체결하였습니다. 아망티 공식 쇼핑몰에서 DDUK ERP 사원 인증 번호 입력 시 홍차, 허브차, 선물세트를 최대 40% 할인가에 구매하실 수 있습니다. 상세 가이드는 첨부파일을 참조하세요.', CURRENT_DATE - INTERVAL 5 DAY, CURRENT_DATE + INTERVAL 15 DAY, 310, 'admin', NOW(), NOW())
+    ('MAINTENANCE', 'DDUK ERP 2.0 시스템 정기 업데이트 점검 안내', '안녕하세요. DDUK ERP 운영팀입니다. 시스템 성능 개선 및 보안 업데이트를 위해 2026년 6월 15일(일) 01:00부터 05:00까지 정기 점검이 진행됩니다. 점검 시간 동안은 서비스 접속이 일시 제한되오니 업무에 참고하시기 바랍니다.', CURRENT_DATE - INTERVAL 3 DAY, CURRENT_DATE + INTERVAL 10 DAY, 45, 'admin', NOW(), NOW()),
+    ('NORMAL', '[인사] 2026년 하반기 전사 타운홀 미팅 개최 및 참석 요청', '임직원 여러분 안녕하십니까. 경영지원팀입니다. 당해 하반기 목표 달성 전략 공유 및 소통을 위해 전사 타운홀 미팅을 아래와 같이 개최하오니 전 임직원분들은 필히 참석해주시기 바랍니다. 일시: 2026년 6월 10일(수) 15:00, 장소: 대회의실 및 화상회의 줌 스트리밍.', CURRENT_DATE - INTERVAL 2 DAY, CURRENT_DATE + INTERVAL 7 DAY, 120, 'admin', NOW(), NOW()),
+    ('NORMAL', '임직원 복지몰 아망티 브랜드 특가 제휴 이벤트 안내 (최대 40% 할인)', '복리후생 지원 프로그램의 일환으로 차(Tea) 전문 수입 제조사 아망티와 임직원 전용 특가 제휴를 체결하였습니다. 아망티 공식 쇼핑몰에서 DDUK ERP 사원 인증 번호 입력 시 홍차, 허브차, 선물세트를 최대 40% 할인가에 구매하실 수 있습니다. 상세 가이드는 첨부파일을 참조하세요.', CURRENT_DATE - INTERVAL 5 DAY, CURRENT_DATE + INTERVAL 15 DAY, 310, 'admin', NOW(), NOW())
 ON DUPLICATE KEY UPDATE
     title = VALUES(title),
     content = VALUES(content),
