@@ -48,7 +48,7 @@
         }
 
         if (allowedRoles.length > 0 && !allowedRoles.includes(session.role)) {
-            alert("해당 페이지에 접근할 권한이 없습니다.");
+            window.ddukApi?.showToast?.("해당 페이지에 접근할 권한이 없습니다.", "warning");
 
             const path = window.location.pathname.replace(/\\/g, '/');
             let rootRedirect = 'dashboard.html';

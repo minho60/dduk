@@ -82,7 +82,6 @@ async function loadCurrentEmployee() {
   try {
     const response = await window.ddukApi.get(`${EXPENSE_API}/current-employee`);
     state.currentEmployee = response.data || null;
-    console.log('[expenses] current-employee response:', response);
 
     if (!state.currentEmployee?.id) {
       console.warn('[expenses] 직원 정보가 없음 (data:', state.currentEmployee, ')');
@@ -372,7 +371,7 @@ function showToast(message, type) {
     window.ddukApi.showToast(message, type);
     return;
   }
-  window.alert(message);
+  console[type === 'error' ? 'error' : 'warn'](message);
 }
 
 function forceLogoutToLogin(message) {

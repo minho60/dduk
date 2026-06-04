@@ -132,7 +132,12 @@
                         }
 
                         if (!allowed) {
-                            alert('해당 메뉴에 접근할 권한이 없습니다.');
+                            const message = '해당 메뉴에 접근할 권한이 없습니다.';
+                            if (window.ddukApi?.showToast) {
+                                window.ddukApi.showToast(message, 'warning');
+                            } else {
+                                setStatusBanner(message, 'error');
+                            }
                             return;
                         }
 
@@ -161,7 +166,7 @@
                 updateKPICards(data);
             }
         } catch (err) {
-            console.error("Dashboard KPI fetch failed, fallback to mock display:", err);
+            console.error("Dashboard KPI fetch failed:", err);
         }
 
         // 2. 최근 시스템 활동 연동 (Audit Logs API)

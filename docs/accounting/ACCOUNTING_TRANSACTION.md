@@ -21,7 +21,7 @@ DDUK ERP 회계관리의 단순 입출금 입력 화면을 ERP 스타일 전표 
 - `backend/src/main/java/com/dduk/repository/accounting/AccountRepository.java`
 - `backend/src/main/java/com/dduk/dto/accounting/voucher/VoucherRequest.java`
 - `backend/src/main/java/com/dduk/dto/accounting/voucher/VoucherSummaryResponse.java`
-- `frontend/pages/accounting/voucher_management.html`
+- `frontend/pages/hr/accounting/voucher_management.html`
 - `frontend/assets/js/accounting/voucher_management.js`
 - `frontend/styles/accounting/voucher-management.css`
 - `docs/ACCOUNTING_VOUCHER_MANAGEMENT.md`
@@ -166,7 +166,7 @@ DDUK ERP 회계관리의 단순 입출금 입력 화면을 ERP 스타일 전표 
 
 ## 프론트 구조
 
-- HTML: `frontend/pages/accounting/voucher_management.html`
+- HTML: `frontend/pages/hr/accounting/voucher_management.html`
 - JS: `frontend/assets/js/accounting/voucher_management.js`
 - CSS: `frontend/styles/accounting/voucher-management.css`
 
@@ -259,7 +259,7 @@ cd backend
 
 수동 확인:
 
-1. `frontend/pages/accounting/voucher_management.html`을 브라우저에서 연다.
+1. `frontend/pages/hr/accounting/voucher_management.html`을 브라우저에서 연다.
 2. 매출전표 탭에서 거래처, 매출계정, 입금계좌, 공급가액을 입력한다.
 3. 자동 분개 미리보기에서 차변/대변 합계가 일치하는지 확인한다.
 4. 임시저장 또는 승인요청을 실행한다.

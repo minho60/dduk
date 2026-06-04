@@ -21,7 +21,6 @@ export class PayrollEventBus {
      * Publish a domain event
      */
     publish(eventType, data) {
-        console.log(`[EventBus] Publishing event: ${eventType}`, data);
         const callbacks = this.subscribers.get(eventType) || [];
         callbacks.forEach(callback => {
             try {

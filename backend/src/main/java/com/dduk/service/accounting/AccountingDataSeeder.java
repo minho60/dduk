@@ -89,11 +89,9 @@ public class AccountingDataSeeder {
 
     @Transactional
     public void seedPipeline() {
-        boolean hasExistingVouchers = voucherRepository.count() > 0 || journalEntryRepository.count() > 0;
-        
-        // 회계기간 생성 및 상태 세팅 (1~4월 CLOSED, 5~6월 OPEN)
         syncAccountingPeriodsForPresentation();
 
+        boolean hasExistingVouchers = voucherRepository.count() > 0 || journalEntryRepository.count() > 0;
         if (hasExistingVouchers) {
             log.info("[AccountingDataSeeder] Existing vouchers/journals detected. Performing targeted presentation data upsert instead of full rebuild.");
             
@@ -436,6 +434,10 @@ public class AccountingDataSeeder {
     }
 
     private void createAndTransitionVoucher(VoucherRequest request, VoucherStatus targetStatus) {
+        if (isPeriodClosed(request.getVoucherDate())) {
+            log.info("[AccountingDataSeeder] Skipping seed voucher for closed period: {}", request.getVoucherDate());
+            return;
+        }
         VoucherResponse response = voucherService.createVoucher(request);
         if (targetStatus == VoucherStatus.DRAFT) {
             return;
@@ -453,6 +455,14 @@ public class AccountingDataSeeder {
 
     private void seedPayrollHelper(String yearMonth, LocalDate paymentDate, boolean confirm) {
         try {
+            if (isPeriodClosed(paymentDate)) {
+                log.info("[AccountingDataSeeder] Skipping seed payroll for closed period: {}", yearMonth);
+                return;
+            }
+            if (payrollLedgerRepository.findFirstByPaymentYearMonthOrderByPaymentDateAscIdAsc(yearMonth).isPresent()) {
+                log.info("[AccountingDataSeeder] Payroll ledger already exists for {}. Skipping.", yearMonth);
+                return;
+            }
             PayrollLedgerCreateRequest request = new PayrollLedgerCreateRequest();
             request.setAttributionYearMonth(yearMonth);
             request.setPaymentYearMonth(yearMonth);
@@ -561,15 +571,14 @@ public class AccountingDataSeeder {
     private void syncAccountingPeriodsForPresentation() {
         log.info(">> Syncing accounting periods status for presentation...");
         
-        // 기존 DB 급여 데이터 사원 영문 스냅샷 명칭 한글 마이그레이션 (DB Reset 없이 동기화)
         try {
-            jdbcTemplate.update("UPDATE payroll_ledger_employee SET employee_name_snapshot = '홍길동' WHERE employee_no_snapshot = 'EMP20240001'");
-            jdbcTemplate.update("UPDATE payroll_ledger_employee SET employee_name_snapshot = '김철수' WHERE employee_no_snapshot = 'EMP20240002'");
-            jdbcTemplate.update("UPDATE payroll_ledger_employee SET employee_name_snapshot = '이영희' WHERE employee_no_snapshot = 'EMP20240003'");
-            jdbcTemplate.update("UPDATE payroll_ledger_employee SET employee_name_snapshot = '박민수' WHERE employee_no_snapshot = 'EMP20240004'");
-            jdbcTemplate.update("UPDATE payroll_ledger_employee SET employee_name_snapshot = '최지훈' WHERE employee_no_snapshot = 'EMP20240005'");
+            jdbcTemplate.update("UPDATE payroll_ledger_employee SET employee_name_snapshot = ? WHERE employee_no_snapshot = ?", "Hong Gil Dong", "EMP20240001");
+            jdbcTemplate.update("UPDATE payroll_ledger_employee SET employee_name_snapshot = ? WHERE employee_no_snapshot = ?", "Kim Chul Soo", "EMP20240002");
+            jdbcTemplate.update("UPDATE payroll_ledger_employee SET employee_name_snapshot = ? WHERE employee_no_snapshot = ?", "Lee Young Hee", "EMP20240003");
+            jdbcTemplate.update("UPDATE payroll_ledger_employee SET employee_name_snapshot = ? WHERE employee_no_snapshot = ?", "Park Min Soo", "EMP20240004");
+            jdbcTemplate.update("UPDATE payroll_ledger_employee SET employee_name_snapshot = ? WHERE employee_no_snapshot = ?", "Choi Ji Hoon", "EMP20240005");
         } catch (Exception e) {
-            log.error("Failed to migrate existing payroll employees snapshots names: {}", e.getMessage());
+            log.warn("[AccountingDataSeeder] Payroll employee snapshot normalization skipped: {}", e.getMessage());
         }
 
         for (int month = 1; month <= 12; month++) {
@@ -586,19 +595,16 @@ public class AccountingDataSeeder {
                                 .build());
                     });
 
-            if (month <= 4) {
-                if (period.getStatus() != AccountingPeriodStatus.CLOSED) {
-                    period.close("system");
-                    accountingPeriodRepository.save(period);
-                }
-            } else if (month == 5 || month == 6) {
-                if (period.getStatus() != AccountingPeriodStatus.OPEN) {
-                    // [컴파일 오류 임시 조치] Setter가 없으므로 해당 라인은 주석 처리하고 보류합니다.
-                    // period.setStatus(AccountingPeriodStatus.OPEN);
-                    // accountingPeriodRepository.save(period);
-                }
+            if (period.isClosed()) {
+                log.debug("[AccountingDataSeeder] Existing closed accounting period preserved: {}", period.getPeriodKey());
             }
         }
+    }
+
+    private boolean isPeriodClosed(LocalDate date) {
+        return accountingPeriodRepository.findByFiscalYearAndFiscalMonth(date.getYear(), date.getMonthValue())
+                .map(AccountingPeriod::isClosed)
+                .orElse(false);
     }
 
     private void upsertPresentationVouchersForMay2026() {

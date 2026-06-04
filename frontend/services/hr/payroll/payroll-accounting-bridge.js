@@ -13,8 +13,6 @@ export class PayrollAccountingBridge {
      */
     async postPayrollRun(payrollRecord) {
         try {
-            console.log(`[Bridge] Posting Payroll Record ${payrollRecord.id} to Backend Accounting...`);
-            
             // Prepare Balanced Journal Entry
             const journalData = {
                 date: new Date().toISOString().split('T')[0],
@@ -29,7 +27,6 @@ export class PayrollAccountingBridge {
             const res = await journalEntryService.createAndPost(journalData);
             
             if (res.success) {
-                console.log("[Bridge] Payroll posted successfully to backend accounting:", res.id);
                 return { success: true, journalId: res.id };
             } else {
                 throw new Error(res.message);

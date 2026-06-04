@@ -26,7 +26,7 @@
 - `backend/src/main/java/com/dduk/domain/accounting/payroll/api/PayrollManagementController.java`
 - `backend/src/main/java/com/dduk/repository/hr/EmployeeRepository.java`
 - `backend/src/main/java/com/dduk/repository/hr/PayrollContractRepository.java`
-- `frontend/pages/accounting/payroll_management.html`
+- `frontend/pages/hr/accounting/payroll_management.html`
 - `frontend/styles/accounting/payroll-management.css`
 - `frontend/assets/js/accounting/payroll_management.js`
 - `docs/ACCOUNTING_PAYROLL_MANAGEMENT.md`
@@ -151,7 +151,7 @@ Base URL: `/api/v1/accounting/payroll-ledgers`
 
 페이지:
 
-- `frontend/pages/accounting/payroll_management.html`
+- `frontend/pages/hr/accounting/payroll_management.html`
 
 JS:
 
@@ -194,7 +194,7 @@ cd backend
 
 수동 확인:
 
-1. `frontend/pages/accounting/payroll_management.html`을 연다.
+1. `frontend/pages/hr/accounting/payroll_management.html`을 연다.
 2. 급여정보입력 모달에서 필수값을 입력한다.
 3. 대상사원을 전체 또는 선택으로 지정한다.
 4. 저장 또는 계산실행을 누른다.

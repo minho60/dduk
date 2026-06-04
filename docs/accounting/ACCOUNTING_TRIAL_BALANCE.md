@@ -12,7 +12,7 @@ DDUK ERP 회계관리의 합계잔액시산표를 ERP 스타일 재무 리포트
 - `backend/src/main/java/com/dduk/domain/accounting/report/dto/*`
 - `backend/src/main/java/com/dduk/repository/accounting/JournalEntryRepository.java`
 - `backend/src/main/java/com/dduk/controller/accounting/AccountingController.java`
-- `frontend/pages/accounting/trial_balance.html`
+- `frontend/pages/hr/accounting/trial_balance.html`
 - `frontend/assets/js/accounting/trial_balance.js`
 - `frontend/styles/accounting/trial-balance.css`
 
@@ -105,7 +105,7 @@ DDUK ERP 회계관리의 합계잔액시산표를 ERP 스타일 재무 리포트
 
 ## 프론트 구조
 
-- 페이지: `frontend/pages/accounting/trial_balance.html`
+- 페이지: `frontend/pages/hr/accounting/trial_balance.html`
 - JS: `frontend/assets/js/accounting/trial_balance.js`
 - CSS: `frontend/styles/accounting/trial-balance.css`
 
@@ -159,7 +159,7 @@ node --check frontend/assets/js/accounting/trial_balance.js
 브라우저 확인:
 
 ```text
-frontend/pages/accounting/trial_balance.html
+frontend/pages/hr/accounting/trial_balance.html
 ```
 
 주요 수동 확인:

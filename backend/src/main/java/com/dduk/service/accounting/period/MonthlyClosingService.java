@@ -255,6 +255,9 @@ public class MonthlyClosingService {
     }
 
     private BigDecimal decimalAt(Object[] row, int index) {
+        if (row != null && row.length == 1 && row[0] instanceof Object[] nestedRow) {
+            return decimalAt(nestedRow, index);
+        }
         if (row == null || row.length <= index || row[index] == null) {
             return BigDecimal.ZERO;
         }

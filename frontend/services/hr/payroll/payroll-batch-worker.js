@@ -18,8 +18,6 @@ export class PayrollBatchWorker {
         const results = [];
         const errors = [];
 
-        console.log(`[BatchWorker] Starting batch for ${total} employees...`);
-
         for (let i = 0; i < total; i += this.chunkSize) {
             const chunk = employees.slice(i, i + this.chunkSize);
             
@@ -50,7 +48,6 @@ export class PayrollBatchWorker {
             });
         }
 
-        console.log(`[BatchWorker] Batch completed. Success: ${results.length}, Errors: ${errors.length}`);
         return { success: true, results, errors };
     }
 }

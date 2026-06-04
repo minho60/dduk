@@ -455,7 +455,7 @@
                     if (!allowedRoles.includes(currentUserRole)) {
                         e.preventDefault();
                         e.stopPropagation();
-                        alert('해당 메뉴에 접근할 권한이 없습니다.');
+                        window.ddukApi?.showToast?.('해당 메뉴에 접근할 권한이 없습니다.', 'warning');
                         return;
                     }
                 }

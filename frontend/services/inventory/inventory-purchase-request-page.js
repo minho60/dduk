@@ -54,8 +54,8 @@ document.addEventListener('DOMContentLoaded', () => {
     }
 
     function warnRequired(messageText, target) {
-        alert(messageText);
         setMessage(messageText, 'error');
+        window.ddukApi?.showToast?.(messageText, 'warning');
         target?.focus?.();
     }
 
@@ -366,10 +366,7 @@ document.addEventListener('DOMContentLoaded', () => {
     const queryItemName = urlParams.get('itemName');
     const queryUnit = urlParams.get('unit');
 
-    console.log('[DDUK ERP Query Auto-Fill] Detected params:', { queryItemId, queryQty, queryItemName, queryUnit });
-
     if (queryItemId && queryItemName) {
-        console.log('[DDUK ERP Query Auto-Fill] Adding recommended item to order:', queryItemName);
         addItem({
             id: Number(queryItemId),
             name: queryItemName,

@@ -39,7 +39,6 @@ export class PayrollStateMachine {
             reason
         });
 
-        console.log(`[StateMachine] ${payrollRun.header.id}: ${currentStatus} -> ${nextStatus}`);
         return payrollRun;
     }
 
