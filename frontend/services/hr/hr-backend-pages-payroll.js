@@ -1,4 +1,4 @@
-﻿import { hrBackendApi } from './hr-backend-api.js';
+import { hrBackendApi } from './hr-backend-api.js';
 import {
     LAST_PAYROLL_KEY,
     byId,
@@ -29,7 +29,7 @@ function normalizePayroll(record) {
     const trace = parseTrace(record.calculationTrace);
     return {
         id: record.id,
-        employeeName: record.employee?.name || `吏곸썝 #${record.employee?.id || '-'}`,
+        employeeName: record.employee?.name || `직원 #${record.employee?.id || '-'}`,
         employeeNo: record.employee?.employeeNo || '-',
         payMonth: record.payMonth,
         baseSalary: Number(record.baseSalary || 0),
@@ -93,7 +93,7 @@ function renderPayrollReferenceHistory(items) {
     }
 
     if (!Array.isArray(items) || !items.length) {
-        element.textContent = '理쒓렐 ?ㅽ뻾 ?대젰???꾩쭅 ?놁뼱.';
+        element.textContent = '최근 실행 이력이 아직 없습니다.';
         return;
     }
 
@@ -106,7 +106,7 @@ function renderPayrollReferenceHistory(items) {
                 <div style="font-size:12px;color:#dc2626;margin-top:4px;">${escapeHtml(item.errorMessage || '')}</div>
             </div>
             <div>
-                <button class="hr_button" type="button" data-rerun-hr-reference>?ъ떎??/button>
+                <button class="hr_button" type="button" data-rerun-hr-reference>다시 실행</button>
             </div>
         </div>
     `).join('');
@@ -121,13 +121,13 @@ async function loadPayrollReferenceHistory() {
     const currentSession = getCurrentSession();
     if (!currentSession || !['ADMIN', 'HR'].includes(currentSession.role)) {
         if (element) {
-            element.textContent = '理쒓렐 RPA ?ㅽ뻾 ?대젰? 愿由ъ옄留?蹂????덉뼱.';
+            element.textContent = '최근 RPA 실행 이력은 관리자만 볼 수 있습니다.';
         }
         return;
     }
 
     if (element) {
-        element.textContent = '理쒓렐 ?ㅽ뻾 ?대젰??遺덈윭?ㅻ뒗 以묒씠??';
+        element.textContent = '최근 실행 이력을 불러오는 중...';
     }
 
     try {
@@ -137,7 +137,7 @@ async function loadPayrollReferenceHistory() {
         renderPayrollReferenceHistory(items);
     } catch (error) {
         if (element) {
-            element.textContent = error.message || '理쒓렐 ?ㅽ뻾 ?대젰??遺덈윭?ㅼ? 紐삵뻽??';
+            element.textContent = error.message || '최근 실행 이력을 불러오지 못했습니다.';
         }
     }
 }
@@ -153,13 +153,13 @@ function renderPayrollReference(summary) {
     setText('hr_reference_source', rpa.referenceSource || '-');
     setText('hr_reference_effective_date', rpa.effectiveDate || '-');
     setText('hr_reference_collected_at', formatDateTime(rpa.latestCollectedAt));
-    setText('hr_reference_message', rpa.message || '理쒓렐 HR 湲곗? ?뺣낫媛 ?꾩쭅 ?놁뼱.');
+    setText('hr_reference_message', rpa.message || '최근 HR 기준 정보가 아직 없습니다.');
 
     const statusBadge = byId('hr_reference_status_badge');
     if (statusBadge) {
         statusBadge.textContent = rpa.status === 'READY'
-            ? '鍮꾧탳 媛??
-            : (rpa.status === 'MISSING_FILE' || rpa.status === 'EMPTY_RESULT' ? '寃곌낵 遺議? : '?湲?);
+            ? '비교 가능'
+            : (rpa.status === 'MISSING_FILE' || rpa.status === 'EMPTY_RESULT' ? '결과 부족' : '대기');
         statusBadge.className = `hr_badge ${rpa.status === 'READY' ? 'ok' : 'warn'}`;
     }
 
@@ -177,15 +177,15 @@ async function loadPayrollReferenceSummary() {
         renderPayrollReference(unwrapData(response));
         loadPayrollReferenceHistory();
     } catch (error) {
-        setText('hr_reference_message', error.message || 'HR 湲곗? ?뺣낫瑜?遺덈윭?ㅼ? 紐삵뻽??');
+        setText('hr_reference_message', error.message || 'HR 기준 정보를 불러오지 못했습니다.');
         const statusBadge = byId('hr_reference_status_badge');
         if (statusBadge) {
-            statusBadge.textContent = '議고쉶 ?ㅽ뙣';
+            statusBadge.textContent = '조회 실패';
             statusBadge.className = 'hr_badge error';
         }
         const history = byId('hr_reference_history');
         if (history) {
-            history.textContent = '理쒓렐 ?ㅽ뻾 ?대젰??遺덈윭?ㅼ? 紐삵뻽??';
+            history.textContent = '최근 실행 이력을 불러오지 못했습니다.';
         }
     }
 }
@@ -193,7 +193,7 @@ async function loadPayrollReferenceSummary() {
 async function triggerPayrollReference() {
     const session = window.ddukSession?.getSession?.();
     if (!session || !['ADMIN', 'HR'].includes(session.role)) {
-        showToast('RPA ?ㅽ뻾? 愿由ъ옄留?媛?ν빐.', 'warning');
+        showToast('RPA 실행은 관리자만 가능합니다.', 'warning');
         return;
     }
 
@@ -204,16 +204,16 @@ async function triggerPayrollReference() {
 
     try {
         const response = await hrBackendApi.triggerAdminRpa('HR_MIN_WAGE');
-        setText('hr_reference_message', `HR 湲곗? 議고쉶瑜??붿껌?덉뼱. Task ID: ${response?.data?.taskId || '-'}`);
+        setText('hr_reference_message', `HR 기준 조회를 요청했습니다. Task ID: ${response?.data?.taskId || '-'}`);
         const statusBadge = byId('hr_reference_status_badge');
         if (statusBadge) {
-            statusBadge.textContent = '?ㅽ뻾 ?붿껌 以?;
+            statusBadge.textContent = '실행 요청 중';
             statusBadge.className = 'hr_badge warn';
         }
         loadPayrollReferenceHistory();
         window.setTimeout(loadPayrollReferenceSummary, 2000);
     } catch (error) {
-        showToast(error.message || 'HR 湲곗? 議고쉶 ?ㅽ뻾 ?붿껌???ㅽ뙣?덉뼱.', 'error');
+        showToast(error.message || 'HR 기준 조회 실행 요청에 실패했습니다.', 'error');
     } finally {
         if (button) {
             button.disabled = false;
@@ -241,9 +241,9 @@ export function initPayrollCalculate() {
         const triggerButton = byId('btn_trigger_hr_reference');
         if (triggerButton) {
             triggerButton.disabled = true;
-            triggerButton.title = 'RPA ?ㅽ뻾? 愿由ъ옄留?媛?ν빐.';
+            triggerButton.title = 'RPA 실행은 관리자만 가능합니다.';
         }
-        setText('hr_reference_history', '理쒓렐 RPA ?ㅽ뻾 ?대젰? 愿由ъ옄留?蹂????덉뼱.');
+        setText('hr_reference_history', '최근 RPA 실행 이력은 관리자만 볼 수 있습니다.');
     }
 
     loadPayrollReferenceSummary();
@@ -262,7 +262,7 @@ export function initPayrollCalculate() {
             };
 
             if (!payload.employeeId || !payload.payMonth) {
-                throw new Error('吏곸썝 ID? 吏湲됱썡???낅젰?댁쨾.');
+                throw new Error('직원 ID와 지급월을 입력해 주세요.');
             }
 
             const result = await hrBackendApi.calculatePayroll(payload);
@@ -297,7 +297,7 @@ export function initPayrollDetail() {
             };
 
             if (!id || !payload.nextStatus) {
-                throw new Error('湲됱뿬 ID? ?ㅼ쓬 ?곹깭瑜??낅젰?댁쨾.');
+                throw new Error('급여 ID와 다음 상태를 입력해 주세요.');
             }
 
             const result = await hrBackendApi.transitionPayroll(id, payload);
@@ -324,4 +324,3 @@ export async function initReconciliation() {
         setText('recon_net_income', money(profitLoss.netIncome));
     });
 }
-

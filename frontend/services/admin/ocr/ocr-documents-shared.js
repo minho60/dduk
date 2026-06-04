@@ -106,30 +106,30 @@
         element.textContent = text;
     }
 
-        const documentTypeMap = {
+    const documentTypeMap = {
         RECEIPT: "영수증",
         INVOICE: "세금계산서",
         PURCHASE_ORDER: "발주서",
         STATEMENT: "거래명세서"
     };
 
-        const processingStatusMap = {
+    const processingStatusMap = {
         UPLOADED: "업로드됨",
         PROCESSING: "분석 중",
         PARSED: "분석 완료",
         FAILED: "분석 실패"
     };
 
-        const reviewStatusMap = {
+    const reviewStatusMap = {
         PENDING: "검토 대기",
         APPROVED: "확인 완료",
         REJECTED: "반려됨"
     };
 
-        const linkStatusMap = {
+    const linkStatusMap = {
         UNLINKED: "연결 대기",
         LINKED: "연결 완료",
-        UNLINKED_BY_DELETE: "연결 해제됨"
+        UNLINKED_BY_DELETE: "연결 해제"
     };
 
     function translateDocumentType(val) {
@@ -149,12 +149,18 @@
     }
 
     function translateLinkedDomainType(val) {
-        if (!val) return "";
+        if (!val) {
+            return "";
+        }
         switch (val) {
-            case "PURCHASE_ORDER": return "援щℓ 諛쒖＜";
-            case "EXPENSE": return "鍮꾩슜";
-            case "VOUCHER": return "?꾪몴";
-            default: return val;
+            case "PURCHASE_ORDER":
+                return "구매 발주";
+            case "EXPENSE":
+                return "비용";
+            case "VOUCHER":
+                return "전표";
+            default:
+                return val;
         }
     }
 
@@ -232,7 +238,7 @@
                 quantity: item.quantity || 1,
                 unitPrice: item.unitPrice || item.amount || 0,
                 expectedDate: item.expectedDate || defaultExpectedDate || null,
-                note: "OCR 珥덉븞"
+                note: "OCR 초안"
             };
         });
     }
@@ -244,7 +250,7 @@
             expenseDate: detail.extractedDate || payload.transactionDate || payload.expenseDate || "",
             category: payload.category || "",
             amount: detail.extractedAmount || payload.totalAmount || payload.amount || "",
-            description: payload.description || payload.memo || `OCR 臾몄꽌 ${detail.id} (${detail.originalFilename}) 鍮꾩슜 ?깅줉`,
+            description: payload.description || payload.memo || `OCR 문서 ${detail.id} (${detail.originalFilename}) 비용 등록`,
             status: payload.status || "PENDING"
         };
     }
@@ -259,7 +265,7 @@
             vatType: payload.vatType || "TAX_INVOICE",
             vendorId: payload.vendorId || "",
             vendorNameSnapshot: detail.extractedVendor || payload.vendorNameSnapshot || payload.vendorName || "",
-            description: payload.description || payload.memo || `OCR 臾몄꽌 ${detail.id} (${detail.originalFilename}) ?꾪몴 ?앹꽦`,
+            description: payload.description || payload.memo || `OCR 문서 ${detail.id} (${detail.originalFilename}) 전표 생성`,
             supplyAmount: payload.supplyAmount || amount || "",
             vatAmount: payload.vatAmount || "",
             feeAmount: payload.feeAmount || 0,
@@ -285,6 +291,25 @@
             notes: payload.notes || ""
         };
     }
+
+    function renderSearchResults(container, html) {
+        if (!container) {
+            return;
+        }
+        container.innerHTML = html;
+    }
+
+    function clampAmount(value) {
+        if (value === null || value === undefined || value === "") {
+            return "";
+        }
+        const numericValue = Number(value);
+        if (Number.isNaN(numericValue)) {
+            return value;
+        }
+        return Math.max(0, numericValue);
+    }
+
     window.OcrDocumentsShared = {
         getApiBaseUrl,
         getAuthHeaders,
@@ -304,8 +329,10 @@
         parseJsonListResponse,
         safeParseJson,
         buildPurchaseItemDraft,
+        buildExpenseDraft,
+        buildVoucherDraft,
+        buildReviewDraft,
         renderSearchResults,
-        clampAmount,
-        buildReviewDraft
+        clampAmount
     };
 })();

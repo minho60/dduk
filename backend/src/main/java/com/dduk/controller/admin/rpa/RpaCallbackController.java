@@ -39,7 +39,7 @@ public class RpaCallbackController {
 
             if (incomingToken == null || !incomingToken.equals(expectedCallbackToken)) {
                 log.warn("[RPA Callback] Unauthorized access attempt.");
-                return errorResponse(HttpStatus.UNAUTHORIZED, "인증 정보가 올바르지 않거나 권한이 없어.", "RPA_UNAUTHORIZED_CALLBACK");
+                return errorResponse(HttpStatus.UNAUTHORIZED, "인증 정보가 올바르지 않거나 권한이 없습니다.", "RPA_UNAUTHORIZED_CALLBACK");
             }
 
             String taskId = stringValue(payload.get("taskId"));
@@ -48,7 +48,7 @@ public class RpaCallbackController {
             String status = stringValue(payload.get("status"));
 
             if (taskId == null || status == null) {
-                return errorResponse(HttpStatus.BAD_REQUEST, "잘못된 callback payload야.", "INVALID_CALLBACK_PARAMETER");
+                return errorResponse(HttpStatus.BAD_REQUEST, "잘못된 callback payload입니다.", "INVALID_CALLBACK_PARAMETER");
             }
 
             log.info("[RPA Callback] Task ID: {}, Task Type: {}, Action: {}, Status: {}", taskId, taskType, actionName, status);
@@ -60,7 +60,7 @@ public class RpaCallbackController {
 
                 return ResponseEntity.ok(Map.of(
                         "status", "success",
-                        "message", "RPA callback을 처리했어."
+                        "message", "RPA callback이 처리되었습니다."
                 ));
             }
 
@@ -70,11 +70,11 @@ public class RpaCallbackController {
 
             return ResponseEntity.ok(Map.of(
                     "status", "success",
-                    "message", "RPA 실패 callback을 기록했어."
+                    "message", "RPA 실패 callback이 기록되었습니다."
             ));
         } catch (Exception exception) {
             log.error("[RPA Callback] Unexpected processing error in callback handler", exception);
-            return errorResponse(HttpStatus.INTERNAL_SERVER_ERROR, "RPA callback 처리 중 서버 오류가 발생했어.", "INTERNAL_SERVER_ERROR");
+            return errorResponse(HttpStatus.INTERNAL_SERVER_ERROR, "RPA callback 처리 중 서버 오류가 발생했습니다.", "INTERNAL_SERVER_ERROR");
         }
     }
 

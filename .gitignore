@@ -48,6 +48,10 @@ test-results/
 playwright-report/
 blob-report/
 playwright/.cache/
+rpa/outputs/**
+!rpa/outputs/
+!rpa/outputs/demo_purchase_price_sample.json
+!rpa/outputs/demo_inventory_shortage_sample.json
 
 # Temp
 .tmp/
