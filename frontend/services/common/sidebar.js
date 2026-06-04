@@ -37,7 +37,7 @@
                 { label: '재무제표',         icon: 'file-text',      href: 'pages/hr/accounting/reports.html', roles: ['ADMIN', 'HR'] },
                 { label: '회계 분석 리포트', icon: 'file-bar-chart', href: 'pages/hr/accounting/accounting_reports.html', roles: ['ADMIN', 'HR'] },
                 { label: '월 마감',          icon: 'calendar-check', href: 'pages/hr/accounting/monthly_closing.html', roles: ['ADMIN', 'HR'] },
-                { label: '급여 계산/대장',   icon: 'wallet',         href: 'pages/hr/accounting/payroll_management.html', match: 'pages/hr/accounting/payroll_management.html', roles: ['ADMIN', 'HR'] },
+                { label: '급여 관리',          icon: 'wallet',         href: 'pages/hr/accounting/payroll_management.html', match: 'pages/hr/accounting/payroll_management.html', roles: ['ADMIN', 'HR'] },
                 { label: '세금계산서',       icon: 'file-check',     href: 'pages/hr/accounting/wip.html', disabled: true, roles: ['ADMIN', 'HR'] },
                 { label: '비용 처리',        icon: 'credit-card',    href: 'pages/hr/accounting/wip.html', disabled: true, roles: ['ADMIN', 'HR'] }
             ]

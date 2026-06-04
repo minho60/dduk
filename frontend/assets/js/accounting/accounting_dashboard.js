@@ -67,9 +67,7 @@
     renderPayroll(data.payrollSummary || {});
     renderPeriod(period);
     renderTrialBalance(data.trialBalanceSummary || {});
-    renderAlerts(data.alerts || []);
     renderActivities(data.recentActivities || []);
-    renderQuickActions(period);
     renderIcons();
   }
 
@@ -219,18 +217,6 @@
     }
   }
 
-  function renderAlerts(alerts) {
-    const list = byId("alertList");
-    if (list) {
-      list.innerHTML = alerts.map(alert => `
-        <div class="alert_item ${alert.severity}">
-          <strong>${alert.title}</strong>
-          <p>${alert.message}</p>
-          <a href="${alert.actionUrl || "#"}">${alert.actionLabel || "확인"}</a>
-        </div>
-      `).join("");
-    }
-  }
 
   function renderActivities(rows) {
     const container = byId("activityRows");
@@ -247,24 +233,6 @@
     }
   }
 
-  function renderQuickActions(period) {
-    const container = byId("quickActions");
-    if (!container) return;
-    const locked = period.status === "CLOSED" || period.status === "ARCHIVED";
-    const actions = [
-      ["전표 관리", "file-plus", "voucher_management.html", locked],
-      ["거래내역 등록", "receipt", "transactions.html", locked],
-      ["급여 계산/대장", "wallet", "payroll_management.html", locked],
-      ["월 마감 검토", "calendar-check", "monthly_closing.html", false],
-      ["합계잔액시산표", "table-2", "trial_balance.html", false],
-      ["회계 분석 리포트", "file-bar-chart", "accounting_reports.html", false]
-    ];
-    container.innerHTML = actions.map(([label, icon, href, disabled]) => `
-      <a class="quick_action ${disabled ? "disabled" : ""}" href="${href}" aria-disabled="${disabled}">
-        <i data-lucide="${icon}"></i><span>${label}</span>
-      </a>
-    `).join("");
-  }
 
   function metricRows(items) {
     return items.map(([label, value]) => `
@@ -353,25 +321,5 @@
     if (window.lucide) window.lucide.createIcons();
   }
 
-  window.switchWidgetTab = function (tab) {
-    const aiTab = byId("tabAiAlerts");
-    const rpaTab = byId("tabRpaControl");
-    const aiContent = byId("aiAlertsContent");
-    const rpaContent = byId("rpaControlContent");
 
-    if (!aiTab || !rpaTab || !aiContent || !rpaContent) return;
-
-    if (tab === "ai") {
-      aiTab.className = "px-3 py-1.5 rounded-md bg-white text-slate-800 shadow-sm transition-all";
-      rpaTab.className = "px-3 py-1.5 rounded-md text-slate-600 hover:text-slate-900 transition-all";
-      aiContent.classList.remove("hidden");
-      rpaContent.classList.add("hidden");
-    } else if (tab === "rpa") {
-      rpaTab.className = "px-3 py-1.5 rounded-md bg-white text-slate-800 shadow-sm transition-all";
-      aiTab.className = "px-3 py-1.5 rounded-md text-slate-600 hover:text-slate-900 transition-all";
-      rpaContent.classList.remove("hidden");
-      aiContent.classList.add("hidden");
-    }
-    renderIcons();
-  };
 })();

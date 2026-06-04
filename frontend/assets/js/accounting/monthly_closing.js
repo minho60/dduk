@@ -36,7 +36,11 @@
   async function loadPeriods() {
     const year = byId("filterYear").value;
     const response = await api(`/periods${year ? `?fiscalYear=${encodeURIComponent(year)}` : ""}`);
-    state.periods = response.data || [];
+    let periods = response.data || [];
+    if (year === "2026") {
+      periods = periods.filter(p => p.fiscalMonth <= 6);
+    }
+    state.periods = periods;
     renderPeriods();
   }
 
@@ -76,9 +80,9 @@
           <td>${period.reopened ? "Y" : "N"}</td>
           <td>
             <div class="row-actions">
-              <button type="button" data-action="validate" data-id="${period.id}" title="마감 검증" aria-label="마감 검증"><i data-lucide="check-circle"></i></button>
-              <button type="button" data-action="close" data-id="${period.id}" title="월 마감 실행" aria-label="월 마감 실행" ${canClose ? "" : "disabled"}><i data-lucide="lock"></i></button>
-              <button type="button" data-action="reopen" data-id="${period.id}" title="마감 취소" aria-label="마감 취소" ${canReopen ? "" : "disabled"}><i data-lucide="unlock"></i></button>
+              <button type="button" data-action="validate" data-id="${period.id}" title="↺ 재검증" aria-label="재검증"><i data-lucide="check-circle"></i></button>
+              <button type="button" data-action="close" data-id="${period.id}" title="🔒 기간 마감" aria-label="기간 마감" ${canClose ? "" : "disabled"}><i data-lucide="lock"></i></button>
+              <button type="button" data-action="reopen" data-id="${period.id}" title="🔓 마감 해제" aria-label="마감 해제" ${canReopen ? "" : "disabled"}><i data-lucide="unlock"></i></button>
               <button type="button" data-action="logs" data-id="${period.id}" title="마감 로그" aria-label="마감 로그"><i data-lucide="history"></i></button>
             </div>
           </td>
@@ -99,6 +103,7 @@
       state.selected = period;
       byId("selectedPeriodHint").textContent = `${period.periodKey} 선택됨`;
       await loadSummary(period);
+      resetChecklistAndAlertsBySummary(period);
       if (action === "select") return;
       if (action === "validate") return validatePeriod(period);
       if (action === "close") return closePeriod(period);
@@ -210,6 +215,7 @@
     setMoney("totalDebit", summary?.totalDebit || 0);
     setMoney("totalCredit", summary?.totalCredit || 0);
     setText("mismatchStatus", summary?.mismatchStatus || "-");
+    updateKpiBadgesAndProgress(summary);
   }
 
   function renderValidation(validation) {
@@ -225,6 +231,216 @@
     `).join("");
     byId("validationDialog").showModal();
     renderIcons();
+    updateChecklistAndAlerts(validation);
+  }
+
+  function updateKpiBadgesAndProgress(summary) {
+    const statusBadge = byId("closingStatusBadge");
+    const closableBadge = byId("closableBadge");
+    const rateText = byId("completionRateText");
+    const progressBar = byId("completionProgressBar");
+
+    if (!summary) {
+      if (statusBadge) statusBadge.className = "status_badge muted";
+      if (closableBadge) {
+        closableBadge.className = "status_badge danger font-bold";
+        closableBadge.textContent = "불가";
+      }
+      if (rateText) rateText.textContent = "0%";
+      if (progressBar) progressBar.style.width = "0%";
+      updateSteps("PENDING");
+      return;
+    }
+
+    if (statusBadge) {
+      statusBadge.textContent = summary.status;
+      statusBadge.className = "status_badge";
+      if (summary.status === "CLOSED" || summary.status === "ARCHIVED") {
+        statusBadge.classList.add("success");
+      } else if (summary.status === "PRE_CLOSING") {
+        statusBadge.classList.add("warning");
+      } else if (summary.status === "OPEN" || summary.status === "REOPENED") {
+        statusBadge.classList.add("info");
+      } else {
+        statusBadge.classList.add("muted");
+      }
+    }
+
+    const isClosable = summary.unapprovedVoucherCount === 0 && summary.unpostedVoucherCount === 0 && summary.balanced;
+    if (closableBadge) {
+      if (summary.status === "CLOSED" || summary.status === "ARCHIVED") {
+        closableBadge.textContent = "마감완료";
+        closableBadge.className = "status_badge success font-bold";
+      } else {
+        closableBadge.textContent = isClosable ? "가능" : "불가";
+        closableBadge.className = isClosable 
+          ? "status_badge success font-bold" 
+          : "status_badge danger font-bold";
+      }
+    }
+
+    let rate = 0;
+    if (summary.status === "CLOSED" || summary.status === "ARCHIVED") {
+      rate = 100;
+      updateSteps("CLOSED");
+    } else if (summary.status === "PRE_CLOSING") {
+      rate = 80;
+      updateSteps("PRE_CLOSING");
+    } else if (summary.status === "OPEN" || summary.status === "REOPENED") {
+      if (isClosable) {
+        rate = 60;
+        updateSteps("CLOSABLE");
+      } else {
+        rate = 20;
+        updateSteps("VALIDATION_ERROR");
+      }
+    }
+
+    if (rateText) rateText.textContent = `${rate}%`;
+    if (progressBar) progressBar.style.width = `${rate}%`;
+  }
+
+  function updateSteps(state) {
+    const steps = [
+      byId("step_1"),
+      byId("step_2"),
+      byId("step_3"),
+      byId("step_4"),
+      byId("step_5")
+    ];
+    const lines = [
+      byId("line_1"),
+      byId("line_2"),
+      byId("line_3"),
+      byId("line_4")
+    ];
+
+    steps.forEach(s => { if (s) s.className = "step_node"; });
+    lines.forEach(l => { if (l) l.className = "step_line"; });
+
+    if (state === "PENDING") {
+      if (steps[0]) steps[0].classList.add("active");
+    } else if (state === "VALIDATION_ERROR") {
+      if (steps[0]) steps[0].classList.add("active");
+    } else if (state === "CLOSABLE") {
+      for (let i = 0; i < 3; i++) {
+        if (steps[i]) steps[i].classList.add("completed");
+        if (lines[i]) lines[i].classList.add("completed");
+      }
+      if (steps[3]) steps[3].classList.add("active");
+    } else if (state === "PRE_CLOSING") {
+      for (let i = 0; i < 4; i++) {
+        if (steps[i]) steps[i].classList.add("completed");
+        if (lines[i]) lines[i].classList.add("completed");
+      }
+      if (steps[4]) steps[4].classList.add("active");
+    } else if (state === "CLOSED") {
+      steps.forEach(s => { if (s) s.classList.add("completed"); });
+      lines.forEach(l => { if (l) l.classList.add("completed"); });
+    }
+  }
+
+  function updateChecklistAndAlerts(validation) {
+    const results = validation.results || [];
+    const alertCard = byId("closingAlertCard");
+    const alertReasons = byId("closingAlertReasons");
+
+    results.forEach(res => {
+      let checklistId = "";
+      let checklistName = "";
+      if (res.validationType === "VOUCHER") {
+        checklistId = "chk_voucher_approval";
+        checklistName = `1. 전표 승인 여부 (미승인/미게시: ${res.targetCount}건)`;
+      } else if (res.validationType === "JOURNAL") {
+        checklistId = "chk_balance_check";
+        checklistName = `4. 월계 처리 여부 (불일치: ${res.targetCount}건)`;
+      } else if (res.validationType === "INVENTORY") {
+        checklistId = "chk_inventory_closing";
+        checklistName = `3. 재고 마감 여부 (음수: ${res.targetCount}건)`;
+      }
+
+      if (checklistId) {
+        const item = byId(checklistId);
+        if (item) {
+          item.querySelector(".checklist_name").textContent = checklistName;
+          const badge = item.querySelector(".status-pill");
+          badge.className = `status-pill status-${res.status}`;
+          badge.textContent = res.status === "SUCCESS" ? "통과" : "조치필요";
+        }
+      }
+    });
+
+    const chkPosting = byId("chk_voucher_posting");
+    if (chkPosting && state.selected) {
+      const isUnpostedOk = (state.selected.unpostedVoucherCount || 0) === 0;
+      chkPosting.querySelector(".checklist_name").textContent = `2. 미전기 전표 여부 (미게시: ${state.selected.unpostedVoucherCount || 0}건)`;
+      const badge = chkPosting.querySelector(".status-pill");
+      badge.className = isUnpostedOk ? "status-pill status-SUCCESS" : "status-pill status-ERROR";
+      badge.textContent = isUnpostedOk ? "통과" : "조치필요";
+    }
+
+    const errors = results.filter(r => r.status === "ERROR" || r.actionRequired);
+    if (errors.length > 0 && !validation.closable) {
+      if (alertCard) alertCard.classList.remove("hidden");
+      if (alertReasons) {
+        alertReasons.innerHTML = errors.map(err => {
+          let detailMsg = err.detail;
+          if (err.validationType === "VOUCHER") {
+            detailMsg = `미승인 전표 혹은 미게시 전표 ${err.targetCount}건 존재`;
+          } else if (err.validationType === "JOURNAL") {
+            detailMsg = `차대변 불일치 혹은 라인 누락 오류 ${err.targetCount}건 존재`;
+          } else if (err.validationType === "ACCOUNT") {
+            detailMsg = `비활성/말단계정 위반 라인 ${err.targetCount}건 존재`;
+          }
+          return `<li>${detailMsg}</li>`;
+        }).join("");
+      }
+
+      const closableBadge = byId("closableBadge");
+      if (closableBadge) {
+        closableBadge.textContent = "불가";
+        closableBadge.className = "status_badge danger font-bold";
+      }
+    } else {
+      if (alertCard) alertCard.classList.add("hidden");
+    }
+  }
+
+  function resetChecklistAndAlertsBySummary(period) {
+    const chkVoucher = byId("chk_voucher_approval");
+    const chkPosting = byId("chk_voucher_posting");
+    const chkInventory = byId("chk_inventory_closing");
+    const chkBalance = byId("chk_balance_check");
+    const alertCard = byId("closingAlertCard");
+
+    if (alertCard) alertCard.classList.add("hidden");
+
+    if (chkVoucher && period) {
+      const isUnapprovedOk = (period.unapprovedVoucherCount || 0) === 0;
+      chkVoucher.querySelector(".checklist_name").textContent = `1. 전표 승인 여부 (미승인: ${period.unapprovedVoucherCount || 0}건)`;
+      const badge = chkVoucher.querySelector(".status-pill");
+      badge.className = isUnapprovedOk ? "status-pill status-SUCCESS" : "status-pill status-ERROR";
+      badge.textContent = isUnapprovedOk ? "통과" : "조치필요";
+    }
+    if (chkPosting && period) {
+      const isUnpostedOk = (period.unpostedVoucherCount || 0) === 0;
+      chkPosting.querySelector(".checklist_name").textContent = `2. 미전기 전표 여부 (미게시: ${period.unpostedVoucherCount || 0}건)`;
+      const badge = chkPosting.querySelector(".status-pill");
+      badge.className = isUnpostedOk ? "status-pill status-SUCCESS" : "status-pill status-ERROR";
+      badge.textContent = isUnpostedOk ? "통과" : "조치필요";
+    }
+    if (chkInventory) {
+      const badge = chkInventory.querySelector(".status-pill");
+      badge.className = "status-pill status-PENDING";
+      badge.textContent = "대기";
+    }
+    if (chkBalance && period) {
+      const isBalanced = period.balanced !== false;
+      chkBalance.querySelector(".checklist_name").textContent = `4. 월계 처리 여부 (차대변 일치)`;
+      const badge = chkBalance.querySelector(".status-pill");
+      badge.className = isBalanced ? "status-pill status-SUCCESS" : "status-pill status-ERROR";
+      badge.textContent = isBalanced ? "통과" : "조치필요";
+    }
   }
 
   /** Unified API helper – delegates to window.ddukApi (apiClient.js) */
