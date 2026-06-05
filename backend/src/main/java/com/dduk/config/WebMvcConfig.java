@@ -33,13 +33,29 @@ public class WebMvcConfig implements WebMvcConfigurer {
             }
         }
 
-        Path frontendPath = resolveFrontendPath();
-        String defaultLocation = frontendPath.toUri().toString();
-        if (!defaultLocation.endsWith("/")) {
-            defaultLocation += "/";
+        // 1단계: 파일 시스템에서 frontend/index.html의 존재 여부 탐색 (로컬 개발 시나리오)
+        Path currentPath = Paths.get("").toAbsolutePath().normalize();
+        Path resolvedPath = null;
+        for (Path path = currentPath; path != null; path = path.getParent()) {
+            Path tempPath = path.resolve("frontend");
+            if (Files.isRegularFile(tempPath.resolve("index.html"))) {
+                resolvedPath = tempPath;
+                break;
+            }
         }
-        registry.addResourceHandler("/**")
-                .addResourceLocations(defaultLocation);
+
+        // 2단계: 로컬 물리 폴더가 있으면 해당 경로 사용, 없으면 JAR 내부 classpath 사용 (배포 시나리오)
+        if (resolvedPath != null) {
+            String defaultLocation = resolvedPath.toUri().toString();
+            if (!defaultLocation.endsWith("/")) {
+                defaultLocation += "/";
+            }
+            registry.addResourceHandler("/**")
+                    .addResourceLocations(defaultLocation);
+        } else {
+            registry.addResourceHandler("/**")
+                    .addResourceLocations("classpath:/static/");
+        }
     }
 
     private Path resolveFrontendPath() {
