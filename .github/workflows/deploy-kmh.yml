@@ -115,11 +115,15 @@ jobs:
           EC2_SSH_KEY: ${{ secrets.EC2_SSH_KEY }}
         run: |
           set -euo pipefail
+          CLEAN_HOST=$(echo "$EC2_HOST" | tr -d '\r' | xargs)
+          CLEAN_PORT=$(echo "${EC2_PORT:-22}" | tr -d '\r' | xargs)
+          [ -n "$CLEAN_PORT" ] || CLEAN_PORT=22
+          
           mkdir -p ~/.ssh
           chmod 700 ~/.ssh
           printf '%s\n' "$EC2_SSH_KEY" > ~/.ssh/dduk-erp-key.pem
           chmod 600 ~/.ssh/dduk-erp-key.pem
-          ssh-keyscan -p "${EC2_PORT:-22}" -H "$EC2_HOST" >> ~/.ssh/known_hosts
+          ssh-keyscan -p "$CLEAN_PORT" -H "$CLEAN_HOST" >> ~/.ssh/known_hosts
           chmod 644 ~/.ssh/known_hosts
 
       - name: Deploy pull-only stack on EC2
@@ -136,8 +140,15 @@ jobs:
           RPA_SERVER_IMAGE: ${{ env.RPA_SERVER_IMAGE }}
         run: |
           set -euo pipefail
-          ssh -o IdentitiesOnly=yes -i ~/.ssh/dduk-erp-key.pem -p "${EC2_PORT:-22}" "$EC2_USER@$EC2_HOST" \
-            "export EC2_DEPLOY_PATH='$EC2_DEPLOY_PATH' GHCR_USERNAME='$GHCR_USERNAME' GHCR_READ_TOKEN='$GHCR_READ_TOKEN' BACKEND_IMAGE='$BACKEND_IMAGE' AI_SERVER_IMAGE='$AI_SERVER_IMAGE' RPA_SERVER_IMAGE='$RPA_SERVER_IMAGE'; bash -s" <<'EOF'
+          CLEAN_HOST=$(echo "$EC2_HOST" | tr -d '\r' | xargs)
+          CLEAN_USER=$(echo "$EC2_USER" | tr -d '\r' | xargs)
+          CLEAN_PORT=$(echo "${EC2_PORT:-22}" | tr -d '\r' | xargs)
+          [ -n "$CLEAN_PORT" ] || CLEAN_PORT=22
+          CLEAN_DEPLOY_PATH=$(echo "$EC2_DEPLOY_PATH" | tr -d '\r' | xargs)
+          CLEAN_GHCR_USERNAME=$(echo "$GHCR_USERNAME" | tr -d '\r' | xargs)
+          
+          ssh -o IdentitiesOnly=yes -i ~/.ssh/dduk-erp-key.pem -p "$CLEAN_PORT" "$CLEAN_USER@$CLEAN_HOST" \
+            "export EC2_DEPLOY_PATH='$CLEAN_DEPLOY_PATH' GHCR_USERNAME='$CLEAN_GHCR_USERNAME' GHCR_READ_TOKEN='$GHCR_READ_TOKEN' BACKEND_IMAGE='$BACKEND_IMAGE' AI_SERVER_IMAGE='$AI_SERVER_IMAGE' RPA_SERVER_IMAGE='$RPA_SERVER_IMAGE'; bash -s" <<'EOF'
             set -euo pipefail
             cd "$EC2_DEPLOY_PATH"
 
