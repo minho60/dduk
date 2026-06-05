@@ -197,10 +197,10 @@ EC2 배포는 기본적으로 `:develop` 태그를 당겨 쓴다.
 
 ## 7. 수동 테스트 방법
 
-### 방법 1. `develop` 브랜치 push
+### 방법 1. 배포 대상 브랜치 push (예: `develop` 또는 `kmh`)
 
 ```bash
-git push origin develop
+git push origin <본인-작업-브랜치>
 ```
 
 ### 방법 2. GitHub Actions 수동 실행
