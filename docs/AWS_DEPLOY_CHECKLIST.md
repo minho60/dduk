@@ -1,26 +1,32 @@
 # AWS Deploy Checklist
 
-이 문서는 `kmh` 브랜치를 EC2 한 대에 `docker compose`로 올릴 때 필요한 최소 절차를 고정한다.
+이 문서는 `kmh` 브랜치를 EC2에 `pull-only` 방식으로 배포할 때 필요한 최소 점검 항목을 정리한다.
+
+핵심 전제:
+
+- GitHub Actions가 이미지를 빌드해 GHCR에 push한다.
+- EC2는 이미지를 직접 빌드하지 않는다.
+- EC2는 `docker-compose.deploy.yml`로 이미지를 pull해서 실행만 한다.
 
 ## 1. 준비물
 
 - Docker Engine
 - Docker Compose plugin
-- Java/Python를 직접 설치할 필요는 없음
+- GHCR pull 권한이 있는 GitHub 계정과 토큰
 - TiDB Cloud 또는 MySQL 호환 외부 DB
 - 실제 운영값이 채워진 `.env.aws`
 
-## 2. 서버에 둘 파일
+## 2. 서버에 있어야 하는 파일
 
 - 저장소 전체
-- `docker-compose.yml`
+- [docker-compose.deploy.yml](/C:/kmh/dduk/docker-compose.deploy.yml:1)
 - `.env.aws`
 
-`.env.aws`는 루트의 `.env.aws.example`를 복사해서 만든다.
+`.env.aws`는 루트에서 `.env.aws.example`를 복사해서 만든다.
 
-## 3. 꼭 채워야 하는 값
+## 3. 반드시 채워야 하는 값
 
-아래 값이 비어 있으면 배포가 정상 완료돼도 앱이 바로 죽거나 일부 기능이 깨진다.
+아래 값이 비어 있으면 컨테이너가 떠도 정상 동작하지 않는다.
 
 - `DB_URL`
 - `DB_USERNAME`
@@ -35,37 +41,48 @@
 ```env
 APP_CORS_ALLOWED_ORIGIN_PATTERNS=http://<EC2_PUBLIC_IP>:*,https://<YOUR_DOMAIN>
 JWT_SECRET=<64자 이상 랜덤 문자열>
-RPA_CALLBACK_TOKEN=<백엔드와 RPA가 공유하는 랜덤 문자열>
+RPA_CALLBACK_TOKEN=<backend와 rpa가 공유하는 랜덤 문자열>
 ```
 
-## 4. EC2에서 기동
+## 4. GHCR 로그인
+
+EC2에서 먼저 GHCR pull 로그인이 되어야 한다.
 
 ```bash
+echo "<GHCR_READ_TOKEN>" | docker login ghcr.io -u "<GHCR_USERNAME>" --password-stdin
+```
+
+토큰은 `read:packages` 권한이 있는 GitHub PAT를 사용한다.
+
+## 5. EC2에서 수동 기동
+
+```bash
+cd /home/ubuntu/dduk
 git checkout kmh
-cp .env.aws.example .env.aws
-# .env.aws 실제 값 편집
-docker compose --env-file .env.aws config
-docker compose --env-file .env.aws up -d --build
-docker compose --env-file .env.aws ps
+git pull --ff-only origin kmh
+docker compose --env-file .env.aws -f docker-compose.deploy.yml config
+docker compose --env-file .env.aws -f docker-compose.deploy.yml pull
+docker compose --env-file .env.aws -f docker-compose.deploy.yml up -d --force-recreate
+docker compose --env-file .env.aws -f docker-compose.deploy.yml ps
 ```
 
-`config` 단계에서 변수 누락이나 YAML 오류를 먼저 잡는다.
+`config` 단계에서 환경변수 누락이나 compose 문법 오류를 먼저 잡는다.
 
-## 5. 로그 확인
+## 6. 로그 확인
 
 ```bash
-docker compose --env-file .env.aws logs --tail=100 backend
-docker compose --env-file .env.aws logs --tail=100 ai-server
-docker compose --env-file .env.aws logs --tail=100 rpa-server
+docker compose --env-file .env.aws -f docker-compose.deploy.yml logs --tail=100 backend
+docker compose --env-file .env.aws -f docker-compose.deploy.yml logs --tail=100 ai-server
+docker compose --env-file .env.aws -f docker-compose.deploy.yml logs --tail=100 rpa-server
 ```
 
-아래 조건을 확인한다.
+확인 포인트:
 
-- `backend`가 DB 연결 실패 없이 기동됨
-- `ai-server`가 `GEMINI_API_KEY` 오류 없이 기동됨
-- `rpa-server`가 포트 `5050`에서 기동됨
+- `backend`가 DB 연결 실패 없이 기동하는지
+- `ai-server`가 `GEMINI_API_KEY` 오류 없이 기동하는지
+- `rpa-server`가 포트 `5050`에서 기동하는지
 
-## 6. 1차 스모크 체크
+## 7. 1차 스모크 체크
 
 EC2에서 실행:
 
@@ -78,43 +95,51 @@ curl http://localhost:5050/health
 기대값:
 
 - backend 정적 페이지 응답
-- ai-server `{"status":"UP"}`
-- rpa-server `{"status":"UP"}`
+- ai-server health 응답
+- rpa-server health 응답
 
-## 7. 2차 컨테이너 간 통신 체크
+## 8. 2차 컨테이너 내부 통신 체크
 
 ```bash
-docker compose --env-file .env.aws exec backend sh -c "wget -qO- http://ai-server:5000/health || curl -fsS http://ai-server:5000/health"
-docker compose --env-file .env.aws exec backend sh -c "wget -qO- http://rpa-server:5050/health || curl -fsS http://rpa-server:5050/health"
+docker compose --env-file .env.aws -f docker-compose.deploy.yml exec backend sh -c "wget -qO- http://ai-server:5000/health || curl -fsS http://ai-server:5000/health"
+docker compose --env-file .env.aws -f docker-compose.deploy.yml exec backend sh -c "wget -qO- http://rpa-server:5050/health || curl -fsS http://rpa-server:5050/health"
 ```
 
-여기서 실패하면 Docker 네트워크나 컨테이너 기동 순서를 먼저 본다.
+여기서 실패하면 Docker 네트워크나 서비스 기동 순서를 먼저 본다.
 
-## 8. 브라우저 체크
+## 9. 브라우저 체크
 
 브라우저에서 아래 중 하나로 접속:
 
 - `http://<EC2_PUBLIC_IP>:8080`
 - `https://<YOUR_DOMAIN>`
 
-체크 포인트:
+확인 포인트:
 
-- 로그인 페이지가 열림
-- 로그인 후 대시보드 진입
-- 브라우저 콘솔에 CORS 에러 없음
-- 관리자/재고 페이지 API 호출이 `localhost:8080`으로 빠지지 않음
+- 로그인 페이지가 열리는지
+- 로그인 후 대시보드 진입이 되는지
+- 브라우저 콘솔에 CORS 에러가 없는지
+- API 요청이 `localhost:8080`이 아니라 실제 배포 주소 기준으로 나가는지
 
-## 9. 문제 생기면 먼저 볼 것
+## 10. 문제 생기면 먼저 볼 것
+
+### GHCR pull 실패
+
+- `GHCR_USERNAME`
+- `GHCR_READ_TOKEN`
+- GHCR package visibility
 
 ### CORS 에러
 
-- `.env.aws`의 `APP_CORS_ALLOWED_ORIGIN_PATTERNS` 확인
-- 실제 접속 origin과 값이 맞는지 확인
+- `.env.aws`의 `APP_CORS_ALLOWED_ORIGIN_PATTERNS`
+- 실제 접속 origin과 값이 정확히 맞는지
 
 ### DB 연결 실패
 
-- `DB_URL`, `DB_USERNAME`, `DB_PASSWORD`
-- TiDB Cloud IP 허용 정책
+- `DB_URL`
+- `DB_USERNAME`
+- `DB_PASSWORD`
+- TiDB Cloud allowlist
 
 ### AI 기능 실패
 
@@ -123,17 +148,18 @@ docker compose --env-file .env.aws exec backend sh -c "wget -qO- http://rpa-serv
 
 ### RPA callback 실패
 
-- `RPA_CALLBACK_TOKEN`이 backend/rpa 양쪽에 같은지 확인
+- `RPA_CALLBACK_TOKEN`이 backend와 rpa에서 같은지
 
-## 10. 재배포
+## 11. 재배포
 
 ```bash
-git pull
-docker compose --env-file .env.aws up -d --build
+git pull --ff-only origin kmh
+docker compose --env-file .env.aws -f docker-compose.deploy.yml pull
+docker compose --env-file .env.aws -f docker-compose.deploy.yml up -d --force-recreate
 ```
 
 중지:
 
 ```bash
-docker compose --env-file .env.aws down
+docker compose --env-file .env.aws -f docker-compose.deploy.yml down
 ```
