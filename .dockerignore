@@ -1,11 +1,12 @@
 .git
 .gitignore
+.vscode
+.local-run
 
-backend/build
-backend/.gradle
+**/build
+**/.gradle
+**/venv
+**/__pycache__
 
 docs
-rpa
-ai-server
-
 node_modules
