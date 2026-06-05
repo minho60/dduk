@@ -15,8 +15,9 @@
     }
 
     function getApiBaseUrl() {
-        const host = window.location.hostname === "127.0.0.1" ? "127.0.0.1" : "localhost";
-        return `http://${host}:8080`;
+        return ["localhost", "127.0.0.1"].includes(window.location.hostname)
+            ? "http://localhost:8080"
+            : "";
     }
 
     function getAuthHeaders(extraHeaders) {

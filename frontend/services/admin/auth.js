@@ -112,7 +112,7 @@ if (loginForm && loginButton && passwordInput) {
         setLoginButtonText("로그인 중...");
 
         try {
-            const response = await fetch(`${API_BASE_URL}/api/v1/auth/login`, {
+            const response = await fetch(API_BASE_URL + "/api/v1/auth/login", {
                 method: "POST",
                 headers: {
                     "Content-Type": "application/json"

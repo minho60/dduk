@@ -8,8 +8,11 @@ import org.springframework.validation.FieldError;
 import org.springframework.web.bind.MethodArgumentNotValidException;
 import org.springframework.web.bind.MissingServletRequestParameterException;
 import org.springframework.web.bind.annotation.ExceptionHandler;
+import org.springframework.web.bind.annotation.ResponseStatus;
 import org.springframework.web.bind.annotation.RestControllerAdvice;
 import org.springframework.web.server.ResponseStatusException;
+import org.springframework.web.servlet.NoHandlerFoundException;
+import org.springframework.web.servlet.resource.NoResourceFoundException;
 
 import java.util.LinkedHashMap;
 import java.util.Map;
@@ -47,6 +50,18 @@ public class ApiExceptionHandler {
         HttpStatus status = HttpStatus.valueOf(exception.getStatusCode().value());
         return ResponseEntity.status(status)
                 .body(ApiResponse.error(exception.getReason(), mapCode(status)));
+    }
+
+    @ExceptionHandler({
+            NoResourceFoundException.class,
+            NoHandlerFoundException.class
+    })
+    @ResponseStatus(HttpStatus.NOT_FOUND)
+    public ApiResponse<Void> handleNotFound(Exception ex) {
+        return ApiResponse.error(
+                "요청한 리소스를 찾을 수 없습니다.",
+                "NOT_FOUND"
+        );
     }
 
     @ExceptionHandler(Exception.class)
