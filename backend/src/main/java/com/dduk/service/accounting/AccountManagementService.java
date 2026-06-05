@@ -273,11 +273,12 @@ public class AccountManagementService {
                 }
             }
 
-            // 1. 등록/수정 (기본 정보 설정)
+            // 1단계 패스: 모든 계정 기본 정보 설정 후 saveAll 벌크 인서트
+            List<Account> toSavePass1 = new ArrayList<>();
             for (Map<String, Object> data : allSeeds) {
                 String code = (String) data.get("code");
                 Account account = dbAccountMap.get(code);
-                
+
                 String name = (String) data.get("name");
                 String englishName = (String) data.get("englishName");
                 AccountType type = AccountType.valueOf((String) data.get("type"));
@@ -314,12 +315,14 @@ public class AccountManagementService {
                     account.setSystemAccount(systemAccount != null ? systemAccount : account.getSystemAccount());
                     account.setDescription(description);
                 }
-                
-                Account saved = accountRepository.save(account);
-                dbAccountMap.put(code, saved);
+                toSavePass1.add(account);
             }
+            // 1패스 벌크 저장 (단 1번의 DB 왕복)
+            List<Account> savedPass1 = accountRepository.saveAll(toSavePass1);
+            savedPass1.forEach(a -> dbAccountMap.put(a.getCode(), a));
 
-            // 2단계 패스: parentCode 기반 parentAccount 설정 및 레벨 산정
+            // 2단계 패스: parentCode 기반 parentAccount 설정 및 레벨 산정 후 saveAll 벌크 인서트
+            List<Account> toSavePass2 = new ArrayList<>();
             for (Map<String, Object> data : allSeeds) {
                 String code = (String) data.get("code");
                 String parentCode = (String) data.get("parentCode");
@@ -343,9 +346,11 @@ public class AccountManagementService {
                         account.setParentCode(null);
                         account.setLevel(1);
                     }
-                    accountRepository.save(account);
+                    toSavePass2.add(account);
                 }
             }
+            // 2패스 벌크 저장 (단 1번의 DB 왕복)
+            accountRepository.saveAll(toSavePass2);
 
             log.info("기본 계정과목(CoA) 마스터 데이터 적재 성공! 총 {}개 계정 등록 완료.", allSeeds.size());
         } catch (Exception e) {

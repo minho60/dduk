@@ -279,9 +279,17 @@ public class AccountingDashboardService {
                     String[] parts = entry.getKey().split("-");
                     int y = Integer.parseInt(parts[0]);
                     int m = Integer.parseInt(parts[1]);
-                    return accountingPeriodRepository.findByFiscalYearAndFiscalMonth(y, m)
+                    
+                    boolean isClosed = accountingPeriodRepository.findByFiscalYearAndFiscalMonth(y, m)
                             .map(p -> p.getStatus() == AccountingPeriodStatus.CLOSED)
                             .orElse(false);
+                    if (isClosed) {
+                        return true;
+                    }
+                    
+                    BigDecimal revenue = entry.getValue().getOrDefault(AccountType.REVENUE, BigDecimal.ZERO);
+                    BigDecimal expense = entry.getValue().getOrDefault(AccountType.EXPENSE, BigDecimal.ZERO);
+                    return revenue.compareTo(BigDecimal.ZERO) != 0 || expense.compareTo(BigDecimal.ZERO) != 0;
                 })
                 .map(entry -> {
                     BigDecimal revenue = entry.getValue().getOrDefault(AccountType.REVENUE, BigDecimal.ZERO);

@@ -14,13 +14,20 @@
     const filterYear = byId("filterYear");
     const filterMonth = byId("filterMonth");
 
+    let defaultYear = now.getFullYear();
+    let defaultMonth = now.getMonth(); // 이전 달 (0-indexed)
+    if (defaultMonth === 0) {
+      defaultMonth = 12;
+      defaultYear -= 1;
+    }
+
     if (filterYear) {
-      filterYear.value = now.getFullYear();
+      filterYear.value = defaultYear;
     }
     if (filterMonth) {
       filterMonth.innerHTML = Array.from({ length: 12 }, (_, index) => {
         const month = index + 1;
-        return `<option value="${month}" ${month === now.getMonth() + 1 ? "selected" : ""}>${month}월</option>`;
+        return `<option value="${month}" ${month === defaultMonth ? "selected" : ""}>${month}월</option>`;
       }).join("");
     }
   }

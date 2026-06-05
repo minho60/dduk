@@ -89,6 +89,24 @@ public class AccountingPeriod {
         this.reopenCount = this.reopenCount == null ? 1 : this.reopenCount + 1;
     }
 
+    public void forceClosedFields(LocalDateTime closedAt, String closedBy) {
+        this.status = AccountingPeriodStatus.CLOSED;
+        this.closedAt = closedAt;
+        this.closedBy = closedBy;
+        this.reopenedAt = null;
+        this.reopenedBy = null;
+        this.reopenCount = 0;
+    }
+
+    public void resetToOpen() {
+        this.status = AccountingPeriodStatus.OPEN;
+        this.closedAt = null;
+        this.closedBy = null;
+        this.reopenedAt = null;
+        this.reopenedBy = null;
+        this.reopenCount = 0;
+    }
+
     public void updateDates(LocalDate startDate, LocalDate endDate) {
         if (isClosed()) {
             throw new IllegalStateException("Closed accounting periods cannot be modified: " + getPeriodKey());

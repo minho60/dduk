@@ -20,6 +20,8 @@ import com.dduk.entity.accounting.period.ClosingLog;
 import com.dduk.entity.accounting.voucher.enums.VatType;
 import com.dduk.entity.accounting.voucher.enums.VoucherStatus;
 import com.dduk.entity.accounting.voucher.enums.VoucherType;
+import com.dduk.entity.accounting.voucher.Voucher;
+import java.util.Optional;
 import com.dduk.entity.hr.Employee;
 import com.dduk.entity.hr.PayrollContract;
 import com.dduk.entity.inventory.Vendor;
@@ -98,8 +100,8 @@ public class AccountingDataSeeder {
             // 사원 마스터 데이터를 한글명 5명으로 업데이트/추가
             seedPhase2OrgAndHr();
             
-            // 5월 발표용 손익계산서 전표(매출 150M, 원가 90M, 판관비 25M, 법인세 7M)가 없다면 강제 추가
-            upsertPresentationVouchersForMay2026();
+            // 3~5월 발표용 손익 데이터 upsert
+            upsertPresentationVouchers();
             
             // 급여대장 데이터가 없거나 부족하면 2~5월 급여 데이터 강제 생성
             if (payrollLedgerRepository.count() == 0) {
@@ -581,22 +583,59 @@ public class AccountingDataSeeder {
             log.warn("[AccountingDataSeeder] Payroll employee snapshot normalization skipped: {}", e.getMessage());
         }
 
-        for (int month = 1; month <= 12; month++) {
-            final int m = month;
-            AccountingPeriod period = accountingPeriodRepository.findByFiscalYearAndFiscalMonth(2026, month)
-                    .orElseGet(() -> {
-                        YearMonth ym = YearMonth.of(2026, m);
-                        return accountingPeriodRepository.save(AccountingPeriod.builder()
-                                .fiscalYear(2026)
-                                .fiscalMonth(m)
-                                .startDate(ym.atDay(1))
-                                .endDate(ym.atEndOfMonth())
-                                .status(AccountingPeriodStatus.OPEN)
-                                .build());
-                    });
+        // 2025-12 CLOSED
+        ensureAndSyncPeriod(2025, 12, true);
 
-            if (period.isClosed()) {
-                log.debug("[AccountingDataSeeder] Existing closed accounting period preserved: {}", period.getPeriodKey());
+        // 2026-01 ~ 12
+        for (int month = 1; month <= 12; month++) {
+            boolean shouldClose = (month <= 4);
+            ensureAndSyncPeriod(2026, month, shouldClose);
+        }
+    }
+
+    private void ensureAndSyncPeriod(int year, int month, boolean shouldClose) {
+        AccountingPeriod period = accountingPeriodRepository.findByFiscalYearAndFiscalMonth(year, month)
+                .orElseGet(() -> {
+                    YearMonth ym = YearMonth.of(year, month);
+                    return accountingPeriodRepository.save(AccountingPeriod.builder()
+                            .fiscalYear(year)
+                            .fiscalMonth(month)
+                            .startDate(ym.atDay(1))
+                            .endDate(ym.atEndOfMonth())
+                            .status(AccountingPeriodStatus.OPEN)
+                            .build());
+                });
+
+        if (shouldClose) {
+            if (period.getStatus() != AccountingPeriodStatus.CLOSED) {
+                AccountingPeriodStatus before = period.getStatus();
+                LocalDate closedDay = YearMonth.of(year, month).atEndOfMonth().plusDays(1);
+                java.time.LocalDateTime closedAt = closedDay.atTime(18, 0, 0);
+                period.forceClosedFields(closedAt, "admin");
+                accountingPeriodRepository.save(period);
+
+                closingLogRepository.save(ClosingLog.builder()
+                        .accountingPeriod(period)
+                        .actionType(ClosingActionType.MONTH_CLOSED)
+                        .fromStatus(before)
+                        .toStatus(AccountingPeriodStatus.CLOSED)
+                        .actor("admin")
+                        .message("Presentation setup: closed accounting period.")
+                        .build());
+                log.info("[AccountingDataSeeder] Closed period {}-{} for presentation", year, month);
+            } else {
+                if (period.getReopenCount() != null && period.getReopenCount() > 0) {
+                    period.forceClosedFields(period.getClosedAt() != null ? period.getClosedAt() : java.time.LocalDateTime.now(), period.getClosedBy() != null ? period.getClosedBy() : "admin");
+                    accountingPeriodRepository.save(period);
+                }
+            }
+        } else {
+            if (month == 5 || month == 6) {
+                if (period.getStatus() != AccountingPeriodStatus.OPEN) {
+                    period.resetToOpen();
+                    accountingPeriodRepository.save(period);
+                    log.info("[AccountingDataSeeder] Reset period {}-{} to OPEN for presentation", year, month);
+                }
             }
         }
     }
@@ -607,15 +646,8 @@ public class AccountingDataSeeder {
                 .orElse(false);
     }
 
-    private void upsertPresentationVouchersForMay2026() {
-        log.info(">> Upserting presentation vouchers for May 2026...");
-        boolean hasPresentationSales = voucherRepository.findAll().stream()
-                .anyMatch(v -> "5월 발표용 매출 전표".equals(v.getDescription()));
-        
-        if (hasPresentationSales) {
-            log.info(">> Presentation vouchers for May 2026 already exist. Skipping upsert.");
-            return;
-        }
+    private void upsertPresentationVouchers() {
+        log.info(">> Upserting presentation vouchers for Mar-May 2026...");
 
         List<Vendor> vendors = vendorRepository.findAll();
         if (vendors.isEmpty()) {
@@ -624,77 +656,212 @@ public class AccountingDataSeeder {
         }
         Vendor primaryVendor = vendors.get(0);
 
-        Account bankAccount = resolveSeedAccount("bank", "1112", "1002");
-        Account salesAccount = resolveSeedAccount("sales", "4110", "4001");
-        Account costAccount = resolveSeedAccount("cogs", "5110", "5002");
-        Account expenseAccount = resolveSeedAccount("welfare", "5250", "5003");
-        Account taxAccount = resolveSeedAccount("tax", "8000");
+        Account bankAccount    = resolveSeedAccount("bank",    "1112", "1002");
+        Account salesAccount   = resolveSeedAccount("sales",   "4110", "4001");
+        Account cogsAccount    = resolveSeedAccount("cogs",    "5110", "5002");
+        Account welfareAccount = resolveSeedAccount("welfare", "5230", "5003");
+        Account rentAccount    = resolveSeedAccount("rent",    "5280");
+        Account adAccount      = resolveSeedAccount("ad",      "5270");
+        Account officeAccount  = resolveSeedAccount("office",  "5330");
+        Account taxAccount     = resolveSeedAccount("tax",     "8000");
 
-        if (bankAccount == null || salesAccount == null || costAccount == null || expenseAccount == null || taxAccount == null) {
+        if (bankAccount == null || salesAccount == null || cogsAccount == null || welfareAccount == null) {
             log.warn("Required accounts missing for presentation vouchers.");
             return;
         }
 
-        // 1. 5월 매출 전표: 150M
+        // ===== 3월 전표 ===== (매출 120M / 원가 72M / 판관비 20M)
+        seedPresentationMonthVouchers(primaryVendor, bankAccount, salesAccount, cogsAccount,
+                welfareAccount, rentAccount, adAccount, officeAccount, null,
+                3,
+                new BigDecimal("120000000"), new BigDecimal("12000000"),
+                new BigDecimal("72000000"),  new BigDecimal("7200000"),
+                new BigDecimal("8000000"),   new BigDecimal("800000"),
+                new BigDecimal("4000000"),   new BigDecimal("400000"),
+                new BigDecimal("4000000"),   new BigDecimal("400000"),
+                new BigDecimal("4000000"),   new BigDecimal("400000"),
+                null, null,
+                VoucherStatus.POSTED);
+
+        // ===== 4월 전표 ===== (매출 135M / 원가 81M / 판관비 22M)
+        seedPresentationMonthVouchers(primaryVendor, bankAccount, salesAccount, cogsAccount,
+                welfareAccount, rentAccount, adAccount, officeAccount, null,
+                4,
+                new BigDecimal("135000000"), new BigDecimal("13500000"),
+                new BigDecimal("81000000"),  new BigDecimal("8100000"),
+                new BigDecimal("9000000"),   new BigDecimal("900000"),
+                new BigDecimal("4500000"),   new BigDecimal("450000"),
+                new BigDecimal("4500000"),   new BigDecimal("450000"),
+                new BigDecimal("4000000"),   new BigDecimal("400000"),
+                null, null,
+                VoucherStatus.POSTED);
+
+        // ===== 5월 전표 ===== (매출 150M / 원가 90M / 판관비 25M / 법인세 7M)
+        seedPresentationMonthVouchers(primaryVendor, bankAccount, salesAccount, cogsAccount,
+                welfareAccount, rentAccount, adAccount, officeAccount, taxAccount,
+                5,
+                new BigDecimal("150000000"), new BigDecimal("15000000"),
+                new BigDecimal("90000000"),  new BigDecimal("9000000"),
+                new BigDecimal("10000000"),  new BigDecimal("1000000"),
+                new BigDecimal("5000000"),   new BigDecimal("500000"),
+                new BigDecimal("5000000"),   new BigDecimal("500000"),
+                new BigDecimal("5000000"),   new BigDecimal("500000"),
+                new BigDecimal("7000000"),   BigDecimal.ZERO,
+                VoucherStatus.POSTED);
+
+        log.info(">> Presentation vouchers for Mar-May 2026 upserted successfully.");
+    }
+
+    private void seedPresentationMonthVouchers(
+            Vendor vendor, Account bankAccount, Account salesAccount, Account cogsAccount,
+            Account welfareAccount, Account rentAccount, Account adAccount, Account officeAccount, Account taxAccount,
+            int month,
+            BigDecimal salesSupply, BigDecimal salesVat,
+            BigDecimal cogsSupply, BigDecimal cogsVat,
+            BigDecimal welfareSupply, BigDecimal welfareVat,
+            BigDecimal rentSupply, BigDecimal rentVat,
+            BigDecimal adSupply, BigDecimal adVat,
+            BigDecimal officeSupply, BigDecimal officeVat,
+            BigDecimal taxSupply, BigDecimal taxVat,
+            VoucherStatus targetStatus
+    ) {
+        String prefix = String.format("[DEMO] %d월", month);
+
         VoucherRequest salesReq = new VoucherRequest();
-        salesReq.setVoucherDate(LocalDate.of(2026, 5, 15));
+        salesReq.setVoucherDate(LocalDate.of(2026, month, 15));
         salesReq.setVoucherType(VoucherType.SALES);
         salesReq.setVatType(VatType.TAX_INVOICE);
-        salesReq.setVendorId(primaryVendor.getId());
-        salesReq.setVendorNameSnapshot(primaryVendor.getName());
-        salesReq.setSupplyAmount(new BigDecimal("150000000"));
-        salesReq.setVatAmount(new BigDecimal("15000000"));
+        salesReq.setVendorId(vendor.getId());
+        salesReq.setVendorNameSnapshot(vendor.getName());
+        salesReq.setSupplyAmount(salesSupply);
+        salesReq.setVatAmount(salesVat);
         salesReq.setFeeAmount(BigDecimal.ZERO);
         salesReq.setBusinessAccountId(salesAccount.getId());
         salesReq.setSettlementAccountId(bankAccount.getId());
-        salesReq.setDescription("5월 발표용 매출 전표");
-        createAndTransitionVoucher(salesReq, VoucherStatus.POSTED);
+        salesReq.setDescription(prefix + " 매출 전표");
+        upsertVoucherHelper(salesReq, targetStatus, salesReq.getDescription());
 
-        // 2. 5월 매출원가 전표: 90M
         VoucherRequest cogsReq = new VoucherRequest();
-        cogsReq.setVoucherDate(LocalDate.of(2026, 5, 20));
+        cogsReq.setVoucherDate(LocalDate.of(2026, month, 20));
         cogsReq.setVoucherType(VoucherType.PURCHASE);
         cogsReq.setVatType(VatType.TAX_INVOICE);
-        cogsReq.setVendorId(primaryVendor.getId());
-        cogsReq.setVendorNameSnapshot(primaryVendor.getName());
-        cogsReq.setSupplyAmount(new BigDecimal("90000000"));
-        cogsReq.setVatAmount(new BigDecimal("9000000"));
+        cogsReq.setVendorId(vendor.getId());
+        cogsReq.setVendorNameSnapshot(vendor.getName());
+        cogsReq.setSupplyAmount(cogsSupply);
+        cogsReq.setVatAmount(cogsVat);
         cogsReq.setFeeAmount(BigDecimal.ZERO);
-        cogsReq.setBusinessAccountId(costAccount.getId());
+        cogsReq.setBusinessAccountId(cogsAccount.getId());
         cogsReq.setSettlementAccountId(bankAccount.getId());
-        cogsReq.setDescription("5월 발표용 매출원가 전표");
-        createAndTransitionVoucher(cogsReq, VoucherStatus.POSTED);
+        cogsReq.setDescription(prefix + " 매출원가 전표");
+        upsertVoucherHelper(cogsReq, targetStatus, cogsReq.getDescription());
 
-        // 3. 5월 판관비 전표: 25M
-        VoucherRequest expenseReq = new VoucherRequest();
-        expenseReq.setVoucherDate(LocalDate.of(2026, 5, 22));
-        expenseReq.setVoucherType(VoucherType.PURCHASE);
-        expenseReq.setVatType(VatType.TAX_INVOICE);
-        expenseReq.setVendorId(primaryVendor.getId());
-        expenseReq.setVendorNameSnapshot(primaryVendor.getName());
-        expenseReq.setSupplyAmount(new BigDecimal("25000000"));
-        expenseReq.setVatAmount(new BigDecimal("2500000"));
-        expenseReq.setFeeAmount(BigDecimal.ZERO);
-        expenseReq.setBusinessAccountId(expenseAccount.getId());
-        expenseReq.setSettlementAccountId(bankAccount.getId());
-        expenseReq.setDescription("5월 발표용 판매관리비 전표");
-        createAndTransitionVoucher(expenseReq, VoucherStatus.POSTED);
+        // 복리후생비 전표
+        if (welfareAccount != null) {
+            VoucherRequest welfareReq = new VoucherRequest();
+            welfareReq.setVoucherDate(LocalDate.of(2026, month, 21));
+            welfareReq.setVoucherType(VoucherType.PURCHASE);
+            welfareReq.setVatType(VatType.TAX_INVOICE);
+            welfareReq.setVendorId(vendor.getId());
+            welfareReq.setVendorNameSnapshot(vendor.getName());
+            welfareReq.setSupplyAmount(welfareSupply);
+            welfareReq.setVatAmount(welfareVat);
+            welfareReq.setFeeAmount(BigDecimal.ZERO);
+            welfareReq.setBusinessAccountId(welfareAccount.getId());
+            welfareReq.setSettlementAccountId(bankAccount.getId());
+            welfareReq.setDescription(prefix + " 복리후생비 전표");
+            upsertVoucherHelper(welfareReq, targetStatus, welfareReq.getDescription());
+        }
 
-        // 4. 5월 법인세비용 전표: 7M
-        VoucherRequest taxReq = new VoucherRequest();
-        taxReq.setVoucherDate(LocalDate.of(2026, 5, 25));
-        taxReq.setVoucherType(VoucherType.PURCHASE);
-        taxReq.setVatType(VatType.ZERO_TAX);
-        taxReq.setVendorId(primaryVendor.getId());
-        taxReq.setVendorNameSnapshot(primaryVendor.getName());
-        taxReq.setSupplyAmount(new BigDecimal("7000000"));
-        taxReq.setVatAmount(BigDecimal.ZERO);
-        taxReq.setFeeAmount(BigDecimal.ZERO);
-        taxReq.setBusinessAccountId(taxAccount.getId());
-        taxReq.setSettlementAccountId(bankAccount.getId());
-        taxReq.setDescription("5월 발표용 법인세비용 전표");
-        createAndTransitionVoucher(taxReq, VoucherStatus.POSTED);
-        
-        log.info(">> Presentation vouchers for May 2026 upserted successfully.");
+        // 임차료 전표
+        if (rentAccount != null) {
+            VoucherRequest rentReq = new VoucherRequest();
+            rentReq.setVoucherDate(LocalDate.of(2026, month, 22));
+            rentReq.setVoucherType(VoucherType.PURCHASE);
+            rentReq.setVatType(VatType.TAX_INVOICE);
+            rentReq.setVendorId(vendor.getId());
+            rentReq.setVendorNameSnapshot(vendor.getName());
+            rentReq.setSupplyAmount(rentSupply);
+            rentReq.setVatAmount(rentVat);
+            rentReq.setFeeAmount(BigDecimal.ZERO);
+            rentReq.setBusinessAccountId(rentAccount.getId());
+            rentReq.setSettlementAccountId(bankAccount.getId());
+            rentReq.setDescription(prefix + " 임차료 전표");
+            upsertVoucherHelper(rentReq, targetStatus, rentReq.getDescription());
+        }
+
+        // 광고선전비 전표
+        if (adAccount != null) {
+            VoucherRequest adReq = new VoucherRequest();
+            adReq.setVoucherDate(LocalDate.of(2026, month, 23));
+            adReq.setVoucherType(VoucherType.PURCHASE);
+            adReq.setVatType(VatType.TAX_INVOICE);
+            adReq.setVendorId(vendor.getId());
+            adReq.setVendorNameSnapshot(vendor.getName());
+            adReq.setSupplyAmount(adSupply);
+            adReq.setVatAmount(adVat);
+            adReq.setFeeAmount(BigDecimal.ZERO);
+            adReq.setBusinessAccountId(adAccount.getId());
+            adReq.setSettlementAccountId(bankAccount.getId());
+            adReq.setDescription(prefix + " 광고선전비 전표");
+            upsertVoucherHelper(adReq, targetStatus, adReq.getDescription());
+        }
+
+        // 사무소모품비 전표
+        if (officeAccount != null) {
+            VoucherRequest officeReq = new VoucherRequest();
+            officeReq.setVoucherDate(LocalDate.of(2026, month, 24));
+            officeReq.setVoucherType(VoucherType.PURCHASE);
+            officeReq.setVatType(VatType.TAX_INVOICE);
+            officeReq.setVendorId(vendor.getId());
+            officeReq.setVendorNameSnapshot(vendor.getName());
+            officeReq.setSupplyAmount(officeSupply);
+            officeReq.setVatAmount(officeVat);
+            officeReq.setFeeAmount(BigDecimal.ZERO);
+            officeReq.setBusinessAccountId(officeAccount.getId());
+            officeReq.setSettlementAccountId(bankAccount.getId());
+            officeReq.setDescription(prefix + " 사무소모품비 전표");
+            upsertVoucherHelper(officeReq, targetStatus, officeReq.getDescription());
+        }
+
+        // 법인세비용 전표
+        if (taxAccount != null && taxSupply != null && taxSupply.compareTo(BigDecimal.ZERO) > 0) {
+            VoucherRequest taxReq = new VoucherRequest();
+            taxReq.setVoucherDate(LocalDate.of(2026, month, 25));
+            taxReq.setVoucherType(VoucherType.PURCHASE);
+            taxReq.setVatType(VatType.ZERO_TAX);
+            taxReq.setVendorId(vendor.getId());
+            taxReq.setVendorNameSnapshot(vendor.getName());
+            taxReq.setSupplyAmount(taxSupply);
+            taxReq.setVatAmount(taxVat != null ? taxVat : BigDecimal.ZERO);
+            taxReq.setFeeAmount(BigDecimal.ZERO);
+            taxReq.setBusinessAccountId(taxAccount.getId());
+            taxReq.setSettlementAccountId(bankAccount.getId());
+            taxReq.setDescription(prefix + " 법인세비용 전표");
+            upsertVoucherHelper(taxReq, targetStatus, taxReq.getDescription());
+        }
+    }
+
+    private void upsertVoucherHelper(VoucherRequest req, VoucherStatus targetStatus, String description) {
+        Optional<Voucher> existingOpt = voucherRepository.findAllWithLinesForList().stream()
+                .filter(v -> description.equals(v.getDescription()))
+                .findFirst();
+
+        if (existingOpt.isPresent()) {
+            Voucher existing = existingOpt.get();
+            if (existing.getStatus() != targetStatus) {
+                existing.updateStatus(targetStatus);
+            }
+            if (targetStatus == VoucherStatus.POSTED && existing.getJournalEntry() != null) {
+                if (!"POSTED".equals(existing.getJournalEntry().getStatus())) {
+                    existing.getJournalEntry().post();
+                    journalEntryRepository.save(existing.getJournalEntry());
+                }
+            }
+            voucherRepository.save(existing);
+            log.debug("[AccountingDataSeeder] Updated status for existing voucher: {}", description);
+        } else {
+            createAndTransitionVoucher(req, targetStatus);
+            log.info("[AccountingDataSeeder] Created new voucher: {}", description);
+        }
     }
 }
