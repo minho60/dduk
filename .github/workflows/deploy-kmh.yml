@@ -4,6 +4,7 @@ on:
   push:
     branches:
       - develop
+      - wooree
   workflow_dispatch:
 
 concurrency:
@@ -12,9 +13,9 @@ concurrency:
 
 env:
   REGISTRY: ghcr.io
-  BACKEND_IMAGE: ghcr.io/${{ github.repository_owner }}/dduk-backend:develop
-  AI_SERVER_IMAGE: ghcr.io/${{ github.repository_owner }}/dduk-ai-server:develop
-  RPA_SERVER_IMAGE: ghcr.io/${{ github.repository_owner }}/dduk-rpa-server:develop
+  BACKEND_IMAGE: ghcr.io/${{ github.repository_owner }}/dduk-backend:${{ github.ref_name }}
+  AI_SERVER_IMAGE: ghcr.io/${{ github.repository_owner }}/dduk-ai-server:${{ github.ref_name }}
+  RPA_SERVER_IMAGE: ghcr.io/${{ github.repository_owner }}/dduk-rpa-server:${{ github.ref_name }}
 
 jobs:
   build-and-push:

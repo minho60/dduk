@@ -197,7 +197,21 @@ EC2 배포는 기본적으로 `:develop` 태그를 당겨 쓴다.
 
 ## 7. 수동 테스트 방법
 
-### 방법 1. 배포 대상 브랜치 push (예: `develop` 또는 `kmh`)
+### 💡 개인 레포지토리 맞춤 브랜치 설정 가이드
+개인 저장소에서 본인만의 작업 브랜치(예: `wooree` 등)를 사용해 배포 실습을 하려는 경우, GitHub Actions가 이를 트리거할 수 있도록 아래 설정을 수정해야 합니다.
+
+1. **[.github/workflows/deploy-kmh.yml](file:///C:/kmh/dduk/.github/workflows/deploy-kmh.yml)** 파일을 엽니다.
+2. `on.push.branches` 항목에 본인의 브랜치명을 추가해 줍니다:
+   ```yaml
+   on:
+     push:
+       branches:
+         - develop
+         - <본인-작업-브랜치-이름> (예: wooree)
+   ```
+3. 수정 후 본인의 브랜치로 push하면 워크플로우가 감지되어 빌드/배포를 시작하며, 빌드되는 이미지 태그도 본인의 브랜치명(예: `:wooree`)으로 자동 업로드됩니다.
+
+### 방법 1. 배포 대상 브랜치 push
 
 ```bash
 git push origin <본인-작업-브랜치>
