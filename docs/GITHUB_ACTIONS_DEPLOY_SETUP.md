@@ -97,7 +97,7 @@ GHCR 로그인에 사용할 GitHub 사용자명
 예시:
 
 ```text
-minho60
+<본인-깃허브-계정>
 ```
 
 ### `GHCR_READ_TOKEN`
