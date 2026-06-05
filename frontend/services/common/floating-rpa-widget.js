@@ -59,7 +59,7 @@
     }
 
     function getApiBaseUrl() {
-        return window.DDUK_COMMON ? window.DDUK_COMMON.getApiBaseUrl() : 'http://localhost:8080';
+        return window.DDUK_COMMON ? window.DDUK_COMMON.getApiBaseUrl() : '';
     }
 
     function getHeaders(extraHeaders) {

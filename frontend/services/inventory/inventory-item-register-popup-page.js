@@ -7,7 +7,7 @@
             const vendorName = params.get('vendorName') || '';
             function resolveCurrentMemberId(){const loginId=(localStorage.getItem('loginId')||'').toLowerCase();const role=(localStorage.getItem('role')||'').toUpperCase();if(loginId==='inventory'||role==='INVENTORY')return'2';if(loginId==='hr'||role==='HR')return'3';if(loginId==='admin'||role==='ADMIN')return'1';return localStorage.getItem('memberId')||localStorage.getItem('userId')||'1'}
             const registeredById = params.get('registeredById') || resolveCurrentMemberId();
-            const apiOrigin = location.protocol === 'file:' ? 'http://localhost:8080' : location.origin;
+            const apiOrigin = window.ddukSession?.getApiBaseUrl?.() || window.ddukApi?.getBaseUrl?.() || '';
             const form = document.getElementById('item-form'), msg = document.getElementById('message'), saveBtn = document.getElementById('btn-save');
             document.getElementById('vendor-name').value = vendorName || (vendorId ? `거래처 ID ${vendorId}` : '미지정');
             document.getElementById('registered-by-id').value = registeredById;

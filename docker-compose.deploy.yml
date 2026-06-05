@@ -1,10 +1,6 @@
-version: '3.8'
-
 services:
   backend:
-    build:
-      context: .
-      dockerfile: backend/Dockerfile
+    image: ${BACKEND_IMAGE:-ghcr.io/minho60/dduk-backend:kmh}
     container_name: dduk-backend
     ports:
       - "${PORT:-8080}:8080"
@@ -31,9 +27,7 @@ services:
     restart: always
 
   ai-server:
-    build:
-      context: ./ai-server
-      dockerfile: Dockerfile
+    image: ${AI_SERVER_IMAGE:-ghcr.io/minho60/dduk-ai-server:kmh}
     container_name: dduk-ai-server
     ports:
       - "${AI_SERVER_PORT:-5000}:5000"
@@ -46,9 +40,7 @@ services:
     restart: always
 
   rpa-server:
-    build:
-      context: ./rpa
-      dockerfile: Dockerfile
+    image: ${RPA_SERVER_IMAGE:-ghcr.io/minho60/dduk-rpa-server:kmh}
     container_name: dduk-rpa-server
     ports:
       - "${RPA_SERVER_PORT:-5050}:5050"

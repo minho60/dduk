@@ -1,6 +1,24 @@
-const API_BASE_URL = ["localhost", "127.0.0.1"].includes(window.location.hostname)
-    ? "http://localhost:8080"
-    : "";
+function resolveApiBaseUrl() {
+    if (window.ddukSession && typeof window.ddukSession.getApiBaseUrl === "function") {
+        return window.ddukSession.getApiBaseUrl();
+    }
+
+    if (typeof window.__DDUK_API_BASE_URL__ === "string" && window.__DDUK_API_BASE_URL__.trim()) {
+        return window.__DDUK_API_BASE_URL__.trim().replace(/\/+$/, "");
+    }
+
+    if (window.location.protocol === "file:") {
+        return window.location.hostname === "127.0.0.1" ? "http://127.0.0.1:8080" : "http://localhost:8080";
+    }
+
+    if (["localhost", "127.0.0.1"].includes(window.location.hostname) && window.location.port && window.location.port !== "8080") {
+        return window.location.hostname === "127.0.0.1" ? "http://127.0.0.1:8080" : "http://localhost:8080";
+    }
+
+    return "";
+}
+
+const API_BASE_URL = resolveApiBaseUrl();
 
 const loginForm = document.getElementById("loginForm");
 const loginButton = document.getElementById("loginBtn");
