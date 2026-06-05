@@ -265,8 +265,37 @@
         await loadLogs();
     });
 
-    if (ensureAdminSession()) {
-        readFilters();
-        refreshPage();
+    const toggleBtn = document.getElementById("btnToggleAnomalyAccordion");
+    const accordionContent = document.getElementById("anomalyAccordionContent");
+
+    if (toggleBtn && accordionContent) {
+        // system-admin.html에서의 아코디언 모드
+        toggleBtn.addEventListener("click", async function (e) {
+            e.preventDefault();
+            const isHidden = accordionContent.classList.contains("hidden");
+            if (isHidden) {
+                accordionContent.classList.remove("hidden");
+                toggleBtn.textContent = "경고 목록 닫기";
+                toggleBtn.classList.remove("bg-slate-900", "hover:bg-slate-700");
+                toggleBtn.classList.add("bg-rose-600", "hover:bg-rose-500");
+                
+                // 열리는 시점에 데이터 로드
+                if (ensureAdminSession()) {
+                    readFilters();
+                    await refreshPage();
+                }
+            } else {
+                accordionContent.classList.add("hidden");
+                toggleBtn.textContent = "경고 목록 열기";
+                toggleBtn.classList.remove("bg-rose-600", "hover:bg-rose-500");
+                toggleBtn.classList.add("bg-slate-900", "hover:bg-slate-700");
+            }
+        });
+    } else {
+        // 기존 단독 anomaly-detection.html 페이지 모드
+        if (ensureAdminSession()) {
+            readFilters();
+            refreshPage();
+        }
     }
 })();

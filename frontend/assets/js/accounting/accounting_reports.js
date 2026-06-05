@@ -60,7 +60,7 @@
             // 3. 자산 / 부채 / 자본 구성 비율 도넛 차트
             renderCompositionChart(balanceSheet);
 
-            // 4. 매출 리포트 테이블 (거래처 데이터가 없으면 표준 샘플 데이터 렌더링)
+            // 4. 매출 리포트 테이블
             renderSalesTable(profitLoss);
 
             // 5. 비용 분석 테이블
@@ -330,7 +330,7 @@
         const summary = document.getElementById('payrollSummary');
         const tbody = document.getElementById('payrollRows');
 
-        // 급여 원장에 연결이 없는 경우에 대비해 모의 예외 처리 및 샘플 세팅
+        // 급여 원장에 연결이 없는 경우에도 빈 상태를 안정적으로 렌더링
         if (summary) {
             summary.innerHTML = `
                 <div class="flex justify-between items-center p-3 bg-slate-50 rounded-lg">

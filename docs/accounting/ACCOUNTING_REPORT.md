@@ -15,7 +15,7 @@ DDUK ERP 회계관리 도메인에 ERP 스타일 회계 리포트 및 재무 분
 - `backend/src/main/java/com/dduk/domain/accounting/report/dto/analytics/*`
 - `backend/src/main/java/com/dduk/repository/accounting/voucher/VoucherRepository.java`
 - `backend/src/main/java/com/dduk/domain/accounting/payroll/repository/PayrollLedgerRepository.java`
-- `frontend/pages/accounting/accounting_reports.html`
+- `frontend/pages/hr/accounting/accounting_reports.html`
 - `frontend/assets/js/accounting/accounting_reports.js`
 - `frontend/styles/accounting/accounting-reports.css`
 - `frontend/services/common/sidebar.js`
@@ -148,7 +148,7 @@ KPI는 Trial Balance와 POSTED 분개 기준으로 산출한다.
 
 ## 프론트 구조
 
-- HTML: `frontend/pages/accounting/accounting_reports.html`
+- HTML: `frontend/pages/hr/accounting/accounting_reports.html`
 - JS: `frontend/assets/js/accounting/accounting_reports.js`
 - CSS: `frontend/styles/accounting/accounting-reports.css`
 
@@ -208,7 +208,7 @@ GET /api/v1/accounting/reports/analytics?startDate=2026-05-01&endDate=2026-05-31
 프론트 확인:
 
 1. Spring Boot 서버 실행
-2. `frontend/pages/accounting/accounting_reports.html` 접속
+2. `frontend/pages/hr/accounting/accounting_reports.html` 접속
 3. 기간 조회, KPI 카드, 차트, 테이블 렌더링 확인
 4. Excel/PDF 버튼 다운로드 확인
 5. 인쇄 버튼 동작 확인

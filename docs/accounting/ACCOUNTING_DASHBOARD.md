@@ -17,7 +17,7 @@ DDUK ERP 회계관리 도메인에 통합 회계 대시보드 시스템을 추�
 - `backend/src/main/java/com/dduk/repository/accounting/voucher/VoucherRepository.java`
 - `backend/src/main/java/com/dduk/domain/accounting/payroll/repository/PayrollLedgerRepository.java`
 - `backend/src/main/java/com/dduk/domain/accounting/period/repository/ClosingLogRepository.java`
-- `frontend/pages/accounting/accounting_dashboard.html`
+- `frontend/pages/hr/accounting/accounting_dashboard.html`
 - `frontend/assets/js/accounting/accounting_dashboard.js`
 - `frontend/styles/accounting/accounting-dashboard.css`
 - `frontend/services/common/sidebar.js`
@@ -114,7 +114,7 @@ KPI는 `JournalEntry.status = POSTED`인 분개만 대상으로 한다.
 
 ## 프론트 구조
 
-- HTML: `frontend/pages/accounting/accounting_dashboard.html`
+- HTML: `frontend/pages/hr/accounting/accounting_dashboard.html`
 - JS: `frontend/assets/js/accounting/accounting_dashboard.js`
 - CSS: `frontend/styles/accounting/accounting-dashboard.css`
 
@@ -168,6 +168,6 @@ cd backend
 프론트 확인:
 
 1. Spring Boot 서버 실행
-2. 브라우저에서 `frontend/pages/accounting/accounting_dashboard.html` 열기
+2. 브라우저에서 `frontend/pages/hr/accounting/accounting_dashboard.html` 열기
 3. 회계연도/월 변경 후 KPI, 차트, 전표, 월 마감, 급여, 알림 영역 렌더링 확인
 4. `/api/v1/accounting/dashboard?fiscalYear=2026&fiscalMonth=5` 응답 구조 확인

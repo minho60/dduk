@@ -402,6 +402,12 @@
                         toggleFloatingChatbot(true);
                         switchPortalTab('prediction');
                     });
+                } else if (label === '이상 탐지') {
+                    btn.addEventListener('click', (e) => {
+                        e.preventDefault();
+                        toggleFloatingChatbot(true);
+                        switchPortalTab('anomaly');
+                    });
                 }
             }
         });

@@ -1,6 +1,6 @@
 /**
  * Accounting Service - 실제 API 연동 버전
- * 이전 mock 데이터 방식 제거, /api/v1/accounting/vouchers 실제 호출
+ * /api/v1/accounting/vouchers 실제 호출
  */
 
 const VOUCHER_API_BASE = '/api/v1/accounting/vouchers';

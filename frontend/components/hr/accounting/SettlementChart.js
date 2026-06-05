@@ -18,9 +18,6 @@ export class SettlementChart {
             return;
         }
 
-        // In a real project, you would initialize Chart.js or ApexCharts here.
-        // For this mock, we'll render a simple CSS-based visualization.
-        
         const maxVal = Math.max(...data.datasets.flatMap(d => d.data), 1);
         
         let html = `

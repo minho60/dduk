@@ -20,7 +20,7 @@ DDUK ERP 회계관리 도메인의 월 마감 기능을 회계기간(AccountingP
 - `backend/src/main/java/com/dduk/repository/accounting/voucher/VoucherRepository.java`
 - `backend/src/main/java/com/dduk/domain/accounting/payroll/repository/PayrollLedgerRepository.java`
 - `backend/src/main/java/com/dduk/repository/inventory/InventoryRepository.java`
-- `frontend/pages/accounting/monthly_closing.html`
+- `frontend/pages/hr/accounting/monthly_closing.html`
 - `frontend/assets/js/accounting/monthly_closing.js`
 - `frontend/styles/accounting/monthly-closing.css`
 
@@ -96,7 +96,7 @@ Ledger는 별도 물리 Entity가 없고 현재 JournalEntry 기반 원장 조�
 
 ## 프론트 구조
 
-- 페이지: `frontend/pages/accounting/monthly_closing.html`
+- 페이지: `frontend/pages/hr/accounting/monthly_closing.html`
 - JS: `frontend/assets/js/accounting/monthly_closing.js`
 - CSS: `frontend/styles/accounting/monthly-closing.css`
 
@@ -124,7 +124,7 @@ cd backend
 프론트 확인:
 
 ```text
-frontend/pages/accounting/monthly_closing.html
+frontend/pages/hr/accounting/monthly_closing.html
 ```
 
 주요 수동 확인:

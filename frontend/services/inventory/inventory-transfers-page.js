@@ -2,9 +2,17 @@
         let warehouses = [];
         let addedTransferItems = [];
         let allTransfersData = [];
-        
+
         let whChartInstance = null;
         let trendChartInstance = null;
+
+        function notify(message, type = 'info') {
+            if (window.ddukApi?.showToast) {
+                window.ddukApi.showToast(message, type);
+                return;
+            }
+            console[type === 'error' ? 'error' : 'warn'](message);
+        }
 
         document.addEventListener('DOMContentLoaded', async () => {
             lucide.createIcons();
@@ -61,7 +69,7 @@
                     warehouses = response.data;
                     const fromWh = document.getElementById('modal-from-warehouse');
                     const toWh = document.getElementById('modal-to-warehouse');
-                    
+
                     const options = warehouses.map(w => `<option value="${w.id}">${w.warehouseName}</option>`).join('');
                     fromWh.innerHTML = '<option value="">출발 창고 선택</option>' + options;
                     toWh.innerHTML = '<option value="">목적지 창고 선택</option>' + options;
@@ -83,7 +91,7 @@
             try {
                 const response = await InventoryService.getStocks({ warehouseId: whId });
                 if (response.status === 'success') {
-                    itemSelect.innerHTML = '<option value="">이동 품목 선택</option>' + 
+                    itemSelect.innerHTML = '<option value="">이동 품목 선택</option>' +
                         response.data.map(i => `<option value="${i.item.id}" data-itemcode="${i.item.itemCode}" data-unit="${i.item.unit}" data-name="${i.item.name}" data-available="${i.currentStock - i.allocatedStock}">${i.item.name} (${i.item.itemCode})</option>`).join('');
                     itemSelect.disabled = false;
                     updateAvailableInfo();
@@ -110,15 +118,15 @@
         function addTransferItemRow() {
             const select = document.getElementById('modal-item-select');
             const qtyInput = document.getElementById('modal-transfer-qty');
-            
+
             if (select.disabled || !select.value) {
-                alert('품목을 선택해 주십시오.');
+                notify('품목을 선택해 주십시오.', 'warning');
                 return;
             }
-            
+
             const qty = parseInt(qtyInput.value);
             if (isNaN(qty) || qty <= 0) {
-                alert('유효한 이동 수량을 입력해 주십시오.');
+                notify('유효한 이동 수량을 입력해 주십시오.', 'warning');
                 return;
             }
 
@@ -137,7 +145,7 @@
             }
 
             if (available < targetQty) {
-                alert(`해당 품목의 가용 재고가 부족합니다. (추가 수량 포함 가용: ${available}, 요청: ${targetQty})`);
+                notify(`해당 품목의 가용 재고가 부족합니다. (추가 수량 포함 가용: ${available}, 요청: ${targetQty})`, 'warning');
                 return;
             }
 
@@ -154,7 +162,7 @@
         function renderAddedItemsList() {
             const tbody = document.getElementById('modal-added-items-list');
             const totalSummary = document.getElementById('modal-total-summary');
-            
+
             if (addedTransferItems.length === 0) {
                 tbody.innerHTML = `<tr><td colspan="3" class="p-4 text-center text-gray-400 text-xs">선택된 품목이 없습니다. 위에서 추가해 주세요.</td></tr>`;
                 totalSummary.textContent = '총 0개 품목 | 총 수량: 0';
@@ -177,7 +185,7 @@
                     </tr>
                 `;
             }).join('');
-            
+
             totalSummary.textContent = `총 ${addedTransferItems.length}개 품목 | 총 수량: ${totalQty.toLocaleString()}`;
             lucide.createIcons();
         }
@@ -190,7 +198,7 @@
         async function loadTransfers() {
             const list = document.getElementById('transfer-list');
             const empty = document.getElementById('empty-state');
-            
+
             // 1. Skeleton UI 로딩 노출
             list.innerHTML = Array(3).fill(0).map(() => `
                 <tr class="animate-pulse">
@@ -210,11 +218,11 @@
             try {
                 const params = {};
                 if (currentStatusFilter) params.status = currentStatusFilter;
-                
+
                 const response = await InventoryService.getTransfers(params);
                 if (response.status === 'success') {
                     allTransfersData = response.data;
-                    
+
                     // KPI 카드 & 차트 업데이트는 전체 조회가 끝난 시점에 한 번만
                     if (!currentStatusFilter) {
                         updateKPICards(response.data);
@@ -308,10 +316,10 @@
             const todayStr = new Date().toISOString().split('T')[0];
             const todayCount = data.filter(t => t.createdAt.startsWith(todayStr)).length;
             const pendingCount = data.filter(t => t.status === 'PENDING').length;
-            
+
             const completedCount = data.filter(t => t.status === 'COMPLETED').length;
             const completionRate = data.length > 0 ? Math.round((completedCount / data.length) * 100) : 0;
-            
+
             const oneWeekAgo = new Date();
             oneWeekAgo.setDate(oneWeekAgo.getDate() - 7);
             const weeklyCount = data.filter(t => new Date(t.createdAt) >= oneWeekAgo).length;
@@ -406,17 +414,17 @@
             const remarks = document.getElementById('modal-remarks').value;
 
             if (!fromWh || !toWh) {
-                alert('출발 및 도착 창고를 반드시 선택하십시오.');
+                notify('출발 및 도착 창고를 반드시 선택하십시오.', 'warning');
                 return;
             }
 
             if (fromWh === toWh) {
-                alert('출발지와 도착지 창고는 같을 수 없습니다.');
+                notify('출발지와 도착지 창고는 같을 수 없습니다.', 'warning');
                 return;
             }
 
             if (addedTransferItems.length === 0) {
-                alert('이동할 품목을 최소 하나 이상 추가하십시오.');
+                notify('이동할 품목을 최소 하나 이상 추가하십시오.', 'warning');
                 return;
             }
 
@@ -429,14 +437,14 @@
                 });
 
                 if (response.status === 'success') {
-                    alert('창고 이동 요청서가 성공적으로 등록되었습니다.');
+                    notify('창고 이동 요청서가 성공적으로 등록되었습니다.', 'success');
                     hideRequestModal();
                     await loadTransfers();
                 } else {
-                    alert('등록 실패: ' + response.message);
+                    notify('등록 실패: ' + response.message, 'error');
                 }
             } catch (error) {
-                alert('서버 통신 오류가 발생했습니다.');
+                notify('서버 통신 오류가 발생했습니다.', 'error');
             }
         }
 
@@ -445,13 +453,13 @@
             try {
                 const res = await InventoryService.approveTransfer(id);
                 if (res.status === 'success') {
-                    alert('이동 승인이 완료되었습니다.');
+                    notify('이동 승인이 완료되었습니다.', 'success');
                     await loadTransfers();
                 } else {
-                    alert('실패: ' + res.message);
+                    notify('실패: ' + res.message, 'error');
                 }
             } catch (error) {
-                alert('오류가 발생했습니다.');
+                notify('오류가 발생했습니다.', 'error');
             }
         }
 
@@ -460,13 +468,13 @@
             try {
                 const res = await InventoryService.completeTransfer(id);
                 if (res.status === 'success') {
-                    alert('수령 확인 및 창고 이동 완료가 정상 등록되었습니다.');
+                    notify('수령 확인 및 창고 이동 완료가 정상 등록되었습니다.', 'success');
                     await loadTransfers();
                 } else {
-                    alert('완료 처리 실패: ' + res.message);
+                    notify('완료 처리 실패: ' + res.message, 'error');
                 }
             } catch (error) {
-                alert('오류가 발생했습니다.');
+                notify('오류가 발생했습니다.', 'error');
             }
         }
 
@@ -477,11 +485,11 @@
         function openReasonModal(id, type) {
             activeReasonTransferId = id;
             activeReasonType = type;
-            
+
             const title = document.getElementById('reason-modal-title');
             const desc = document.getElementById('reason-modal-desc');
             const textarea = document.getElementById('reason-modal-text');
-            
+
             textarea.value = '';
             if (type === '반려') {
                 title.textContent = '결재 반려 사유 입력';
@@ -492,9 +500,9 @@
                 title.className = 'text-sm font-bold text-gray-700 flex items-center gap-1.5';
                 desc.textContent = '요청 부서에서 본 요청을 철회/취소하는 사유를 입력하십시오.';
             }
-            
+
             document.getElementById('reason-modal').classList.remove('hidden');
-            
+
             // 기존 이벤트 바인딩 해제 후 재바인딩
             const submitBtn = document.getElementById('submit-reason-modal');
             submitBtn.onclick = submitReasonAction;
@@ -503,16 +511,19 @@
         async function submitReasonAction() {
             const textarea = document.getElementById('reason-modal-text');
             const reason = textarea.value.trim();
-            
+
             if (!reason) {
-                alert('사유를 입력해 주십시오.');
+                notify('사유를 입력해 주십시오.', 'warning');
                 return;
             }
 
             try {
                 // ddukApi 를 통해 JWT 자동 포함 처리
-                const res = await InventoryService.cancelTransfer(activeReasonTransferId);
-                
+                const res = await InventoryService.cancelTransfer(activeReasonTransferId, {
+                    reason: reason,
+                    type: activeReasonType
+                });
+
                 if (res.status === 'success') {
                     if (window.ddukApi && window.ddukApi.showToast) {
                         window.ddukApi.showToast(`창고 이동이 정상적으로 ${activeReasonType} 처리되었습니다.`, 'success');
@@ -520,10 +531,10 @@
                     document.getElementById('reason-modal').classList.add('hidden');
                     await loadTransfers();
                 } else {
-                    alert('오류: ' + res.message);
+                    notify('오류: ' + res.message, 'error');
                 }
             } catch (error) {
-                alert('통신 중 예외가 발생했습니다.');
+                notify('통신 중 예외가 발생했습니다.', 'error');
             }
         }
 
@@ -533,7 +544,7 @@
                 if (res.status === 'success') {
                     const t = res.data;
                     const content = document.getElementById('detail-content');
-                    
+
                     // remarks 에서 반려/취소 사유 파싱
                     let reasonDisplay = '';
                     if (t.remarks && (t.remarks.includes('[반려]') || t.remarks.includes('[취소]'))) {
@@ -589,13 +600,13 @@
                     lucide.createIcons();
                 }
             } catch (error) {
-                alert('상세 정보를 불러올 수 없습니다.');
+                notify('상세 정보를 불러올 수 없습니다.', 'error');
             }
         }
 
         function buildTimelineHTML(t) {
             const steps = [];
-            
+
             // 1단계: 요청 등록
             steps.push({
                 title: '이동 요청 등록',
@@ -647,4 +658,4 @@
                 </div>
             `).join('');
         }
-    
+

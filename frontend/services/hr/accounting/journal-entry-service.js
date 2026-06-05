@@ -43,7 +43,6 @@ export class JournalEntryService {
         }
 
         const apiData = await response.json();
-        console.log("[JournalEntryService] Backend posting successful:", apiData);
         this.journals.push(apiData);
         return { success: true, id: apiData.id };
     }

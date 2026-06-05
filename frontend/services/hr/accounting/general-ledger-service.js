@@ -31,7 +31,6 @@ export class GeneralLedgerService {
         }
 
         this.balances.set(accountCode, newBalance);
-        console.log(`[GL] Account ${accountCode} (${account.name}) Balance: ${newBalance}`);
     }
 
     /**

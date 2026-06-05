@@ -9,6 +9,7 @@ document.addEventListener('DOMContentLoaded', () => {
     const apiBase = '/api/v1/inventory/vendors';
     const list = document.getElementById('vendor-list');
     const listStatus = document.getElementById('list-status');
+    const paginationArea = document.getElementById('vendor-pagination');
     const detailStatus = document.getElementById('detail-status');
     const form = document.getElementById('detail-form');
     const editButton = document.getElementById('btn-edit');
@@ -22,6 +23,8 @@ document.addEventListener('DOMContentLoaded', () => {
 
     let vendors = [];
     let current = null;
+    let currentPage = 1;
+    const pageSize = 10;
 
     function text(value) {
         return value == null || value === '' ? '-' : value;
@@ -35,13 +38,21 @@ document.addEventListener('DOMContentLoaded', () => {
         return window.ddukApi.requestData(path, options);
     }
 
-    function renderList(emptyText = 'Click search to load vendors.') {
+    function renderList(emptyText = '조회 버튼을 눌러 거래처를 불러오세요.') {
         if (!vendors.length) {
             list.innerHTML = `<tr><td colspan="7" class="text-center text-gray-400 font-semibold py-8">${emptyText}</td></tr>`;
+            paginationArea.innerHTML = '';
+            listStatus.textContent = emptyText;
             return;
         }
 
-        list.innerHTML = vendors.map((vendor) => `
+        const totalPages = Math.max(1, Math.ceil(vendors.length / pageSize));
+        if (currentPage > totalPages) currentPage = totalPages;
+
+        const startIdx = (currentPage - 1) * pageSize;
+        const pageVendors = vendors.slice(startIdx, startIdx + pageSize);
+
+        list.innerHTML = pageVendors.map((vendor) => `
             <tr data-id="${vendor.id}" class="${current && current.id === vendor.id ? 'selected' : ''}">
                 <td class="font-bold">${text(vendor.vendorCode)}</td>
                 <td>${text(vendor.name)}</td>
@@ -56,7 +67,53 @@ document.addEventListener('DOMContentLoaded', () => {
         list.querySelectorAll('tr[data-id]').forEach((row) => {
             row.addEventListener('click', () => loadVendor(row.dataset.id));
         });
-        listStatus.textContent = `${vendors.length} vendor(s) loaded.`;
+
+        const rangeStart = startIdx + 1;
+        const rangeEnd = Math.min(startIdx + pageSize, vendors.length);
+        listStatus.textContent = `총 ${vendors.length}건 중 ${rangeStart}~${rangeEnd}건 표시`;
+
+        renderPagination(totalPages);
+    }
+
+    function renderPagination(totalPages) {
+        if (totalPages <= 1) {
+            paginationArea.innerHTML = '';
+            return;
+        }
+
+        let html = '';
+        html += `<button type="button" class="vp-btn nav" data-vp="${currentPage - 1}" ${currentPage <= 1 ? 'disabled' : ''}>&laquo; 이전</button>`;
+
+        const maxVisible = 5;
+        let startPage = Math.max(1, currentPage - Math.floor(maxVisible / 2));
+        let endPage = Math.min(totalPages, startPage + maxVisible - 1);
+        if (endPage - startPage + 1 < maxVisible) startPage = Math.max(1, endPage - maxVisible + 1);
+
+        if (startPage > 1) {
+            html += `<button type="button" class="vp-btn" data-vp="1">1</button>`;
+            if (startPage > 2) html += `<span style="padding:0 .25rem;color:#9ca3af">…</span>`;
+        }
+        for (let i = startPage; i <= endPage; i++) {
+            html += `<button type="button" class="vp-btn ${i === currentPage ? 'active' : ''}" data-vp="${i}">${i}</button>`;
+        }
+        if (endPage < totalPages) {
+            if (endPage < totalPages - 1) html += `<span style="padding:0 .25rem;color:#9ca3af">…</span>`;
+            html += `<button type="button" class="vp-btn" data-vp="${totalPages}">${totalPages}</button>`;
+        }
+
+        html += `<button type="button" class="vp-btn nav" data-vp="${currentPage + 1}" ${currentPage >= totalPages ? 'disabled' : ''}>다음 &raquo;</button>`;
+
+        paginationArea.innerHTML = html;
+
+        paginationArea.querySelectorAll('[data-vp]').forEach((btn) => {
+            btn.addEventListener('click', () => {
+                const p = Number(btn.dataset.vp);
+                if (p >= 1 && p <= totalPages && p !== currentPage) {
+                    currentPage = p;
+                    renderList();
+                }
+            });
+        });
     }
 
     function setMode(editMode) {
@@ -88,17 +145,18 @@ document.addEventListener('DOMContentLoaded', () => {
 
     async function search() {
         const keyword = document.getElementById('search-keyword').value.trim();
-        listStatus.textContent = 'Loading vendors...';
+        listStatus.textContent = '거래처를 조회하는 중...';
         try {
             const path = keyword 
                 ? `${apiBase}/search?keyword=${encodeURIComponent(keyword)}`
                 : apiBase;
             vendors = await requestList(path);
-            renderList('No vendors found.');
+            currentPage = 1;
+            renderList('검색된 거래처가 없습니다.');
         } catch (error) {
             vendors = [];
-            renderList('Search failed.');
-            listStatus.textContent = `Vendor search failed: ${error.message}`;
+            renderList('거래처 조회에 실패했습니다.');
+            listStatus.textContent = `거래처 조회 실패: ${error.message}`;
         }
     }
 
@@ -147,14 +205,15 @@ document.addEventListener('DOMContentLoaded', () => {
     }
 
     async function loadAllVendors() {
-        listStatus.textContent = 'Loading all vendors...';
+        listStatus.textContent = '거래처를 불러오는 중...';
         try {
             vendors = await requestList(apiBase);
-            renderList('No vendors found.');
+            currentPage = 1;
+            renderList('등록된 거래처가 없습니다.');
         } catch (error) {
             vendors = [];
-            renderList('Failed to load vendors.');
-            listStatus.textContent = `Failed to load all vendors: ${error.message}`;
+            renderList('거래처 로드에 실패했습니다.');
+            listStatus.textContent = `거래처 로드 실패: ${error.message}`;
         }
     }
 

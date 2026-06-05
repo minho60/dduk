@@ -477,9 +477,9 @@ INSERT INTO notice (
     updated_at
 )
 VALUES
-    ('SYSTEM', 'DDUK ERP 2.0 시스템 정기 업데이트 점검 안내', '안녕하세요. DDUK ERP 운영팀입니다. 시스템 성능 개선 및 보안 업데이트를 위해 2026년 6월 15일(일) 01:00부터 05:00까지 정기 점검이 진행됩니다. 점검 시간 동안은 서비스 접속이 일시 제한되오니 업무에 참고하시기 바랍니다.', CURRENT_DATE - INTERVAL 3 DAY, CURRENT_DATE + INTERVAL 10 DAY, 45, 'admin', NOW(), NOW()),
-    ('GENERAL', '[인사] 2026년 하반기 전사 타운홀 미팅 개최 및 참석 요청', '임직원 여러분 안녕하십니까. 경영지원팀입니다. 당해 하반기 목표 달성 전략 공유 및 소통을 위해 전사 타운홀 미팅을 아래와 같이 개최하오니 전 임직원분들은 필히 참석해주시기 바랍니다. 일시: 2026년 6월 10일(수) 15:00, 장소: 대회의실 및 화상회의 줌 스트리밍.', CURRENT_DATE - INTERVAL 2 DAY, CURRENT_DATE + INTERVAL 7 DAY, 120, 'admin', NOW(), NOW()),
-    ('EVENT', '임직원 복지몰 아망티 브랜드 특가 제휴 이벤트 안내 (최대 40% 할인)', '복리후생 지원 프로그램의 일환으로 차(Tea) 전문 수입 제조사 아망티와 임직원 전용 특가 제휴를 체결하였습니다. 아망티 공식 쇼핑몰에서 DDUK ERP 사원 인증 번호 입력 시 홍차, 허브차, 선물세트를 최대 40% 할인가에 구매하실 수 있습니다. 상세 가이드는 첨부파일을 참조하세요.', CURRENT_DATE - INTERVAL 5 DAY, CURRENT_DATE + INTERVAL 15 DAY, 310, 'admin', NOW(), NOW())
+    ('MAINTENANCE', 'DDUK ERP 2.0 시스템 정기 업데이트 점검 안내', '안녕하세요. DDUK ERP 운영팀입니다. 시스템 성능 개선 및 보안 업데이트를 위해 2026년 6월 15일(일) 01:00부터 05:00까지 정기 점검이 진행됩니다. 점검 시간 동안은 서비스 접속이 일시 제한되오니 업무에 참고하시기 바랍니다.', CURRENT_DATE - INTERVAL 3 DAY, CURRENT_DATE + INTERVAL 10 DAY, 45, 'admin', NOW(), NOW()),
+    ('NORMAL', '[인사] 2026년 하반기 전사 타운홀 미팅 개최 및 참석 요청', '임직원 여러분 안녕하십니까. 경영지원팀입니다. 당해 하반기 목표 달성 전략 공유 및 소통을 위해 전사 타운홀 미팅을 아래와 같이 개최하오니 전 임직원분들은 필히 참석해주시기 바랍니다. 일시: 2026년 6월 10일(수) 15:00, 장소: 대회의실 및 화상회의 줌 스트리밍.', CURRENT_DATE - INTERVAL 2 DAY, CURRENT_DATE + INTERVAL 7 DAY, 120, 'admin', NOW(), NOW()),
+    ('NORMAL', '임직원 복지몰 아망티 브랜드 특가 제휴 이벤트 안내 (최대 40% 할인)', '복리후생 지원 프로그램의 일환으로 차(Tea) 전문 수입 제조사 아망티와 임직원 전용 특가 제휴를 체결하였습니다. 아망티 공식 쇼핑몰에서 DDUK ERP 사원 인증 번호 입력 시 홍차, 허브차, 선물세트를 최대 40% 할인가에 구매하실 수 있습니다. 상세 가이드는 첨부파일을 참조하세요.', CURRENT_DATE - INTERVAL 5 DAY, CURRENT_DATE + INTERVAL 15 DAY, 310, 'admin', NOW(), NOW())
 ON DUPLICATE KEY UPDATE
     title = VALUES(title),
     content = VALUES(content),
@@ -646,111 +646,9 @@ ON DUPLICATE KEY UPDATE
     updated_at = NOW();
 
 -- -----------------------------------------------------------------
--- task history (AI/RPA 실행 기록)
+-- task history (AI/RPA 실행 기록) - 데모 데이터 비활성화
 -- -----------------------------------------------------------------
-INSERT INTO task_history (
-    task_id,
-    task_type,
-    action_name,
-    status,
-    request_payload,
-    response_payload,
-    error_message,
-    requested_at,
-    started_at,
-    callback_received_at,
-    completed_at,
-    created_at,
-    updated_at
-)
-VALUES
-    (
-        'sample-demo-ai-001',
-        'AI',
-        'ai_chat_request',
-        'SUCCESS',
-        JSON_OBJECT('prompt', '주간 재고 위험 요약'),
-        JSON_OBJECT('status', 'success', 'data', JSON_OBJECT('summary', '재고 위험 요약 초안 생성 완료')),
-        NULL,
-        NOW() - INTERVAL 3 DAY,
-        NOW() - INTERVAL 3 DAY + INTERVAL 2 MINUTE,
-        NOW() - INTERVAL 3 DAY + INTERVAL 3 MINUTE,
-        NOW() - INTERVAL 3 DAY + INTERVAL 3 MINUTE,
-        NOW() - INTERVAL 3 DAY,
-        NOW() - INTERVAL 3 DAY + INTERVAL 3 MINUTE
-    ),
-    (
-        'sample-demo-ai-002',
-        'AI',
-        'ocr_receipt_parse',
-        'RUNNING',
-        JSON_OBJECT('documentName', 'demo-receipt-2026-06.pdf'),
-        NULL,
-        NULL,
-        NOW() - INTERVAL 30 MINUTE,
-        NOW() - INTERVAL 29 MINUTE,
-        NULL,
-        NULL,
-        NOW() - INTERVAL 30 MINUTE,
-        NOW() - INTERVAL 29 MINUTE
-    ),
-    (
-        'sample-demo-rpa-001',
-        'RPA',
-        'collect_purchase_orders',
-        'SUCCESS',
-        JSON_OBJECT('taskType', 'PURCHASE_PRICE'),
-        JSON_OBJECT(
-            'status', 'success',
-            'data', JSON_OBJECT(
-                'filePath', 'rpa/outputs/demo_purchase_price_sample.json',
-                'collectedCount', 3
-            )
-        ),
-        NULL,
-        NOW() - INTERVAL 2 DAY,
-        NOW() - INTERVAL 2 DAY + INTERVAL 1 MINUTE,
-        NOW() - INTERVAL 2 DAY + INTERVAL 4 MINUTE,
-        NOW() - INTERVAL 2 DAY + INTERVAL 4 MINUTE,
-        NOW() - INTERVAL 2 DAY,
-        NOW() - INTERVAL 2 DAY + INTERVAL 4 MINUTE
-    ),
-    (
-        'sample-demo-rpa-002',
-        'RPA',
-        'check_inventory_shortage',
-        'SUCCESS',
-        JSON_OBJECT('taskType', 'INVENTORY_SHORTAGE'),
-        JSON_OBJECT(
-            'status', 'success',
-            'data', JSON_OBJECT(
-                'filePath', 'rpa/outputs/demo_inventory_shortage_sample.json',
-                'alertCount', 3
-            )
-        ),
-        NULL,
-        NOW() - INTERVAL 1 DAY,
-        NOW() - INTERVAL 1 DAY + INTERVAL 1 MINUTE,
-        NOW() - INTERVAL 1 DAY + INTERVAL 2 MINUTE,
-        NOW() - INTERVAL 1 DAY + INTERVAL 2 MINUTE,
-        NOW() - INTERVAL 1 DAY,
-        NOW() - INTERVAL 1 DAY + INTERVAL 2 MINUTE
-    ),
-    (
-        'sample-demo-rpa-003',
-        'RPA',
-        'collect_hr_reference',
-        'FAILED',
-        JSON_OBJECT('taskType', 'HR_MIN_WAGE'),
-        JSON_OBJECT('status', 'error', 'message', '데모 시드 실패 예시'),
-        '데모 시드 실패 예시',
-        NOW() - INTERVAL 6 HOUR,
-        NOW() - INTERVAL 6 HOUR + INTERVAL 1 MINUTE,
-        NOW() - INTERVAL 6 HOUR + INTERVAL 2 MINUTE,
-        NOW() - INTERVAL 6 HOUR + INTERVAL 2 MINUTE,
-        NOW() - INTERVAL 6 HOUR,
-        NOW() - INTERVAL 6 HOUR + INTERVAL 2 MINUTE
-    );
+
 
 -- -----------------------------------------------------------------
 -- attendances / expenses (인사 근태 및 경비 청구)

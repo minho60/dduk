@@ -156,16 +156,114 @@
 
 
 
-      <section class="rounded-2xl border border-rose-100 bg-gradient-to-r from-rose-50 via-amber-50 to-white p-6 shadow-sm">
+      <section class="rounded-2xl border border-rose-200/60 bg-rose-50/60 p-6 shadow-sm">
         <div class="flex flex-col gap-4 lg:flex-row lg:items-center lg:justify-between">
           <div>
-            <p class="text-xs font-black uppercase tracking-[0.22em] text-rose-500">Phase 2 Ready</p>
-            <h3 class="mt-2 text-xl font-black text-slate-900">규칙 기반 이상 탐지 경고 목록</h3>
+            <h3 class="text-xl font-black text-slate-900">규칙 기반 이상 탐지 경고 목록</h3>
             <p class="mt-2 text-sm font-medium text-slate-600">재고 음수, 긴급 발주, 공급처 누락 같은 설명 가능한 경고를 관리자 화면에서 바로 검토할 수 있어.</p>
           </div>
-          <a href="anomaly-detection.html" class="inline-flex items-center justify-center rounded-xl bg-slate-900 px-4 py-3 text-sm font-black text-white hover:bg-slate-700">
+          <button id="btnToggleAnomalyAccordion" class="inline-flex items-center justify-center rounded-xl bg-slate-900 px-4 py-3 text-sm font-black text-white hover:bg-slate-700 transition-colors duration-200">
             경고 목록 열기
-          </a>
+          </button>
+        </div>
+
+        <!-- 아코디언 콘텐츠 영역 -->
+        <div id="anomalyAccordionContent" class="hidden mt-6 space-y-6 p-6 bg-white rounded-2xl border border-rose-200/60 shadow-sm">
+          <div class="flex flex-col gap-4 lg:flex-row lg:items-center lg:justify-between">
+            <h4 class="text-lg font-bold text-slate-800">이상 탐지 모니터링 및 실시간 제어</h4>
+            <div class="flex flex-wrap gap-2">
+              <button id="refreshSummaryBtn" type="button" class="rounded-xl border border-slate-200 bg-white px-4 py-2 text-sm font-bold text-slate-700 hover:bg-slate-50 transition-colors duration-200">요약 새로고침</button>
+              <button id="runDetectionBtn" type="button" class="rounded-xl bg-slate-900 px-4 py-2 text-sm font-black text-white hover:bg-slate-700 transition-colors duration-200">탐지 다시 실행</button>
+            </div>
+          </div>
+
+          <div id="anomalyMessage" class="hidden rounded-2xl border px-4 py-3 text-sm font-semibold"></div>
+
+          <!-- 통계 카드 요약 -->
+          <div class="grid gap-4 grid-cols-2 lg:grid-cols-5">
+            <article class="rounded-2xl border border-slate-200 bg-white p-5 shadow-sm">
+              <p class="text-xs font-black uppercase tracking-[0.18em] text-slate-400">활성 경고</p>
+              <p id="summaryActiveCount" class="mt-2 text-3xl font-black text-slate-900">-</p>
+            </article>
+            <article class="rounded-2xl border border-slate-200 bg-white p-5 shadow-sm">
+              <p class="text-xs font-black uppercase tracking-[0.18em] text-amber-500">OPEN</p>
+              <p id="summaryOpenCount" class="mt-2 text-3xl font-black text-amber-600">-</p>
+            </article>
+            <article class="rounded-2xl border border-slate-200 bg-white p-5 shadow-sm">
+              <p class="text-xs font-black uppercase tracking-[0.18em] text-emerald-500">CONFIRMED</p>
+              <p id="summaryConfirmedCount" class="mt-2 text-3xl font-black text-emerald-600">-</p>
+            </article>
+            <article class="rounded-2xl border border-slate-200 bg-white p-5 shadow-sm">
+              <p class="text-xs font-black uppercase tracking-[0.18em] text-rose-500">CRITICAL</p>
+              <p id="summaryCriticalCount" class="mt-2 text-3xl font-black text-rose-600">-</p>
+            </article>
+            <article class="rounded-2xl border border-slate-200 bg-white p-5 shadow-sm">
+              <p class="text-xs font-black uppercase tracking-[0.18em] text-indigo-500">HIGH</p>
+              <p id="summaryHighCount" class="mt-2 text-3xl font-black text-indigo-600">-</p>
+            </article>
+          </div>
+
+          <!-- 필터 폼 -->
+          <div class="rounded-2xl border border-slate-200 bg-white p-5 shadow-sm">
+            <form id="anomalyFilterForm" class="grid gap-3 lg:grid-cols-5">
+              <select id="filterStatus" class="rounded-xl border border-slate-200 px-3 py-2 text-sm font-medium text-slate-700">
+                <option value="">전체 상태</option>
+                <option value="OPEN">OPEN</option>
+                <option value="CONFIRMED">CONFIRMED</option>
+                <option value="FALSE_POSITIVE">FALSE_POSITIVE</option>
+                <option value="IGNORED">IGNORED</option>
+              </select>
+              <select id="filterActive" class="rounded-xl border border-slate-200 px-3 py-2 text-sm font-medium text-slate-700">
+                <option value="">전체 활성 여부</option>
+                <option value="true">활성만</option>
+                <option value="false">비활성만</option>
+              </select>
+              <select id="filterSeverity" class="rounded-xl border border-slate-200 px-3 py-2 text-sm font-medium text-slate-700">
+                <option value="">전체 심각도</option>
+                <option value="CRITICAL">CRITICAL</option>
+                <option value="HIGH">HIGH</option>
+                <option value="MEDIUM">MEDIUM</option>
+              </select>
+              <input id="filterKeyword" type="text" placeholder="품목명, 창고명, 제목 검색" class="rounded-xl border border-slate-200 px-3 py-2 text-sm font-medium text-slate-700 placeholder:text-slate-400">
+              <div class="flex gap-2">
+                <button type="submit" class="flex-1 rounded-xl bg-slate-900 px-4 py-2 text-sm font-black text-white hover:bg-slate-700 transition-colors duration-200">조회</button>
+                <button id="resetFiltersBtn" type="button" class="rounded-xl border border-slate-200 px-4 py-2 text-sm font-bold text-slate-600 hover:bg-slate-50 transition-colors duration-200">초기화</button>
+              </div>
+            </form>
+          </div>
+
+          <!-- 테이블 목록 -->
+          <div class="overflow-hidden rounded-2xl border border-slate-200 bg-white shadow-sm">
+            <div class="overflow-x-auto">
+              <table class="w-full min-w-[1000px] text-left text-sm">
+                <thead class="bg-slate-50 text-xs font-black uppercase tracking-[0.16em] text-slate-500">
+                  <tr>
+                    <th class="px-5 py-4">심각도</th>
+                    <th class="px-5 py-4">규칙</th>
+                    <th class="px-5 py-4">대상</th>
+                    <th class="px-5 py-4">요약</th>
+                    <th class="px-5 py-4">상태</th>
+                    <th class="px-5 py-4">최근 감지</th>
+                    <th class="px-5 py-4 text-right">조치</th>
+                  </tr>
+                </thead>
+                <tbody id="anomalyTableBody" class="divide-y divide-slate-100">
+                  <tr>
+                    <td colspan="7" class="px-5 py-10 text-center text-slate-400">이상 탐지 목록을 불러오는 중이야.</td>
+                  </tr>
+                </tbody>
+              </table>
+            </div>
+
+            <!-- 페이징 -->
+            <div class="flex items-center justify-between border-t border-slate-100 bg-slate-50/70 px-5 py-4">
+              <p id="anomalyPageInfo" class="text-sm font-medium text-slate-500">페이지 1 / 1</p>
+              <div class="flex gap-2">
+                <button id="prevPageBtn" type="button" class="rounded-xl border border-slate-200 bg-white px-3 py-2 text-sm font-bold text-slate-600 hover:bg-slate-50 transition-colors duration-200">이전</button>
+                <button id="nextPageBtn" type="button" class="rounded-xl border border-slate-200 bg-white px-3 py-2 text-sm font-bold text-slate-600 hover:bg-slate-50 transition-colors duration-200">다음</button>
+              </div>
+            </div>
+          </div>
         </div>
       </section>
 
@@ -192,8 +290,12 @@
               <span>~</span>
               <input type="date" id="auditDateTo" class="px-3 py-2.5 border border-gray-200 rounded-xl focus:ring-2 focus:ring-indigo-500/20 focus:border-indigo-500 focus:outline-none transition-all duration-200">
             </div>
-            <button type="submit" class="px-4.5 py-2.5 rounded-xl bg-gray-900 hover:bg-gray-800 text-white text-xs font-bold transition-all duration-200 shadow-sm">조회</button>
-            <button type="button" id="auditFilterResetButton" class="px-4 py-2.5 rounded-xl border border-gray-200 hover:bg-gray-50 text-xs font-bold text-gray-500 transition-all duration-200">초기화</button>
+            <button type="submit" class="px-5 py-2.5 rounded-xl bg-indigo-600 hover:bg-indigo-700 text-white text-xs font-bold flex items-center gap-1.5 transition-all duration-200 shadow-sm">
+              <i data-lucide="search" class="w-3.5 h-3.5"></i>조회
+            </button>
+            <button type="button" id="auditFilterResetButton" class="px-5 py-2.5 rounded-xl border border-gray-200 hover:bg-gray-50 text-xs font-bold text-gray-500 flex items-center gap-1.5 transition-all duration-200">
+              <i data-lucide="rotate-ccw" class="w-3.5 h-3.5"></i>초기화
+            </button>
           </form>
         </div>
 
@@ -231,6 +333,7 @@
   <script src="../../services/common/session.js"></script>
   <script src="../../services/common/app-shell.js"></script>
   <script src="../../services/common/sidebar.js"></script>
+  <script src="../../services/admin/anomaly-detection.js"></script>
   <script src="../../services/admin/dashboard-management.js"></script>
   <script>
     document.addEventListener('DOMContentLoaded', function () {

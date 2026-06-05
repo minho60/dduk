@@ -16,15 +16,11 @@ export class ReportEngine {
      */
     async generate(fetchSource, filterOptions) {
         try {
-            console.log(`[ReportEngine] Starting pipeline for: ${this.config.title}`);
-            
             // 1. Fetch Source Data
             const sourceData = await fetchSource(filterOptions);
             
             // 2. Aggregate / Transform
             this.data = this.transform(sourceData);
-            
-            console.log(`[ReportEngine] Pipeline completed. Rows: ${this.data.length}`);
             return {
                 success: true,
                 data: this.data,

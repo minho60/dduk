@@ -203,7 +203,7 @@
     function handleOrderRequest(itemId, itemName, quantity, unit) {
         const confirmed = window.confirm(`[${itemName}] ${number(quantity)} ${unit} 발주 요청 화면으로 이동할까?`);
         if (confirmed) {
-            window.location.href = `purchase-order-request.html?itemId=${itemId}&qty=${quantity}`;
+            window.location.href = `purchase-request.html?itemId=${itemId}&qty=${quantity}&itemName=${encodeURIComponent(itemName)}&unit=${encodeURIComponent(unit)}`;
         }
     }
 

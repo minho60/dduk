@@ -24,6 +24,7 @@ function initTaxInvoicePage() {
   if (issueDate) issueDate.valueAsDate = new Date();
 
   bindEvents();
+  setDefaultSupplier();
   setValue('quantity', '1');
   updateFormTypeLabel();
   recalculateAmounts();
@@ -31,6 +32,14 @@ function initTaxInvoicePage() {
   loadTaxInvoices();
 
   if (window.lucide) window.lucide.createIcons();
+}
+
+/** (주)아망티 기본 공급자 정보를 폼에 설정 */
+function setDefaultSupplier() {
+  setValue('supplierName', '(주)아망티');
+  setValue('supplierBusinessNo', '120-88-12345');
+  setValue('supplierRepresentativeName', '이서준');
+  setValue('supplierEmail', 'contact@amantea.co.kr');
 }
 
 function bindEvents() {
@@ -116,6 +125,7 @@ function bindEvents() {
     if (event.target.id === 'itemLookupDialog') closeItemLookup();
   });
   document.getElementById('itemLookupSearchButton')?.addEventListener('click', searchItems);
+  document.getElementById('itemLookupKeyword')?.addEventListener('input', debounceItemSearch);
   document.getElementById('itemLookupKeyword')?.addEventListener('keydown', (event) => {
     if (event.key === 'Enter') {
       event.preventDefault();
@@ -642,7 +652,19 @@ function closeItemLookup() {
   document.getElementById('itemLookupDialog')?.setAttribute('aria-hidden', 'true');
 }
 
+let itemSearchTimer = null;
+
+function debounceItemSearch() {
+  clearTimeout(itemSearchTimer);
+  itemSearchTimer = setTimeout(() => {
+    if (document.getElementById('itemLookupDialog')?.classList.contains('is_active')) {
+      searchItems();
+    }
+  }, 280);
+}
+
 async function searchItems() {
+  clearTimeout(itemSearchTimer);
   const keyword = getValue('itemLookupKeyword').trim();
   showLookupResults('itemLookupResults');
   if (!keyword) {
@@ -661,7 +683,9 @@ async function searchItems() {
   }
 }
 
-function renderItemLookupResults(items) {
+const ITEM_LOOKUP_PAGE_SIZE = 5;
+
+function renderItemLookupResults(items, page) {
   const results = document.getElementById('itemLookupResults');
   if (!results) return;
   state.itemLookupResults = items;
@@ -671,7 +695,14 @@ function renderItemLookupResults(items) {
     return;
   }
 
-  results.innerHTML = items.map((item) => `
+  const totalPages = Math.ceil(items.length / ITEM_LOOKUP_PAGE_SIZE);
+  const currentPage = Math.min(Math.max(page || 1, 1), totalPages);
+  state.itemLookupPage = currentPage;
+
+  const startIdx = (currentPage - 1) * ITEM_LOOKUP_PAGE_SIZE;
+  const pageItems = items.slice(startIdx, startIdx + ITEM_LOOKUP_PAGE_SIZE);
+
+  let html = pageItems.map((item) => `
     <button class="item_lookup_row" type="button" data-item-id="${item.id}">
       <span>
         <strong>${escapeHtml(item.name || '')}</strong>
@@ -680,6 +711,31 @@ function renderItemLookupResults(items) {
       <span class="item_lookup_code">${escapeHtml(item.itemCode || `ID ${item.id}`)}</span>
     </button>
   `).join('');
+
+  if (totalPages > 1) {
+    html += `<div class="item_lookup_pagination" style="display:flex;align-items:center;justify-content:center;gap:.375rem;padding:.625rem 0;">`;
+    html += `<button type="button" class="erp_btn erp_btn_secondary" data-item-page="${currentPage - 1}" style="padding:.25rem .625rem;font-size:.75rem;" ${currentPage <= 1 ? 'disabled' : ''}>&laquo; 이전</button>`;
+    for (let i = 1; i <= totalPages; i++) {
+      const activeStyle = i === currentPage
+        ? 'background:#4f46e5;color:#fff;border-color:#4f46e5'
+        : '';
+      html += `<button type="button" class="erp_btn erp_btn_secondary" data-item-page="${i}" style="min-width:1.75rem;padding:.25rem .375rem;font-size:.75rem;font-weight:700;${activeStyle}">${i}</button>`;
+    }
+    html += `<button type="button" class="erp_btn erp_btn_secondary" data-item-page="${currentPage + 1}" style="padding:.25rem .625rem;font-size:.75rem;" ${currentPage >= totalPages ? 'disabled' : ''}>다음 &raquo;</button>`;
+    html += `<span style="font-size:.7rem;color:#9ca3af;margin-left:.375rem;">총 ${items.length}건</span>`;
+    html += `</div>`;
+  }
+
+  results.innerHTML = html;
+
+  results.querySelectorAll('[data-item-page]').forEach((btn) => {
+    btn.addEventListener('click', () => {
+      const p = Number(btn.dataset.itemPage);
+      if (p >= 1 && p <= totalPages) {
+        renderItemLookupResults(state.itemLookupResults, p);
+      }
+    });
+  });
 }
 
 function renderItemLookupEmpty(message) {
@@ -917,7 +973,7 @@ async function handlePurchaseOrderSelect(event) {
   if (!getValue('memo')) {
     setValue('memo', `${order.purchaseOrderNo || '발주서'} 기반 세금계산서`);
   }
-  state.lines = (order.items || []).map((item) => ({
+  const newLines = (order.items || []).map((item) => ({
     itemName: item.itemName || '',
     unit: item.unit || '',
     quantity: Number(item.quantity || 0) || null,
@@ -926,9 +982,10 @@ async function handlePurchaseOrderSelect(event) {
     vatAmount: Number(item.taxAmount || 0),
     totalAmount: Number(item.lineAmount || 0),
   })).filter((line) => line.itemName && line.supplyAmount > 0);
+  state.lines.push(...newLines);
   renderLineList();
   closePurchaseOrderLookup();
-  showToast(`${order.purchaseOrderNo || '발주서'}의 품목을 불러왔습니다.`, 'success');
+  showToast(`${order.purchaseOrderNo || '발주서'}의 품목 ${newLines.length}건을 추가했습니다.`, 'success');
 }
 
 async function handleStatusSubmit(event) {
@@ -978,6 +1035,7 @@ function resetForm() {
   const issueDate = document.getElementById('issueDate');
   if (issueDate) issueDate.valueAsDate = new Date();
   state.lines = [];
+  setDefaultSupplier();
   renderLineList();
   clearLineEditor();
   recalculateAmounts();

@@ -24,7 +24,6 @@ export class PayrollAuditService {
             details
         };
         this.logs.push(logEntry);
-        console.log(`[Audit] Payroll ${payrollId}: ${action} by ${userId}`, details);
         return logEntry;
     }
 

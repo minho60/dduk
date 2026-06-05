@@ -12,7 +12,6 @@ document.addEventListener('DOMContentLoaded', () => {
     const orderBody = document.getElementById('order-items');
     const message = document.getElementById('message');
     const saveButton = document.getElementById('btn-save');
-    const selectedBox = document.getElementById('selected-vendor');
     const requestedByInput = document.getElementById('requested-by-member-id');
     const approvedBySelect = document.getElementById('approved-by-member-id');
     const vendorIdInput = document.getElementById('vendor-id');
@@ -23,6 +22,9 @@ document.addEventListener('DOMContentLoaded', () => {
 
     let selectedVendor = null;
     let orderItems = [];
+    let vendorSearchTimer = null;
+    let itemSearchTimer = null;
+    let lastVendorKeyword = '';
 
     function resolveCurrentMemberId() {
         const loginId = (localStorage.getItem('loginId') || '').toLowerCase();
@@ -51,6 +53,12 @@ document.addEventListener('DOMContentLoaded', () => {
         message.textContent = textValue;
     }
 
+    function warnRequired(messageText, target) {
+        setMessage(messageText, 'error');
+        window.ddukApi?.showToast?.(messageText, 'warning');
+        target?.focus?.();
+    }
+
     async function requestList(path, fallbackMessage) {
         try {
             return await window.ddukApi.requestList(path, { method: 'GET' });
@@ -59,33 +67,41 @@ document.addEventListener('DOMContentLoaded', () => {
         }
     }
 
-    async function requestData(path, options, fallbackMessage) {
-        try {
-            return await window.ddukApi.requestData(path, options);
-        } catch (error) {
-            throw new Error(error.message || fallbackMessage);
+    function debounceSearch(timer, callback) {
+        if (timer) {
+            clearTimeout(timer);
         }
+        return setTimeout(callback, 250);
     }
 
     function renderVendors(list) {
         if (!Array.isArray(list) || list.length === 0) {
-            vendorResult.innerHTML = '<tr><td colspan="5" class="text-center text-gray-400 font-semibold py-7">No vendors found.</td></tr>';
+            vendorResult.innerHTML = '<tr><td colspan="5" class="text-center text-gray-400 font-semibold py-7">조회된 거래처가 없습니다.</td></tr>';
             return;
         }
 
-        vendorResult.innerHTML = list.map((vendor) => `
-            <tr>
+        vendorResult.innerHTML = list.map((vendor) => {
+            const isSelected = selectedVendor && String(selectedVendor.id) === String(vendor.id);
+            const rowClass = isSelected ? 'bg-emerald-50' : '';
+            const buttonClass = isSelected
+                ? 'bg-emerald-600 text-white'
+                : 'bg-indigo-50 text-indigo-700';
+            const buttonText = isSelected ? '선택됨' : '선택';
+
+            return `
+            <tr class="${rowClass}">
                 <td class="font-bold">${text(vendor.vendorCode)}</td>
                 <td>${text(vendor.name)}</td>
                 <td>${text(vendor.representativeName)}</td>
                 <td>${text(vendor.contactPhone)}</td>
                 <td>
-                    <button type="button" class="select-vendor px-3 py-2 text-xs font-bold rounded-lg bg-indigo-50 text-indigo-700" data-id="${vendor.id}">
-                        Select
+                    <button type="button" class="select-vendor px-3 py-2 text-xs font-bold rounded-lg ${buttonClass}" data-id="${vendor.id}" aria-pressed="${isSelected}">
+                        ${buttonText}
                     </button>
                 </td>
             </tr>
-        `).join('');
+        `;
+        }).join('');
 
         vendorResult.querySelectorAll('.select-vendor').forEach((button) => {
             button.addEventListener('click', () => {
@@ -94,8 +110,10 @@ document.addEventListener('DOMContentLoaded', () => {
                     return;
                 }
                 vendorIdInput.value = selectedVendor.id;
-                selectedBox.textContent = `${selectedVendor.vendorCode} / ${selectedVendor.name} / ${selectedVendor.businessRegistrationNo}`;
-                setMessage('Vendor selected.', 'ok');
+                vendorNameInput.value = selectedVendor.name || vendorNameInput.value;
+                lastVendorKeyword = vendorNameInput.value.trim();
+                renderVendors(list);
+                setMessage('거래처가 선택되었습니다.', 'ok');
             });
         });
     }
@@ -115,7 +133,7 @@ document.addEventListener('DOMContentLoaded', () => {
             });
         }
         renderOrder();
-        setMessage(`Added item: ${text(item.name)}`, 'ok');
+        setMessage(`품목이 추가되었습니다: ${text(item.name)}`, 'ok');
     }
 
     function openItemPopup() {
@@ -131,7 +149,7 @@ document.addEventListener('DOMContentLoaded', () => {
             'width=760,height=780,menubar=no,toolbar=no,location=no,status=no'
         );
         if (!popup) {
-            setMessage('Popup was blocked.', 'error');
+            setMessage('팝업이 차단되었습니다.', 'error');
         }
     }
 
@@ -140,9 +158,9 @@ document.addEventListener('DOMContentLoaded', () => {
             itemResult.innerHTML = `
                 <tr>
                     <td colspan="5" class="text-center py-7">
-                        <p class="font-semibold text-gray-400">No items found.</p>
+                        <p class="font-semibold text-gray-400">조회된 품목이 없습니다.</p>
                         <button type="button" id="btn-open-item-register" class="mt-3 px-4 py-2 text-sm font-bold rounded-lg bg-indigo-50 text-indigo-700">
-                            Register item
+                            품목 등록
                         </button>
                     </td>
                 </tr>
@@ -157,9 +175,9 @@ document.addEventListener('DOMContentLoaded', () => {
                 <td>${text(item.name)}</td>
                 <td>${text(item.unit)}</td>
                 <td>${money(item.unitPrice)}</td>
-                <td>
-                    <button type="button" class="add-item px-3 py-2 text-xs font-bold rounded-lg bg-indigo-50 text-indigo-700" data-id="${item.id}">
-                        Add
+                <td class="whitespace-nowrap">
+                    <button type="button" class="add-item whitespace-nowrap px-3 py-2 text-xs font-bold rounded-lg bg-indigo-50 text-indigo-700" data-id="${item.id}">
+                        추가
                     </button>
                 </td>
             </tr>
@@ -226,58 +244,56 @@ document.addEventListener('DOMContentLoaded', () => {
     async function searchVendors() {
         const name = vendorNameInput.value.trim();
         if (!name) {
-            vendorResult.innerHTML = '<tr><td colspan="5" class="text-center text-red-600 font-semibold py-7">Enter a vendor name first.</td></tr>';
+            vendorResult.innerHTML = '<tr><td colspan="5" class="text-center text-gray-400 font-semibold py-7">거래처명을 검색하세요.</td></tr>';
             selectedVendor = null;
             vendorIdInput.value = '';
-            selectedBox.textContent = 'No vendor selected.';
-            vendorNameInput.focus();
-            setMessage('Vendor name is required.', 'error');
+            lastVendorKeyword = '';
             return;
         }
 
-        selectedVendor = null;
-        vendorIdInput.value = '';
-        selectedBox.textContent = 'Choose a vendor from the search result.';
-        vendorResult.innerHTML = '<tr><td colspan="5" class="text-center text-gray-400 font-semibold py-7">Loading vendors...</td></tr>';
+        if (name !== lastVendorKeyword) {
+            selectedVendor = null;
+            vendorIdInput.value = '';
+            lastVendorKeyword = name;
+        }
+        vendorResult.innerHTML = '<tr><td colspan="5" class="text-center text-gray-400 font-semibold py-7">거래처 조회 중...</td></tr>';
 
         try {
-            const vendors = await requestList(`/api/v1/inventory/vendors/search?name=${encodeURIComponent(name)}`, 'Failed to load vendors.');
+            const vendors = await requestList(`/api/v1/inventory/vendors/search?keyword=${encodeURIComponent(name)}`, '거래처를 불러오지 못했습니다.');
             renderVendors(vendors);
         } catch (error) {
-            vendorResult.innerHTML = `<tr><td colspan="5" class="text-center text-red-600 font-semibold py-7">Vendor search failed: ${text(error.message)}</td></tr>`;
+            vendorResult.innerHTML = `<tr><td colspan="5" class="text-center text-red-600 font-semibold py-7">거래처 조회 실패: ${text(error.message)}</td></tr>`;
         }
     }
 
     async function searchItems() {
         const name = itemNameInput.value.trim();
         if (!name) {
-            itemResult.innerHTML = '<tr><td colspan="5" class="text-center text-red-600 font-semibold py-7">Enter an item name first.</td></tr>';
-            itemNameInput.focus();
-            setMessage('Item name is required.', 'error');
+            itemResult.innerHTML = '<tr><td colspan="5" class="text-center text-gray-400 font-semibold py-7">품목명을 검색하세요.</td></tr>';
             return;
         }
 
-        itemResult.innerHTML = '<tr><td colspan="5" class="text-center text-gray-400 font-semibold py-7">Loading items...</td></tr>';
+        itemResult.innerHTML = '<tr><td colspan="5" class="text-center text-gray-400 font-semibold py-7">품목 조회 중...</td></tr>';
 
         try {
-            const items = await requestList(`/api/v1/inventory/items/search?name=${encodeURIComponent(name)}`, 'Failed to load items.');
+            const items = await requestList(`/api/v1/inventory/items/search?name=${encodeURIComponent(name)}`, '품목을 불러오지 못했습니다.');
             renderItems(items);
         } catch (error) {
-            itemResult.innerHTML = `<tr><td colspan="5" class="text-center text-red-600 font-semibold py-7">Item search failed: ${text(error.message)}</td></tr>`;
+            itemResult.innerHTML = `<tr><td colspan="5" class="text-center text-red-600 font-semibold py-7">품목 조회 실패: ${text(error.message)}</td></tr>`;
         }
     }
 
     async function save() {
         if (!selectedVendor) {
-            setMessage('Select a vendor first.', 'error');
+            warnRequired('거래처를 먼저 선택하세요.', vendorNameInput);
             return;
         }
         if (!expectedDateInput.value) {
-            setMessage('Expected date is required.', 'error');
+            warnRequired('희망 납기일을 입력하세요.', expectedDateInput);
             return;
         }
         if (orderItems.length === 0) {
-            setMessage('Add at least one item.', 'error');
+            warnRequired('발주 품목을 1개 이상 추가하세요.', itemNameInput);
             return;
         }
 
@@ -298,18 +314,23 @@ document.addEventListener('DOMContentLoaded', () => {
 
         const original = saveButton.innerHTML;
         saveButton.disabled = true;
-        saveButton.innerHTML = 'Saving...';
+        saveButton.innerHTML = '저장 중...';
 
         try {
-            const saved = await requestData('/api/v1/inventory/purchase-orders', {
-                method: 'POST',
-                body: payload
-            }, 'Failed to save purchase order request.');
-            setMessage(`Purchase order saved: ${saved.purchaseOrderNo || '-'}`, 'ok');
+            const response = await window.ddukApi.post('/api/v1/inventory/purchase-orders', payload);
+            const saved = window.ddukApi.unwrapData(response);
+            setMessage(`구매 요청이 저장되었습니다: ${saved.purchaseOrderNo || '-'}`, 'ok');
+            selectedVendor = null;
+            vendorIdInput.value = '';
+            vendorNameInput.value = '';
+            vendorResult.innerHTML = '<tr><td colspan="5" class="text-center text-gray-400 font-semibold py-7">거래처명을 검색하세요.</td></tr>';
             orderItems = [];
             renderOrder();
         } catch (error) {
-            setMessage(`Save failed: ${error.message}`, 'error');
+            const detail = error.message === 'FORBIDDEN'
+                ? '현재 계정은 구매 요청 저장 권한이 없습니다. 재고 관리자 또는 관리자 계정으로 로그인하세요.'
+                : error.message;
+            setMessage(`저장 실패: ${detail}`, 'error');
         } finally {
             saveButton.disabled = false;
             saveButton.innerHTML = original;
@@ -338,6 +359,29 @@ document.addEventListener('DOMContentLoaded', () => {
         }
     });
 
+    // 추천 발주 페이지에서 넘어온 파라미터 처리
+    const urlParams = new URLSearchParams(window.location.search);
+    const queryItemId = urlParams.get('itemId');
+    const queryQty = urlParams.get('qty');
+    const queryItemName = urlParams.get('itemName');
+    const queryUnit = urlParams.get('unit');
+
+    if (queryItemId && queryItemName) {
+        addItem({
+            id: Number(queryItemId),
+            name: queryItemName,
+            unit: queryUnit || 'EA',
+            unitPrice: 0
+        });
+        if (queryQty) {
+            const added = orderItems.find((candidate) => candidate.itemId === Number(queryItemId));
+            if (added) {
+                added.quantity = Math.max(1, Number(queryQty));
+                renderOrder();
+            }
+        }
+    }
+
     document.getElementById('btn-vendor-search')?.addEventListener('click', searchVendors);
     document.getElementById('btn-item-search')?.addEventListener('click', searchItems);
     saveButton?.addEventListener('click', save);
@@ -347,10 +391,16 @@ document.addEventListener('DOMContentLoaded', () => {
             searchVendors();
         }
     });
+    vendorNameInput?.addEventListener('input', () => {
+        vendorSearchTimer = debounceSearch(vendorSearchTimer, searchVendors);
+    });
     itemNameInput?.addEventListener('keydown', (event) => {
         if (event.key === 'Enter') {
             event.preventDefault();
             searchItems();
         }
+    });
+    itemNameInput?.addEventListener('input', () => {
+        itemSearchTimer = debounceSearch(itemSearchTimer, searchItems);
     });
 });

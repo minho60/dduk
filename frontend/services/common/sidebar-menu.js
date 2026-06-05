@@ -11,8 +11,8 @@
             items: [
                 { label: '구매/발주 대시보드', icon: 'bar-chart-3', href: 'pages/inventory/purchase-dashboard.html', roles: ['ADMIN', 'INVENTORY'] },
                 { label: '구매 요청', icon: 'file-plus', href: 'pages/inventory/purchase-request.html', roles: ['ADMIN', 'INVENTORY'] },
-                { label: '발주 관리', icon: 'clipboard-list', href: 'pages/inventory/purchase-orders.html', roles: ['ADMIN', 'INVENTORY'] },
-                { label: '발주 현황', icon: 'trending-up', href: 'pages/inventory/purchase-status.html', roles: ['ADMIN', 'INVENTORY'] },
+                { label: '발주조회', icon: 'clipboard-list', href: 'pages/inventory/purchase-orders.html', roles: ['ADMIN', 'INVENTORY'] },
+                { label: '발주 상태 관리', icon: 'trending-up', href: 'pages/inventory/purchase-status.html', roles: ['ADMIN', 'INVENTORY'] },
                 { label: '입고 등록', icon: 'package-check', href: 'pages/inventory/receiving.html', roles: ['ADMIN', 'INVENTORY'] },
                 { label: '거래처 관리', icon: 'building', href: 'pages/inventory/vendors.html', roles: ['ADMIN', 'INVENTORY'] }
             ]
@@ -58,7 +58,7 @@
             label: 'AI 업무지원',
             items: [
                 { label: 'AI 챗봇', icon: 'bot', href: '#', roles: ['ADMIN', 'HR', 'INVENTORY'] },
-                { label: '이상 탐지', icon: 'alert-triangle', href: 'pages/admin/anomaly-detection.html', roles: ['ADMIN'] },
+                { label: '이상 탐지', icon: 'alert-triangle', href: '#', roles: ['ADMIN'] },
                 { label: '예측 분석', icon: 'brain', href: '#', roles: ['ADMIN', 'HR', 'INVENTORY'] }
             ]
         },
@@ -69,7 +69,7 @@
                 { label: '계정 및 권한 관리', icon: 'shield-check', href: 'pages/admin/account-security.html', roles: ['ADMIN'] },
                 { label: '시스템 운영 관리', icon: 'settings-2', href: 'pages/admin/system-admin.html', roles: ['ADMIN'] },
                 { label: '공지사항 관리', icon: 'megaphone', href: 'pages/admin/notice-admin.html', roles: ['ADMIN'] },
-                { label: '조직 및 부서 관리', icon: 'network', href: 'pages/admin/org-admin.html', roles: ['ADMIN'] },
+                { label: '조직 및 부서 관리', icon: 'network', href: 'pages/admin/org-admin.html', roles: ['ADMIN'], disabled: true },
                 { label: 'AI 챗봇 테스트', icon: 'bot', href: 'pages/admin/chatbot-test.html', roles: ['ADMIN'] },
                 { label: 'AI/RPA 작업 이력', icon: 'history', href: 'pages/admin/task-history.html', roles: ['ADMIN'] }
             ]
@@ -153,7 +153,7 @@
                         </button>
                     </div>
                     <div class="dduk-inline-005">
-                        <span data-template-id="workspace-name" class="canva-text dduk-inline-006">아망티</span>
+                        <span data-template-id="workspace-name" class="canva-text dduk-inline-006">(주)아망티</span>
                         <i class="dduk-inline-007" data-lucide="chevron-down"></i>
                     </div>
                     <div class="dduk-inline-008">
@@ -455,7 +455,7 @@
                     if (!allowedRoles.includes(currentUserRole)) {
                         e.preventDefault();
                         e.stopPropagation();
-                        alert('해당 메뉴에 접근할 권한이 없습니다.');
+                        window.ddukApi?.showToast?.('해당 메뉴에 접근할 권한이 없습니다.', 'warning');
                         return;
                     }
                 }

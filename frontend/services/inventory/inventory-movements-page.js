@@ -1,10 +1,18 @@
         let rawMovementsData = [];
 
+        function notify(message, type = 'info') {
+            if (window.ddukApi?.showToast) {
+                window.ddukApi.showToast(message, type);
+                return;
+            }
+            console[type === 'error' ? 'error' : 'warn'](message);
+        }
+
         document.addEventListener('DOMContentLoaded', async () => {
             lucide.createIcons();
             await loadWarehouses();
             await loadMovements();
-            
+
             document.getElementById('warehouse-filter').addEventListener('change', loadMovements);
             document.getElementById('type-filter').addEventListener('change', loadMovements);
             document.getElementById('start-date').addEventListener('change', loadMovements);
@@ -37,13 +45,13 @@
             // 로딩 표시
             list.innerHTML = `<tr><td colspan="9" style="text-align:center;padding:2.5rem;color:#6366f1;font-size:0.85rem;font-weight:600">🔄 거래 원장 로딩 중...</td></tr>`;
             empty.classList.add('hidden');
-            
+
             try {
                 const response = await InventoryService.getMovements({ warehouseId, movementType });
-                
+
                 if (response.status === 'success' && response.data.length > 0) {
                     rawMovementsData = response.data;
-                    
+
                     // 기간(Date-Range) 필터링
                     let data = rawMovementsData;
                     if (startDate) {
@@ -155,7 +163,7 @@
         function downloadExcel() {
             const data = getFilteredData();
             if (data.length === 0) {
-                alert('다운로드할 데이터가 없습니다.');
+                notify('다운로드할 데이터가 없습니다.', 'warning');
                 return;
             }
 
@@ -175,7 +183,7 @@
             const worksheet = XLSX.utils.json_to_sheet(formatted);
             const workbook = XLSX.utils.book_new();
             XLSX.utils.book_append_sheet(workbook, worksheet, "입출고 원장");
-            
+
             const today = new Date().toISOString().split('T')[0];
             XLSX.writeFile(workbook, `inventory_movements_${today}.xlsx`);
         }
@@ -183,7 +191,7 @@
         function downloadCSV() {
             const data = getFilteredData();
             if (data.length === 0) {
-                alert('다운로드할 데이터가 없습니다.');
+                notify('다운로드할 데이터가 없습니다.', 'warning');
                 return;
             }
 
@@ -205,7 +213,7 @@
             const blob = new Blob([csvContent], { type: 'text/csv;charset=utf-8;' });
             const link = document.createElement("a");
             const url = URL.createObjectURL(blob);
-            
+
             const today = new Date().toISOString().split('T')[0];
             link.setAttribute("href", url);
             link.setAttribute("download", `inventory_movements_${today}.csv`);
@@ -214,4 +222,4 @@
             link.click();
             document.body.removeChild(link);
         }
-    
+

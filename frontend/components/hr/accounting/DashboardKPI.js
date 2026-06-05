@@ -28,7 +28,7 @@ export class DashboardKPI extends DashboardWidget {
             case 'SALES': return summary.salesTotal;
             case 'PURCHASE': return summary.purchaseTotal;
             case 'PROFIT': return summary.netProfit;
-            case 'PENDING_COUNT': return summary.transactionCount; // Simplification for mock
+            case 'PENDING_COUNT': return summary.transactionCount;
             case 'UNSETTLED': return summary.pendingAmount;
             case 'VAT': return summary.vatTotal;
             default: return 0;
