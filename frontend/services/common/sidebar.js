@@ -127,7 +127,7 @@
     function getApiBaseUrl() {
         return window.ddukSession && typeof window.ddukSession.getApiBaseUrl === 'function'
             ? window.ddukSession.getApiBaseUrl()
-            : 'http://localhost:8080';
+            : '';
     }
 
     function getHeaders(extraHeaders) {

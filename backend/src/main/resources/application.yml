@@ -34,6 +34,8 @@ app:
   accounting:
     seed: ${ACCOUNTING_SEED:true}
     seed-mode: ${ACCOUNTING_SEED_MODE:true}
+  cors:
+    allowed-origin-patterns: ${APP_CORS_ALLOWED_ORIGIN_PATTERNS:http://localhost:*,http://127.0.0.1:*}
   frontend:
     path: ${FRONTEND_PATH:}
 

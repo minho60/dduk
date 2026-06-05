@@ -1,4 +1,20 @@
 (function () {
+    function normalizeApiBaseUrl(value) {
+        if (typeof value !== "string") {
+            return null;
+        }
+        const trimmed = value.trim();
+        if (!trimmed) {
+            return "";
+        }
+        return trimmed.replace(/\/+$/, "");
+    }
+
+    function getLocalApiBaseUrl() {
+        const host = window.location.hostname === "127.0.0.1" ? "127.0.0.1" : "localhost";
+        return `http://${host}:8080`;
+    }
+
     const rolePathMap = {
         ADMIN: "dashboard.html",
         HR: "dashboard.html",
@@ -15,8 +31,23 @@
     }
 
     function getApiBaseUrl() {
-        const host = window.location.hostname === "127.0.0.1" ? "127.0.0.1" : "localhost";
-        return `http://${host}:8080`;
+        const explicitBaseUrl = normalizeApiBaseUrl(window.__DDUK_API_BASE_URL__)
+            ?? normalizeApiBaseUrl(document.querySelector('meta[name="dduk-api-base-url"]')?.content)
+            ?? normalizeApiBaseUrl(window.localStorage?.getItem("dduk.apiBaseUrl"));
+
+        if (explicitBaseUrl !== null) {
+            return explicitBaseUrl;
+        }
+
+        if (window.location.protocol === "file:") {
+            return getLocalApiBaseUrl();
+        }
+
+        if (["localhost", "127.0.0.1"].includes(window.location.hostname) && window.location.port && window.location.port !== "8080") {
+            return getLocalApiBaseUrl();
+        }
+
+        return "";
     }
 
     function getAuthHeaders(extraHeaders) {

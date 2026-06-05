@@ -5,7 +5,7 @@
 
             const params = new URLSearchParams(location.search);
             const orderId = params.get('id');
-            const apiOrigin = location.protocol === 'file:' ? 'http://localhost:8080' : location.origin;
+            const apiOrigin = window.ddukSession?.getApiBaseUrl?.() || window.ddukApi?.getBaseUrl?.() || '';
             const message = document.getElementById('message');
             const saveButton = document.getElementById('btn-save');
             const approveButton = document.getElementById('btn-approve');

@@ -1,0 +1,90 @@
+name: Deploy kmh to EC2
+
+on:
+  push:
+    branches:
+      - kmh
+  workflow_dispatch:
+
+concurrency:
+  group: deploy-kmh
+  cancel-in-progress: true
+
+jobs:
+  deploy:
+    name: Deploy to EC2
+    runs-on: ubuntu-latest
+    environment: production
+
+    steps:
+      - name: Checkout repository
+        uses: actions/checkout@v4
+
+      - name: Validate required secrets
+        shell: bash
+        env:
+          EC2_HOST: ${{ secrets.EC2_HOST }}
+          EC2_USER: ${{ secrets.EC2_USER }}
+          EC2_PORT: ${{ secrets.EC2_PORT }}
+          EC2_DEPLOY_PATH: ${{ secrets.EC2_DEPLOY_PATH }}
+          EC2_SSH_KEY: ${{ secrets.EC2_SSH_KEY }}
+        run: |
+          set -euo pipefail
+          test -n "$EC2_HOST" || { echo "EC2_HOST secret is missing"; exit 1; }
+          test -n "$EC2_USER" || { echo "EC2_USER secret is missing"; exit 1; }
+          test -n "$EC2_DEPLOY_PATH" || { echo "EC2_DEPLOY_PATH secret is missing"; exit 1; }
+          test -n "$EC2_SSH_KEY" || { echo "EC2_SSH_KEY secret is missing"; exit 1; }
+          if [ -z "${EC2_PORT:-}" ]; then
+            echo "EC2_PORT is empty. The workflow will use port 22."
+          fi
+
+      - name: Configure SSH
+        shell: bash
+        env:
+          EC2_HOST: ${{ secrets.EC2_HOST }}
+          EC2_PORT: ${{ secrets.EC2_PORT }}
+          EC2_SSH_KEY: ${{ secrets.EC2_SSH_KEY }}
+        run: |
+          set -euo pipefail
+          mkdir -p ~/.ssh
+          chmod 700 ~/.ssh
+          printf '%s\n' "$EC2_SSH_KEY" > ~/.ssh/dduk-erp-key.pem
+          chmod 600 ~/.ssh/dduk-erp-key.pem
+          ssh-keyscan -p "${EC2_PORT:-22}" -H "$EC2_HOST" >> ~/.ssh/known_hosts
+          chmod 644 ~/.ssh/known_hosts
+
+      - name: Deploy kmh branch on EC2
+        shell: bash
+        env:
+          EC2_HOST: ${{ secrets.EC2_HOST }}
+          EC2_USER: ${{ secrets.EC2_USER }}
+          EC2_PORT: ${{ secrets.EC2_PORT }}
+          EC2_DEPLOY_PATH: ${{ secrets.EC2_DEPLOY_PATH }}
+        run: |
+          set -euo pipefail
+          ssh -i ~/.ssh/dduk-erp-key.pem -p "${EC2_PORT:-22}" "$EC2_USER@$EC2_HOST" <<EOF
+            set -euo pipefail
+            cd "$EC2_DEPLOY_PATH"
+
+            trap 'docker compose --env-file .env.aws logs --tail=100 backend ai-server rpa-server || true' ERR
+
+            git fetch origin
+            git checkout kmh
+            git pull --ff-only origin kmh
+
+            docker compose --env-file .env.aws config
+            docker compose --env-file .env.aws up -d --build
+            docker compose --env-file .env.aws ps
+
+            sleep 15
+
+            if command -v curl >/dev/null 2>&1; then
+              curl -fsS http://localhost:8080/index.html >/dev/null
+              curl -fsS http://localhost:5000/health
+              curl -fsS http://localhost:5050/health
+            else
+              wget -qO- http://localhost:8080/index.html >/dev/null
+              wget -qO- http://localhost:5000/health
+              wget -qO- http://localhost:5050/health
+            fi
+          EOF

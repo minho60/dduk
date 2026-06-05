@@ -8,16 +8,7 @@ class PayrollService {
         if (window.ddukSession && typeof window.ddukSession.getApiBaseUrl === 'function') {
             return window.ddukSession.getApiBaseUrl();
         }
-
-        if (window.location.protocol === 'file:') {
-            return 'http://localhost:8080';
-        }
-
-        if (window.location.port && window.location.port !== '8080') {
-            return 'http://localhost:8080';
-        }
-
-        return '';
+        return window.ddukApi?.getBaseUrl?.() || '';
     }
 
     getHeaders(extraHeaders = {}) {
