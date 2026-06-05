@@ -147,7 +147,7 @@ EC2에는 아래가 준비되어 있어야 한다.
 
 ```bash
 cd /home/ubuntu
-git clone https://github.com/minho60/dduk.git dduk
+git clone https://github.com/<본인-깃허브-계정>/dduk.git dduk
 cd dduk
 git checkout kmh
 cp .env.aws.example .env.aws
