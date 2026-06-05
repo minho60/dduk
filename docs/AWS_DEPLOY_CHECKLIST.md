@@ -1,6 +1,6 @@
 # AWS Deploy Checklist
 
-이 문서는 `kmh` 브랜치를 EC2에 `pull-only` 방식으로 배포할 때 필요한 최소 점검 항목을 정리한다.
+이 문서는 `develop` 브랜치를 EC2에 `pull-only` 방식으로 배포할 때 필요한 최소 점검 항목을 정리한다.
 
 핵심 전제:
 
@@ -58,8 +58,8 @@ echo "<GHCR_READ_TOKEN>" | docker login ghcr.io -u "<GHCR_USERNAME>" --password-
 
 ```bash
 cd /home/ubuntu/dduk
-git checkout kmh
-git pull --ff-only origin kmh
+git checkout develop
+git pull --ff-only origin develop
 docker compose --env-file .env.aws -f docker-compose.deploy.yml config
 docker compose --env-file .env.aws -f docker-compose.deploy.yml pull
 docker compose --env-file .env.aws -f docker-compose.deploy.yml up -d --force-recreate
@@ -153,7 +153,7 @@ docker compose --env-file .env.aws -f docker-compose.deploy.yml exec backend sh 
 ## 11. 재배포
 
 ```bash
-git pull --ff-only origin kmh
+git pull --ff-only origin develop
 docker compose --env-file .env.aws -f docker-compose.deploy.yml pull
 docker compose --env-file .env.aws -f docker-compose.deploy.yml up -d --force-recreate
 ```

@@ -1,10 +1,10 @@
 # GitHub Actions Deploy Setup
 
-이 문서는 `kmh` 브랜치 push 시 GitHub Actions가 Docker 이미지를 빌드해서 GHCR에 올리고, EC2는 그 이미지를 `pull`만 해서 배포하는 흐름을 설명한다.
+이 문서는 `develop` 브랜치 push 시 GitHub Actions가 Docker 이미지를 빌드해서 GHCR에 올리고, EC2는 그 이미지를 `pull`만 해서 배포하는 흐름을 설명한다.
 
 대상 브랜치:
 
-- `kmh`
+- `develop`
 
 배포 구조:
 
@@ -22,7 +22,7 @@
 
 - [deploy-kmh.yml](/C:/kmh/dduk/.github/workflows/deploy-kmh.yml:1)
 
-이 워크플로우는 `kmh` 브랜치 push 또는 수동 실행 시 동작한다.
+이 워크플로우는 `develop` 브랜치 push 또는 수동 실행 시 동작한다.
 
 ## 2. GitHub Secrets
 
@@ -149,7 +149,7 @@ EC2에는 아래가 준비되어 있어야 한다.
 cd /home/ubuntu
 git clone https://github.com/<본인-깃허브-계정>/dduk.git dduk
 cd dduk
-git checkout kmh
+git checkout develop
 cp .env.aws.example .env.aws
 ```
 
@@ -162,8 +162,8 @@ cp .env.aws.example .env.aws
 ```bash
 cd /home/ubuntu/dduk
 git fetch origin
-git checkout kmh
-git pull --ff-only origin kmh
+git checkout develop
+git pull --ff-only origin develop
 docker login ghcr.io
 docker compose --env-file .env.aws -f docker-compose.deploy.yml config
 docker compose --env-file .env.aws -f docker-compose.deploy.yml pull
@@ -183,9 +183,9 @@ curl -fsS http://localhost:5050/health
 
 워크플로우는 기본적으로 아래 태그를 push한다.
 
-- `ghcr.io/<repo-owner>/dduk-backend:kmh`
-- `ghcr.io/<repo-owner>/dduk-ai-server:kmh`
-- `ghcr.io/<repo-owner>/dduk-rpa-server:kmh`
+- `ghcr.io/<repo-owner>/dduk-backend:develop`
+- `ghcr.io/<repo-owner>/dduk-ai-server:develop`
+- `ghcr.io/<repo-owner>/dduk-rpa-server:develop`
 
 추적용 SHA 태그도 같이 push한다.
 
@@ -193,20 +193,20 @@ curl -fsS http://localhost:5050/health
 - `ghcr.io/<repo-owner>/dduk-ai-server:sha-<commit-sha>`
 - `ghcr.io/<repo-owner>/dduk-rpa-server:sha-<commit-sha>`
 
-EC2 배포는 기본적으로 `:kmh` 태그를 당겨 쓴다.
+EC2 배포는 기본적으로 `:develop` 태그를 당겨 쓴다.
 
 ## 7. 수동 테스트 방법
 
-### 방법 1. `kmh` 브랜치 push
+### 방법 1. `develop` 브랜치 push
 
 ```bash
-git push origin kmh
+git push origin develop
 ```
 
 ### 방법 2. GitHub Actions 수동 실행
 
 1. `Actions`
-2. `Deploy kmh to EC2`
+2. `Deploy develop to EC2` (또는 설정된 워크플로우 이름)
 3. `Run workflow`
 
 ## 8. 실패하면 먼저 볼 것
