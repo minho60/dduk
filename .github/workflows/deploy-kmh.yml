@@ -160,15 +160,32 @@ jobs:
             docker compose --env-file .env.aws -f docker-compose.deploy.yml up -d --force-recreate
             docker compose --env-file .env.aws -f docker-compose.deploy.yml ps
 
-            sleep 15
+            wait_for_http() {
+              local url="$1"
+              local label="$2"
+              local attempt=1
 
-            if command -v curl >/dev/null 2>&1; then
-              curl -fsS http://localhost:8080/index.html >/dev/null
-              curl -fsS http://localhost:5000/health
-              curl -fsS http://localhost:5050/health
-            else
-              wget -qO- http://localhost:8080/index.html >/dev/null
-              wget -qO- http://localhost:5000/health
-              wget -qO- http://localhost:5050/health
-            fi
+              while [ "$attempt" -le 30 ]; do
+                if command -v curl >/dev/null 2>&1; then
+                  if curl -fsS "$url" >/dev/null; then
+                    echo "$label is ready"
+                    return 0
+                  fi
+                elif wget -qO- "$url" >/dev/null; then
+                  echo "$label is ready"
+                  return 0
+                fi
+
+                echo "Waiting for $label ($attempt/30): $url"
+                sleep 5
+                attempt=$((attempt + 1))
+              done
+
+              echo "$label did not become ready in time: $url" >&2
+              return 1
+            }
+
+            wait_for_http http://localhost:8080/index.html backend
+            wait_for_http http://localhost:5000/health ai-server
+            wait_for_http http://localhost:5050/health rpa-server
           EOF
