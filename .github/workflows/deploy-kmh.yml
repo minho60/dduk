@@ -142,7 +142,7 @@ jobs:
           RPA_SERVER_IMAGE: ${{ env.RPA_SERVER_IMAGE }}
         run: |
           set -euo pipefail
-          ssh -i ~/.ssh/dduk-erp-key.pem -p "${EC2_PORT:-22}" "$EC2_USER@$EC2_HOST" \
+          ssh -o IdentitiesOnly=yes -o StrictHostKeyChecking=no -i ~/.ssh/dduk-erp-key.pem -p 22 "ubuntu@3.36.71.14" \
             "export EC2_DEPLOY_PATH='$EC2_DEPLOY_PATH' GHCR_USERNAME='$GHCR_USERNAME' GHCR_READ_TOKEN='$GHCR_READ_TOKEN' BACKEND_IMAGE='$BACKEND_IMAGE' AI_SERVER_IMAGE='$AI_SERVER_IMAGE' RPA_SERVER_IMAGE='$RPA_SERVER_IMAGE'; bash -s" <<'EOF'
             set -euo pipefail
             cd "$EC2_DEPLOY_PATH"
