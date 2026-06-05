@@ -122,6 +122,12 @@ jobs:
           ssh-keyscan -p "${EC2_PORT:-22}" -H "$EC2_HOST" >> ~/.ssh/known_hosts
           chmod 644 ~/.ssh/known_hosts
 
+      - name: Print SSH key fingerprint
+        shell: bash
+        run: |
+          set -euo pipefail
+          ssh-keygen -lf ~/.ssh/dduk-erp-key.pem
+
       - name: Deploy pull-only stack on EC2
         shell: bash
         env:
