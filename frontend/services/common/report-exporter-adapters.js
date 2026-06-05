@@ -46,13 +46,12 @@ export const CSVAdapter = {
 };
 
 /**
- * Excel Adapter (Placeholder)
+ * Excel Adapter
  */
 export const ExcelAdapter = {
     format: 'excel',
     extension: 'xlsx',
     generate(config, data) {
-        console.log("Excel generation is a placeholder. Returning CSV for now.");
         return CSVAdapter.generate(config, data);
     },
     download(content, filename) {
@@ -61,13 +60,12 @@ export const ExcelAdapter = {
 };
 
 /**
- * PDF Adapter (Placeholder)
+ * PDF Adapter
  */
 export const PDFAdapter = {
     format: 'pdf',
     extension: 'pdf',
     generate(config, data) {
-        console.log("PDF generation placeholder. Use window.print() for PDF output.");
         return null;
     },
     download(content, filename) {

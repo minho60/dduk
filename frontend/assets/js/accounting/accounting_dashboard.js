@@ -67,9 +67,8 @@
     renderPayroll(data.payrollSummary || {});
     renderPeriod(period);
     renderTrialBalance(data.trialBalanceSummary || {});
-    renderAlerts(data.alerts || []);
     renderActivities(data.recentActivities || []);
-    renderQuickActions(period);
+    renderQuickActions();
     renderIcons();
   }
 
@@ -88,9 +87,9 @@
 
     kpiGrid.innerHTML = items.map(([label, value, change]) => `
       <div class="kpi_card">
-        <p class="kpi_label text-xs font-semibold text-slate-400">${label}</p>
-        <p class="kpi_value text-lg font-bold text-slate-800 mt-1">${value}</p>
-        <p class="kpi_change text-xs text-indigo-500 mt-1">${change}</p>
+        <p class="kpi_label text-[11px] font-semibold text-slate-400 tracking-tight">${label}</p>
+        <p class="kpi_value text-base font-bold text-slate-800 mt-1" title="${value}">${value}</p>
+        <p class="kpi_change text-[10px] text-indigo-500 mt-0.5">${change}</p>
       </div>
     `).join("");
   }
@@ -114,6 +113,27 @@
     const ctx = byId("profitLossChart");
     if (!ctx) return;
     if (profitLossChart) profitLossChart.destroy();
+
+    const chartBox = ctx.parentElement;
+    let emptyMsg = byId("profitLossChartEmpty");
+    if (!emptyMsg) {
+      emptyMsg = document.createElement("div");
+      emptyMsg.id = "profitLossChartEmpty";
+      emptyMsg.className = "absolute inset-0 flex items-center justify-center text-slate-400 text-sm hidden";
+      emptyMsg.textContent = "표시할 월 마감 데이터가 없습니다.";
+      chartBox.classList.add("relative");
+      chartBox.appendChild(emptyMsg);
+    }
+
+    if (!rows || rows.length === 0) {
+      ctx.style.display = "none";
+      emptyMsg.classList.remove("hidden");
+      return;
+    } else {
+      ctx.style.display = "block";
+      emptyMsg.classList.add("hidden");
+    }
+
     profitLossChart = new Chart(ctx, {
       type: "line",
       data: {
@@ -133,13 +153,16 @@
     const ctx = byId("compositionChart");
     if (!ctx) return;
     if (compositionChart) compositionChart.destroy();
+
+    const colors = ["#3b82f6", "#ef4444", "#10b981"];
+
     compositionChart = new Chart(ctx, {
       type: "doughnut",
       data: {
         labels: rows.map((row) => row.label),
         datasets: [{
           data: rows.map((row) => Number(row.amount || 0)),
-          backgroundColor: ["#3b82f6", "#ef4444", "#10b981"],
+          backgroundColor: colors,
           borderWidth: 0
         }]
       },
@@ -147,12 +170,29 @@
         responsive: true,
         maintainAspectRatio: false,
         plugins: {
-          legend: { position: "bottom" },
+          legend: { display: false },
           tooltip: { callbacks: { label: (context) => `${context.label}: ${won(context.raw)}` } }
         },
         cutout: "62%"
       }
     });
+
+    const legendContainer = byId("compositionLegend");
+    if (legendContainer) {
+      legendContainer.innerHTML = rows.map((row, index) => {
+        const color = colors[index % colors.length];
+        return `
+          <div class="legend_item flex flex-col items-center gap-1">
+            <span class="flex items-center gap-1 font-semibold text-slate-700">
+              <span class="w-2 h-2 rounded-full inline-block" style="background-color: ${color}"></span>
+              ${row.label}
+            </span>
+            <span class="text-slate-900 font-bold mt-0.5">${won(row.amount)}</span>
+            <span class="text-slate-400 text-[10px]">${Number(row.ratio || 0).toFixed(1)}%</span>
+          </div>
+        `;
+      }).join("");
+    }
   }
 
   function renderCashFlow(summary) {
@@ -247,24 +287,6 @@
     }
   }
 
-  function renderQuickActions(period) {
-    const container = byId("quickActions");
-    if (!container) return;
-    const locked = period.status === "CLOSED" || period.status === "ARCHIVED";
-    const actions = [
-      ["전표 관리", "file-plus", "voucher_management.html", locked],
-      ["거래내역 등록", "receipt", "transactions.html", locked],
-      ["급여 계산/대장", "wallet", "payroll_management.html", locked],
-      ["월 마감 검토", "calendar-check", "monthly_closing.html", false],
-      ["합계잔액시산표", "table-2", "trial_balance.html", false],
-      ["회계 분석 리포트", "file-bar-chart", "accounting_reports.html", false]
-    ];
-    container.innerHTML = actions.map(([label, icon, href, disabled]) => `
-      <a class="quick_action ${disabled ? "disabled" : ""}" href="${href}" aria-disabled="${disabled}">
-        <i data-lucide="${icon}"></i><span>${label}</span>
-      </a>
-    `).join("");
-  }
 
   function metricRows(items) {
     return items.map(([label, value]) => `
@@ -349,29 +371,29 @@
     window.setTimeout(() => element.classList.remove("show"), 2800);
   }
 
+  function renderQuickActions() {
+    const container = byId("quickActions");
+    if (!container) return;
+
+    const actions = [
+      { label: "전표 등록", url: "voucher_management.html?action=new", icon: "plus-circle" },
+      { label: "전표 관리", url: "voucher_management.html", icon: "file-text" },
+      { label: "월 마감", url: "monthly_closing.html", icon: "calendar-check" },
+      { label: "급여 계산", url: "payroll_management.html", icon: "credit-card" },
+      { label: "재무제표 조회", url: "trial_balance.html", icon: "bar-chart-2" },
+      { label: "계정과목 관리", url: "accounts.html", icon: "list" }
+    ];
+
+    container.innerHTML = actions.map(act => `
+      <a href="${act.url}" class="quick_action">
+        <i data-lucide="${act.icon}" class="w-4 h-4"></i>
+        <span>${act.label}</span>
+      </a>
+    `).join("");
+  }
+
   function renderIcons() {
     if (window.lucide) window.lucide.createIcons();
   }
 
-  window.switchWidgetTab = function (tab) {
-    const aiTab = byId("tabAiAlerts");
-    const rpaTab = byId("tabRpaControl");
-    const aiContent = byId("aiAlertsContent");
-    const rpaContent = byId("rpaControlContent");
-
-    if (!aiTab || !rpaTab || !aiContent || !rpaContent) return;
-
-    if (tab === "ai") {
-      aiTab.className = "px-3 py-1.5 rounded-md bg-white text-slate-800 shadow-sm transition-all";
-      rpaTab.className = "px-3 py-1.5 rounded-md text-slate-600 hover:text-slate-900 transition-all";
-      aiContent.classList.remove("hidden");
-      rpaContent.classList.add("hidden");
-    } else if (tab === "rpa") {
-      rpaTab.className = "px-3 py-1.5 rounded-md bg-white text-slate-800 shadow-sm transition-all";
-      aiTab.className = "px-3 py-1.5 rounded-md text-slate-600 hover:text-slate-900 transition-all";
-      rpaContent.classList.remove("hidden");
-      aiContent.classList.add("hidden");
-    }
-    renderIcons();
-  };
 })();

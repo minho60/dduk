@@ -275,6 +275,14 @@ public class AccountingDashboardService {
                     .put(type, signedAmount(type, decimalAt(row, 3), decimalAt(row, 4)));
         }
         return monthly.entrySet().stream()
+                .filter(entry -> {
+                    String[] parts = entry.getKey().split("-");
+                    int y = Integer.parseInt(parts[0]);
+                    int m = Integer.parseInt(parts[1]);
+                    return accountingPeriodRepository.findByFiscalYearAndFiscalMonth(y, m)
+                            .map(p -> p.getStatus() == AccountingPeriodStatus.CLOSED)
+                            .orElse(false);
+                })
                 .map(entry -> {
                     BigDecimal revenue = entry.getValue().getOrDefault(AccountType.REVENUE, BigDecimal.ZERO);
                     BigDecimal expense = entry.getValue().getOrDefault(AccountType.EXPENSE, BigDecimal.ZERO);
@@ -326,26 +334,26 @@ public class AccountingDashboardService {
                                                       PayrollDashboardSummary payroll) {
         List<AccountingAlertResponse> alerts = new ArrayList<>();
         if (period.isEmpty()) {
-            alerts.add(alert(AccountingAlertSeverity.ERROR, "PERIOD", "회계기간 미생성", periodSummary.getCurrentPeriod() + " 회계기간을 생성해야 마감 통제가 가능합니다.", "월 마감 이동", "../../pages/accounting/monthly_closing.html"));
+            alerts.add(alert(AccountingAlertSeverity.ERROR, "PERIOD", "회계기간 미생성", periodSummary.getCurrentPeriod() + " 회계기간을 생성해야 마감 통제가 가능합니다.", "월 마감 이동", "../../pages/hr/accounting/monthly_closing.html"));
         } else if (period.get().getStatus() == AccountingPeriodStatus.PRE_CLOSING) {
-            alerts.add(alert(AccountingAlertSeverity.WARNING, "PERIOD", "월 마감 사전 검증 중", "현재 회계기간이 PRE_CLOSING 상태입니다. 미게시 전표와 검증 결과를 확인하세요.", "월 마감 검증", "../../pages/accounting/monthly_closing.html"));
+            alerts.add(alert(AccountingAlertSeverity.WARNING, "PERIOD", "월 마감 사전 검증 중", "현재 회계기간이 PRE_CLOSING 상태입니다. 미게시 전표와 검증 결과를 확인하세요.", "월 마감 검증", "../../pages/hr/accounting/monthly_closing.html"));
         }
         long approvalWaiting = vouchers.getDraftCount() + vouchers.getPendingApprovalCount();
         if (approvalWaiting > 0) {
-            alerts.add(alert(AccountingAlertSeverity.WARNING, "VOUCHER", "승인 대기 전표 존재", approvalWaiting + "건의 전표가 승인 또는 확정 대기 상태입니다.", "전표 관리", "../../pages/accounting/voucher_management.html"));
+            alerts.add(alert(AccountingAlertSeverity.WARNING, "VOUCHER", "승인 대기 전표 존재", approvalWaiting + "건의 전표가 승인 또는 확정 대기 상태입니다.", "전표 관리", "../../pages/hr/accounting/voucher_management.html"));
         }
         if (!periodSummary.isBalanced() || !trialBalance.isBalanced()) {
-            alerts.add(alert(AccountingAlertSeverity.CRITICAL, "TRIAL_BALANCE", "차변/대변 불일치", "JournalEntry 또는 Trial Balance 합계가 일치하지 않습니다.", "시산표 조회", "../../pages/accounting/trial_balance.html"));
+            alerts.add(alert(AccountingAlertSeverity.CRITICAL, "TRIAL_BALANCE", "차변/대변 불일치", "JournalEntry 또는 Trial Balance 합계가 일치하지 않습니다.", "시산표 조회", "../../pages/hr/accounting/trial_balance.html"));
         }
         if (periodSummary.getUnpostedVoucherCount() > 0) {
-            alerts.add(alert(AccountingAlertSeverity.ERROR, "LEDGER", "미게시 전표 존재", periodSummary.getUnpostedVoucherCount() + "건이 Ledger 반영 전 상태입니다.", "전표 확인", "../../pages/accounting/voucher_management.html"));
+            alerts.add(alert(AccountingAlertSeverity.ERROR, "LEDGER", "미게시 전표 존재", periodSummary.getUnpostedVoucherCount() + "건이 Ledger 반영 전 상태입니다.", "전표 확인", "../../pages/hr/accounting/voucher_management.html"));
         }
         if (payroll.getUnsettledCount() > 0) {
-            alerts.add(alert(AccountingAlertSeverity.WARNING, "PAYROLL", "미정산 급여 존재", payroll.getUnsettledCount() + "건의 급여대장이 마감 전 처리 대상입니다.", "급여 관리", "../../pages/accounting/payroll_management.html"));
+            alerts.add(alert(AccountingAlertSeverity.WARNING, "PAYROLL", "미정산 급여 존재", payroll.getUnsettledCount() + "건의 급여대장이 마감 전 처리 대상입니다.", "급여 관리", "../../pages/hr/accounting/payroll_management.html"));
         }
         alerts.add(alert(AccountingAlertSeverity.INFO, "TAX", "부가세 신고 대상 확인", "매출/매입 전표의 부가세 신고 대상 검증 구조가 필요합니다.", "회계 리포트", "../../pages/hr/accounting/reports.html"));
         if (alerts.size() == 1) {
-            alerts.add(alert(AccountingAlertSeverity.INFO, "CONTROL", "회계 통제 정상", "현재 대시보드 기준 주요 차단 항목이 없습니다.", "시산표 조회", "../../pages/accounting/trial_balance.html"));
+            alerts.add(alert(AccountingAlertSeverity.INFO, "CONTROL", "회계 통제 정상", "현재 대시보드 기준 주요 차단 항목이 없습니다.", "시산표 조회", "../../pages/hr/accounting/trial_balance.html"));
         }
         return alerts;
     }

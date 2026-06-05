@@ -33,7 +33,6 @@ export class DashboardRegistry {
                 // Permission check
                 const config = { ...def.defaultConfig, ...item.config };
                 if (config.permission && config.permission.length > 0 && !config.permission.includes(userRole)) {
-                    console.log(`Widget [${item.id}] skipped: Insufficient permission`);
                     return;
                 }
 

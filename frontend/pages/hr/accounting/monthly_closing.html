@@ -64,48 +64,41 @@
         </div>
       </section>
 
-      <!-- KPI 요약 카드 -->
-      <section class="kpi_grid" id="summaryCards">
-        <div class="kpi_card">
-          <div class="kpi_content">
-            <div class="kpi_label">현재 회계기간</div>
-            <div class="kpi_value" data-summary="currentPeriod">-</div>
+      <!-- 월마감 통합 대시보드 카드 -->
+      <section class="section_card mb-6 closing_kpi_dashboard">
+        <div class="closing_kpi_grid">
+          <!-- 마감 대상 월 -->
+          <div class="kpi_item">
+            <span class="kpi_item_label">마감 대상 월</span>
+            <h3 class="kpi_item_value text-2xl font-bold mt-2" data-summary="currentPeriod">-</h3>
           </div>
-        </div>
-        <div class="kpi_card">
-          <div class="kpi_content">
-            <div class="kpi_label">마감 상태</div>
-            <div class="kpi_value" data-summary="status">-</div>
+          <!-- 진행 상태 -->
+          <div class="kpi_item">
+            <span class="kpi_item_label">진행 상태</span>
+            <div class="mt-2"><span class="status_badge muted" id="closingStatusBadge" data-summary="status">-</span></div>
           </div>
-        </div>
-        <div class="kpi_card">
-          <div class="kpi_content">
-            <div class="kpi_label">미승인 전표</div>
-            <div class="kpi_value" data-summary="unapprovedVoucherCount">0건</div>
+          <!-- 마감 가능 여부 -->
+          <div class="kpi_item">
+            <span class="kpi_item_label">마감 가능 여부</span>
+            <div class="mt-2"><span class="status_badge danger font-bold" id="closableBadge">불가</span></div>
           </div>
-        </div>
-        <div class="kpi_card">
-          <div class="kpi_content">
-            <div class="kpi_label">미게시 전표</div>
-            <div class="kpi_value" data-summary="unpostedVoucherCount">0건</div>
+          <!-- 미승인 / 미게시 전표 -->
+          <div class="kpi_item">
+            <span class="kpi_item_label">미승인 / 미게시 전표</span>
+            <h4 class="text-base font-bold text-slate-700 mt-2">
+              <span class="text-rose-500" data-summary="unapprovedVoucherCount">0건</span> / 
+              <span class="text-amber-500" data-summary="unpostedVoucherCount">0건</span>
+            </h4>
           </div>
-        </div>
-        <div class="kpi_card">
-          <div class="kpi_content">
-            <div class="kpi_label">총 차변</div>
-            <div class="kpi_value" data-summary-money="totalDebit">0</div>
-          </div>
-        </div>
-        <div class="kpi_card">
-          <div class="kpi_content">
-            <div class="kpi_label">총 대변</div>
-            <div class="kpi_value" data-summary-money="totalCredit">0</div>
-          </div>
-        </div>
-        <div class="kpi_card">
-          <div class="kpi_content">
-            <div class="kpi_label">불일치 여부</div>
-            <div class="kpi_value" data-summary="mismatchStatus">-</div>
+          <!-- 마감 완료율 -->
+          <div class="kpi_item">
+            <div class="flex justify-between items-center mb-2">
+              <span class="kpi_item_label">마감 완료율</span>
+              <span class="text-xs font-bold text-indigo-600" id="completionRateText">0%</span>
+            </div>
+            <div class="w-full bg-slate-100 h-2 rounded-full overflow-hidden">
+              <div class="bg-indigo-600 h-full transition-all duration-500" id="completionProgressBar" style="width: 0%;"></div>
+            </div>
           </div>
         </div>
       </section>
@@ -113,61 +106,7 @@
       <!-- 마감 타임라인 & 기간 목록 2분할 -->
       <div class="closing_layout">
 
-        <!-- 마감 진행 현황 타임라인 -->
-        <section class="section_card closing_timeline_card">
-          <div class="section_card_header">
-            <h3>마감 진행 현황</h3>
-            <span class="status_badge muted" id="selectedPeriodHint">기간을 선택하세요</span>
-          </div>
-          <div class="erp_timeline" id="closingTimeline">
-            <div class="timeline_item" id="step_validate">
-              <div class="timeline_node"></div>
-              <div class="timeline_content">
-                <div class="timeline_title">데이터 검증</div>
-                <div class="timeline_desc">전표 승인 및 차대변 일치 여부 확인</div>
-              </div>
-            </div>
-            <div class="timeline_item" id="step_close">
-              <div class="timeline_node"></div>
-              <div class="timeline_content">
-                <div class="timeline_title">기간 마감</div>
-                <div class="timeline_desc">선택한 회계기간을 CLOSED 상태로 전환</div>
-              </div>
-            </div>
-            <div class="timeline_item" id="step_reopen">
-              <div class="timeline_node"></div>
-              <div class="timeline_content">
-                <div class="timeline_title">마감 취소 (재개방)</div>
-                <div class="timeline_desc">필요 시 기간을 OPEN 상태로 되돌림</div>
-              </div>
-            </div>
-            <div class="timeline_item" id="step_log">
-              <div class="timeline_node"></div>
-              <div class="timeline_content">
-                <div class="timeline_title">마감 로그 확인</div>
-                <div class="timeline_desc">단계별 처리 내역 및 오류 확인</div>
-              </div>
-            </div>
-          </div>
-
-          <!-- 선택된 기간 액션 버튼 -->
-          <div class="closing_action_group" id="closingActions" style="display:none">
-            <button id="validateButton" type="button" class="erp_btn erp_btn_secondary">
-              <i data-lucide="shield-check"></i><span>검증 실행</span>
-            </button>
-            <button id="closeButton" type="button" class="erp_btn erp_btn_primary">
-              <i data-lucide="lock"></i><span>기간 마감</span>
-            </button>
-            <button id="reopenButton" type="button" class="erp_btn erp_btn_secondary">
-              <i data-lucide="lock-open"></i><span>마감 취소</span>
-            </button>
-            <button id="logButton" type="button" class="erp_btn erp_btn_secondary">
-              <i data-lucide="list"></i><span>마감 로그</span>
-            </button>
-          </div>
-        </section>
-
-        <!-- 기간 목록 테이블 -->
+        <!-- 기간 목록 테이블 (상단) -->
         <section class="section_card closing_table_card">
           <div class="section_card_header">
             <h3>회계기간 목록</h3>
@@ -186,12 +125,102 @@
                   <th>검증상태</th>
                   <th>마감일시</th>
                   <th>마감자</th>
-                  <th>오류수</th>
+                  <th>재오픈</th>
                   <th>작업</th>
                 </tr>
               </thead>
               <tbody id="periodTableBody"></tbody>
             </table>
+          </div>
+        </section>
+
+        <!-- 마감 진행 현황 및 체크리스트 (하단) -->
+        <section class="section_card closing_timeline_card flex flex-col gap-6">
+          <div class="section_card_header">
+            <h3>마감 진행 통제</h3>
+            <span class="status_badge muted" id="selectedPeriodHint">기간을 선택하세요</span>
+          </div>
+
+          <!-- 월마감 프로세스 단계 바 (STEP 1 ~ STEP 5) -->
+          <div class="closing_steps_container">
+            <h4 class="text-xs font-bold text-slate-400 uppercase tracking-wider mb-3">월마감 프로세스 단계</h4>
+            <div class="closing_steps">
+              <div class="step_node" id="step_1">
+                <span class="step_num">1</span>
+                <span class="step_name">전표 검증</span>
+              </div>
+              <div class="step_line" id="line_1"></div>
+              <div class="step_node" id="step_2">
+                <span class="step_num">2</span>
+                <span class="step_name">잔액 검증</span>
+              </div>
+              <div class="step_line" id="line_2"></div>
+              <div class="step_node" id="step_3">
+                <span class="step_num">3</span>
+                <span class="step_name">재무제표 생성</span>
+              </div>
+              <div class="step_line" id="line_3"></div>
+              <div class="step_node" id="step_4">
+                <span class="step_num">4</span>
+                <span class="step_name">마감 실행</span>
+              </div>
+              <div class="step_line" id="line_4"></div>
+              <div class="step_node" id="step_5">
+                <span class="step_num">5</span>
+                <span class="step_name">마감 완료</span>
+              </div>
+            </div>
+          </div>
+
+          <!-- 마감 불가 경고 영역 -->
+          <div class="alert_card danger hidden" id="closingAlertCard">
+            <div class="flex gap-3 items-start">
+              <i data-lucide="alert-triangle" class="w-5 h-5 text-rose-600 flex-shrink-0 mt-0.5"></i>
+              <div>
+                <h5 class="text-sm font-bold text-rose-800">⚠ 마감 불가</h5>
+                <ul class="text-xs text-rose-700 mt-2 list-disc list-inside space-y-1" id="closingAlertReasons">
+                </ul>
+              </div>
+            </div>
+          </div>
+
+          <!-- 마감 사전 체크리스트 -->
+          <div class="closing_checklist_box">
+            <h4 class="text-xs font-bold text-slate-400 uppercase tracking-wider mb-3">마감 사전 체크리스트</h4>
+            <div class="checklist_items">
+              <div class="checklist_item" id="chk_voucher_approval">
+                <span class="checklist_name">1. 전표 승인 여부 (미승인 0건)</span>
+                <span class="status-pill status-PENDING">대기</span>
+              </div>
+              <div class="checklist_item" id="chk_voucher_posting">
+                <span class="checklist_name">2. 미전기 전표 여부 (미게시 0건)</span>
+                <span class="status-pill status-PENDING">대기</span>
+              </div>
+              <div class="checklist_item" id="chk_inventory_closing">
+                <span class="checklist_name">3. 재고 마감 여부 (음수 재고 0건)</span>
+                <span class="status-pill status-PENDING">대기</span>
+              </div>
+              <div class="checklist_item" id="chk_balance_check">
+                <span class="checklist_name">4. 월계 처리 여부 (차대변 일치)</span>
+                <span class="status-pill status-PENDING">대기</span>
+              </div>
+            </div>
+          </div>
+
+          <!-- 선택된 기간 액션 버튼 -->
+          <div class="closing_action_group" id="closingActions" style="display:none">
+            <button id="validateButton" type="button" class="erp_btn erp_btn_secondary" title="마감 전 데이터를 검증합니다">
+              <i data-lucide="shield-check"></i><span>마감 검증 실행</span>
+            </button>
+            <button id="closeButton" type="button" class="erp_btn erp_btn_primary" title="월 마감을 실행하여 데이터를 잠급니다">
+              <i data-lucide="lock"></i><span>월마감 실행</span>
+            </button>
+            <button id="reopenButton" type="button" class="erp_btn erp_btn_secondary" title="마감된 회계기간을 해제합니다">
+              <i data-lucide="lock-open"></i><span>마감 취소</span>
+            </button>
+            <button id="logButton" type="button" class="erp_btn erp_btn_secondary" title="마감 이력 로그를 조회합니다">
+              <i data-lucide="list"></i><span>마감 로그</span>
+            </button>
           </div>
         </section>
 

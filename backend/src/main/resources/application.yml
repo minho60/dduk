@@ -1,3 +1,5 @@
+server:
+  port: ${PORT:8080}
 spring:
   datasource:
     url: ${DB_URL}
@@ -8,15 +10,15 @@ spring:
   jpa:
     hibernate:
       ddl-auto: ${JPA_DDL_AUTO:none}
-    show-sql: ${JPA_SHOW_SQL:true}
+    show-sql: ${JPA_SHOW_SQL:false}
     properties:
       hibernate:
-        format_sql: ${JPA_FORMAT_SQL:true}
+        format_sql: ${JPA_FORMAT_SQL:false}
 
   sql:
     init:
-      mode: ${SQL_INIT_MODE:always}
-      continue-on-error: true
+      mode: ${SQL_INIT_MODE:never}
+      continue-on-error: ${SQL_INIT_CONTINUE_ON_ERROR:false}
       schema-locations:
         - classpath:db/mysql/dduk_bootstrap_schema.sql
         - classpath:db/mysql/task_history_schema.sql

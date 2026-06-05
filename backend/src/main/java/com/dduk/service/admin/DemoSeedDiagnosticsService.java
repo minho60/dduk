@@ -70,7 +70,7 @@ public class DemoSeedDiagnosticsService {
         }
 
         if (taskHistoryCount == 0) {
-            log.error("[DemoSeedDiagnostics] task_history is empty. Admin and inventory RPA widgets will look blank.");
+            log.warn("[DemoSeedDiagnostics] task_history is empty. Admin and inventory RPA widgets will look blank.");
         }
 
         List<String> missingAccounts = new ArrayList<>();

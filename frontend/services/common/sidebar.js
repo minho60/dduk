@@ -1,4 +1,79 @@
 (function () {
+    const RECENT_MENU_KEY = 'dduk_dashboard_recent_menu';
+    const RECENT_MENU_TTL = 3 * 24 * 60 * 60 * 1000;
+
+    const MENU_GROUPS = [
+        {
+            id: 'purchase',
+            label: '구매/발주',
+            items: [
+                { label: '구매/발주 대시보드', icon: 'bar-chart-3', href: 'pages/inventory/purchase-dashboard.html', roles: ['ADMIN', 'INVENTORY'] },
+                { label: '구매 요청', icon: 'file-plus', href: 'pages/inventory/purchase-request.html', roles: ['ADMIN', 'INVENTORY'] },
+                { label: '발주 관리', icon: 'clipboard-list', href: 'pages/inventory/purchase-orders.html', roles: ['ADMIN', 'INVENTORY'] },
+                { label: '발주 현황', icon: 'trending-up', href: 'pages/inventory/purchase-status.html', roles: ['ADMIN', 'INVENTORY'] },
+                { label: '입고 등록', icon: 'package-check', href: 'pages/inventory/receiving.html', roles: ['ADMIN', 'INVENTORY'] },
+                { label: '거래처 관리', icon: 'building', href: 'pages/inventory/vendors.html', roles: ['ADMIN', 'INVENTORY'] }
+            ]
+        },
+        {
+            id: 'inventory',
+            label: '재고관리',
+            items: [
+                { label: '재고관리 대시보드', icon: 'bar-chart-3', href: 'pages/inventory/dashboard.html', roles: ['ADMIN', 'INVENTORY'] },
+                { label: '재고 조회', icon: 'search', href: 'pages/inventory/list.html', roles: ['ADMIN', 'INVENTORY'] },
+                { label: '입출고 이력', icon: 'history', href: 'pages/inventory/movements.html', roles: ['ADMIN', 'INVENTORY'] },
+                { label: '창고 이동', icon: 'truck', href: 'pages/inventory/transfers.html', roles: ['ADMIN', 'INVENTORY'] },
+                { label: '자동 발주 추천', icon: 'zap', href: 'pages/inventory/reorder.html', roles: ['ADMIN', 'INVENTORY'] }
+            ]
+        },
+        {
+            id: 'accounting',
+            label: '회계관리',
+            items: [
+                { label: '회계 대시보드',    icon: 'bar-chart-3',    href: 'pages/hr/accounting/accounting_dashboard.html', roles: ['ADMIN', 'HR'] },
+                { label: '계정과목 관리',    icon: 'folder-tree',    href: 'pages/hr/accounting/accounts.html', roles: ['ADMIN', 'HR'] },
+                { label: '전표 관리',        icon: 'receipt',        href: 'pages/hr/accounting/voucher_management.html', roles: ['ADMIN', 'HR'] },
+                { label: '합계잔액시산표',   icon: 'trending-up',    href: 'pages/hr/accounting/trial_balance.html', roles: ['ADMIN', 'HR'] },
+                { label: '재무제표',         icon: 'file-text',      href: 'pages/hr/accounting/reports.html', roles: ['ADMIN', 'HR'] },
+                { label: '회계 분석 리포트', icon: 'file-bar-chart', href: 'pages/hr/accounting/accounting_reports.html', roles: ['ADMIN', 'HR'] },
+                { label: '월 마감',          icon: 'calendar-check', href: 'pages/hr/accounting/monthly_closing.html', roles: ['ADMIN', 'HR'] },
+                { label: '급여 관리',          icon: 'wallet',         href: 'pages/hr/accounting/payroll_management.html', match: 'pages/hr/accounting/payroll_management.html', roles: ['ADMIN', 'HR'] },
+                { label: '세금계산서',       icon: 'file-check',     href: 'pages/hr/accounting/wip.html', disabled: true, roles: ['ADMIN', 'HR'] },
+                { label: '비용 처리',        icon: 'credit-card',    href: 'pages/hr/accounting/wip.html', disabled: true, roles: ['ADMIN', 'HR'] }
+            ]
+        },
+        {
+            id: 'docs',
+            label: '문서/증빙',
+            items: [
+                { label: '증빙 업로드', icon: 'upload', href: 'pages/ocr/upload.html', roles: ['ADMIN', 'HR', 'INVENTORY'] },
+                { label: 'OCR 문서함', icon: 'scan', href: 'pages/ocr/ocr-box.html', roles: ['ADMIN', 'HR', 'INVENTORY'] },
+                { label: '계약 문서', icon: 'file-signature', href: '#', roles: ['ADMIN'] }
+            ]
+        },
+        {
+            id: 'ai',
+            label: 'AI 업무지원',
+            items: [
+                { label: 'AI 챗봇', icon: 'bot', href: '#', roles: ['ADMIN', 'HR', 'INVENTORY'] },
+                { label: '이상 탐지', icon: 'alert-triangle', href: 'pages/admin/anomaly-detection.html', roles: ['ADMIN'] },
+                { label: '예측 분석', icon: 'brain', href: '#', roles: ['ADMIN', 'HR', 'INVENTORY'] }
+            ]
+        },
+        {
+            id: 'admin',
+            label: '관리자',
+            items: [
+                { label: '계정 및 권한 관리', icon: 'shield-check', href: 'pages/admin/account-security.html', roles: ['ADMIN'] },
+                { label: '시스템 운영 관리', icon: 'settings-2', href: 'pages/admin/system-admin.html', roles: ['ADMIN'] },
+                { label: '공지사항 관리', icon: 'megaphone', href: 'pages/admin/notice-admin.html', roles: ['ADMIN'] },
+                { label: '조직 및 부서 관리', icon: 'network', href: 'pages/admin/org-admin.html', roles: ['ADMIN'] },
+                { label: 'AI 챗봇 테스트', icon: 'bot', href: 'pages/admin/chatbot-test.html', roles: ['ADMIN'] },
+                { label: 'AI/RPA 작업 이력', icon: 'history', href: 'pages/admin/task-history.html', roles: ['ADMIN'] }
+            ]
+        }
+    ];
+
     // 1. 공용 유틸리티 함수 보관 및 노출
     function getRootPath() {
         const path = window.location.pathname.replace(/\\/g, '/');

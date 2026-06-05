@@ -81,9 +81,9 @@ cd backend
 
 브라우저 확인:
 
-1. `frontend/pages/accounting/voucher_management.html`에서 계정 검색 후 전표 저장
+1. `frontend/pages/hr/accounting/voucher_management.html`에서 계정 검색 후 전표 저장
 2. 하단 전표 목록에 저장 건이 즉시 표시되는지 확인
 3. 새로고침 후 저장 건 유지 확인
 4. `/api/accounting/accounts/search?keyword=현금` 응답 확인
-5. `frontend/pages/accounting/monthly_closing.html`에서 회계기간 미생성 월도 기본 요약이 표시되는지 확인
+5. `frontend/pages/hr/accounting/monthly_closing.html`에서 회계기간 미생성 월도 기본 요약이 표시되는지 확인
 

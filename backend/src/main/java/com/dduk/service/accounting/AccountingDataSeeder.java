@@ -39,6 +39,7 @@ import java.time.LocalDate;
 import java.time.YearMonth;
 import java.util.Arrays;
 import java.util.List;
+import com.dduk.repository.accounting.payroll.PayrollLedgerRepository;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.beans.factory.annotation.Value;
@@ -66,6 +67,8 @@ public class AccountingDataSeeder {
     private final AccountRepository accountRepository;
     private final TrialBalanceReportService trialBalanceReportService;
     private final AccountManagementService accountManagementService;
+    private final PayrollLedgerRepository payrollLedgerRepository;
+    private final org.springframework.jdbc.core.JdbcTemplate jdbcTemplate;
 
     @Value("${app.accounting.seed:true}")
     private boolean seedEnabled;
@@ -86,12 +89,30 @@ public class AccountingDataSeeder {
 
     @Transactional
     public void seedPipeline() {
-        if (voucherRepository.count() > 0 || journalEntryRepository.count() > 0) {
-            log.info("[AccountingDataSeeder] Existing vouchers or journals detected. Skipping seeding to prevent duplicate data.");
+        syncAccountingPeriodsForPresentation();
+
+        boolean hasExistingVouchers = voucherRepository.count() > 0 || journalEntryRepository.count() > 0;
+        if (hasExistingVouchers) {
+            log.info("[AccountingDataSeeder] Existing vouchers/journals detected. Performing targeted presentation data upsert instead of full rebuild.");
+            
+            // 사원 마스터 데이터를 한글명 5명으로 업데이트/추가
+            seedPhase2OrgAndHr();
+            
+            // 5월 발표용 손익계산서 전표(매출 150M, 원가 90M, 판관비 25M, 법인세 7M)가 없다면 강제 추가
+            upsertPresentationVouchersForMay2026();
+            
+            // 급여대장 데이터가 없거나 부족하면 2~5월 급여 데이터 강제 생성
+            if (payrollLedgerRepository.count() == 0) {
+                log.info("[AccountingDataSeeder] No payroll ledgers found. Seeding payroll-only data...");
+                seedPhase5PayrollAndPosting();
+            }
+            
+            // 보고서 분석 테이블 리빌드
+            trialBalanceReportService.rebuildAll();
             return;
         }
 
-        log.info("[AccountingDataSeeder] Starting accounting demo seed pipeline...");
+        log.info("[AccountingDataSeeder] Starting full accounting demo seed pipeline...");
 
         seedPhase1MasterData();
         seedPhase2OrgAndHr();
@@ -173,47 +194,58 @@ public class AccountingDataSeeder {
 
         Employee emp1 = upsertEmployee(
                 "EMP20240001",
-                "chulsoo.kim@dduk.com",
-                "Kim Chulsoo",
+                "gildong.hong@dduk.com",
+                "홍길동",
                 "Development",
                 "Lead",
-                "010-1234-5678",
+                "010-1111-2222",
                 LocalDate.of(2024, 1, 1)
         );
         ensurePayrollContract(emp1, "CON-20240001", new BigDecimal("5000000"), LocalDate.of(2025, 1, 1));
 
         Employee emp2 = upsertEmployee(
                 "EMP20240002",
-                "younghee.lee@dduk.com",
-                "Lee Younghee",
+                "chulsoo.kim@dduk.com",
+                "김철수",
                 "Planning",
                 "Manager",
-                "010-2345-6789",
+                "010-1234-5678",
                 LocalDate.of(2024, 2, 1)
         );
         ensurePayrollContract(emp2, "CON-20240002", new BigDecimal("4000000"), LocalDate.of(2025, 1, 1));
 
         Employee emp3 = upsertEmployee(
                 "EMP20240003",
-                "minsu.park@dduk.com",
-                "Park Minsu",
+                "younghee.lee@dduk.com",
+                "이영희",
                 "HR",
                 "Staff",
-                "010-3456-7890",
+                "010-2345-6789",
                 LocalDate.of(2024, 3, 1)
         );
         ensurePayrollContract(emp3, "CON-20240003", new BigDecimal("3200000"), LocalDate.of(2025, 1, 1));
 
         Employee emp4 = upsertEmployee(
                 "EMP20240004",
-                "jiwoo.choi@dduk.com",
-                "Choi Jiwoo",
+                "minsu.park@dduk.com",
+                "박민수",
                 "Accounting",
                 "Manager",
-                "010-4567-8901",
+                "010-3456-7890",
                 LocalDate.of(2024, 4, 1)
         );
         ensurePayrollContract(emp4, "CON-20240004", new BigDecimal("4500000"), LocalDate.of(2025, 1, 1));
+
+        Employee emp5 = upsertEmployee(
+                "EMP20240005",
+                "jihoon.choi@dduk.com",
+                "최지훈",
+                "Sales",
+                "Staff",
+                "010-4567-8901",
+                LocalDate.of(2024, 5, 1)
+        );
+        ensurePayrollContract(emp5, "CON-20240005", new BigDecimal("3800000"), LocalDate.of(2025, 1, 1));
 
         employeeRepository.findAll().forEach(this::ensureFallbackPayrollContract);
     }
@@ -324,7 +356,7 @@ public class AccountingDataSeeder {
         int[] salesAmounts = {12000000, 15000000, 18000000, 22000000, 16000000};
         int[] purchaseAmounts = {3500000, 4200000, 3800000, 5000000, 2800000};
 
-        for (int index = 0; index < 5; index++) {
+        for (int index = 0; index < 4; index++) {
             int month = index + 1;
 
             VoucherRequest salesVoucher = new VoucherRequest();
@@ -402,6 +434,10 @@ public class AccountingDataSeeder {
     }
 
     private void createAndTransitionVoucher(VoucherRequest request, VoucherStatus targetStatus) {
+        if (isPeriodClosed(request.getVoucherDate())) {
+            log.info("[AccountingDataSeeder] Skipping seed voucher for closed period: {}", request.getVoucherDate());
+            return;
+        }
         VoucherResponse response = voucherService.createVoucher(request);
         if (targetStatus == VoucherStatus.DRAFT) {
             return;
@@ -419,6 +455,14 @@ public class AccountingDataSeeder {
 
     private void seedPayrollHelper(String yearMonth, LocalDate paymentDate, boolean confirm) {
         try {
+            if (isPeriodClosed(paymentDate)) {
+                log.info("[AccountingDataSeeder] Skipping seed payroll for closed period: {}", yearMonth);
+                return;
+            }
+            if (payrollLedgerRepository.findFirstByPaymentYearMonthOrderByPaymentDateAscIdAsc(yearMonth).isPresent()) {
+                log.info("[AccountingDataSeeder] Payroll ledger already exists for {}. Skipping.", yearMonth);
+                return;
+            }
             PayrollLedgerCreateRequest request = new PayrollLedgerCreateRequest();
             request.setAttributionYearMonth(yearMonth);
             request.setPaymentYearMonth(yearMonth);
@@ -522,5 +566,135 @@ public class AccountingDataSeeder {
         }
         log.warn("[AccountingDataSeeder] Missing {} account. Tried codes: {}", label, Arrays.toString(candidateCodes));
         return null;
+    }
+
+    private void syncAccountingPeriodsForPresentation() {
+        log.info(">> Syncing accounting periods status for presentation...");
+        
+        try {
+            jdbcTemplate.update("UPDATE payroll_ledger_employee SET employee_name_snapshot = ? WHERE employee_no_snapshot = ?", "Hong Gil Dong", "EMP20240001");
+            jdbcTemplate.update("UPDATE payroll_ledger_employee SET employee_name_snapshot = ? WHERE employee_no_snapshot = ?", "Kim Chul Soo", "EMP20240002");
+            jdbcTemplate.update("UPDATE payroll_ledger_employee SET employee_name_snapshot = ? WHERE employee_no_snapshot = ?", "Lee Young Hee", "EMP20240003");
+            jdbcTemplate.update("UPDATE payroll_ledger_employee SET employee_name_snapshot = ? WHERE employee_no_snapshot = ?", "Park Min Soo", "EMP20240004");
+            jdbcTemplate.update("UPDATE payroll_ledger_employee SET employee_name_snapshot = ? WHERE employee_no_snapshot = ?", "Choi Ji Hoon", "EMP20240005");
+        } catch (Exception e) {
+            log.warn("[AccountingDataSeeder] Payroll employee snapshot normalization skipped: {}", e.getMessage());
+        }
+
+        for (int month = 1; month <= 12; month++) {
+            final int m = month;
+            AccountingPeriod period = accountingPeriodRepository.findByFiscalYearAndFiscalMonth(2026, month)
+                    .orElseGet(() -> {
+                        YearMonth ym = YearMonth.of(2026, m);
+                        return accountingPeriodRepository.save(AccountingPeriod.builder()
+                                .fiscalYear(2026)
+                                .fiscalMonth(m)
+                                .startDate(ym.atDay(1))
+                                .endDate(ym.atEndOfMonth())
+                                .status(AccountingPeriodStatus.OPEN)
+                                .build());
+                    });
+
+            if (period.isClosed()) {
+                log.debug("[AccountingDataSeeder] Existing closed accounting period preserved: {}", period.getPeriodKey());
+            }
+        }
+    }
+
+    private boolean isPeriodClosed(LocalDate date) {
+        return accountingPeriodRepository.findByFiscalYearAndFiscalMonth(date.getYear(), date.getMonthValue())
+                .map(AccountingPeriod::isClosed)
+                .orElse(false);
+    }
+
+    private void upsertPresentationVouchersForMay2026() {
+        log.info(">> Upserting presentation vouchers for May 2026...");
+        boolean hasPresentationSales = voucherRepository.findAll().stream()
+                .anyMatch(v -> "5월 발표용 매출 전표".equals(v.getDescription()));
+        
+        if (hasPresentationSales) {
+            log.info(">> Presentation vouchers for May 2026 already exist. Skipping upsert.");
+            return;
+        }
+
+        List<Vendor> vendors = vendorRepository.findAll();
+        if (vendors.isEmpty()) {
+            log.warn("Cannot upsert presentation vouchers: no vendors found.");
+            return;
+        }
+        Vendor primaryVendor = vendors.get(0);
+
+        Account bankAccount = resolveSeedAccount("bank", "1112", "1002");
+        Account salesAccount = resolveSeedAccount("sales", "4110", "4001");
+        Account costAccount = resolveSeedAccount("cogs", "5110", "5002");
+        Account expenseAccount = resolveSeedAccount("welfare", "5250", "5003");
+        Account taxAccount = resolveSeedAccount("tax", "8000");
+
+        if (bankAccount == null || salesAccount == null || costAccount == null || expenseAccount == null || taxAccount == null) {
+            log.warn("Required accounts missing for presentation vouchers.");
+            return;
+        }
+
+        // 1. 5월 매출 전표: 150M
+        VoucherRequest salesReq = new VoucherRequest();
+        salesReq.setVoucherDate(LocalDate.of(2026, 5, 15));
+        salesReq.setVoucherType(VoucherType.SALES);
+        salesReq.setVatType(VatType.TAX_INVOICE);
+        salesReq.setVendorId(primaryVendor.getId());
+        salesReq.setVendorNameSnapshot(primaryVendor.getName());
+        salesReq.setSupplyAmount(new BigDecimal("150000000"));
+        salesReq.setVatAmount(new BigDecimal("15000000"));
+        salesReq.setFeeAmount(BigDecimal.ZERO);
+        salesReq.setBusinessAccountId(salesAccount.getId());
+        salesReq.setSettlementAccountId(bankAccount.getId());
+        salesReq.setDescription("5월 발표용 매출 전표");
+        createAndTransitionVoucher(salesReq, VoucherStatus.POSTED);
+
+        // 2. 5월 매출원가 전표: 90M
+        VoucherRequest cogsReq = new VoucherRequest();
+        cogsReq.setVoucherDate(LocalDate.of(2026, 5, 20));
+        cogsReq.setVoucherType(VoucherType.PURCHASE);
+        cogsReq.setVatType(VatType.TAX_INVOICE);
+        cogsReq.setVendorId(primaryVendor.getId());
+        cogsReq.setVendorNameSnapshot(primaryVendor.getName());
+        cogsReq.setSupplyAmount(new BigDecimal("90000000"));
+        cogsReq.setVatAmount(new BigDecimal("9000000"));
+        cogsReq.setFeeAmount(BigDecimal.ZERO);
+        cogsReq.setBusinessAccountId(costAccount.getId());
+        cogsReq.setSettlementAccountId(bankAccount.getId());
+        cogsReq.setDescription("5월 발표용 매출원가 전표");
+        createAndTransitionVoucher(cogsReq, VoucherStatus.POSTED);
+
+        // 3. 5월 판관비 전표: 25M
+        VoucherRequest expenseReq = new VoucherRequest();
+        expenseReq.setVoucherDate(LocalDate.of(2026, 5, 22));
+        expenseReq.setVoucherType(VoucherType.PURCHASE);
+        expenseReq.setVatType(VatType.TAX_INVOICE);
+        expenseReq.setVendorId(primaryVendor.getId());
+        expenseReq.setVendorNameSnapshot(primaryVendor.getName());
+        expenseReq.setSupplyAmount(new BigDecimal("25000000"));
+        expenseReq.setVatAmount(new BigDecimal("2500000"));
+        expenseReq.setFeeAmount(BigDecimal.ZERO);
+        expenseReq.setBusinessAccountId(expenseAccount.getId());
+        expenseReq.setSettlementAccountId(bankAccount.getId());
+        expenseReq.setDescription("5월 발표용 판매관리비 전표");
+        createAndTransitionVoucher(expenseReq, VoucherStatus.POSTED);
+
+        // 4. 5월 법인세비용 전표: 7M
+        VoucherRequest taxReq = new VoucherRequest();
+        taxReq.setVoucherDate(LocalDate.of(2026, 5, 25));
+        taxReq.setVoucherType(VoucherType.PURCHASE);
+        taxReq.setVatType(VatType.ZERO_TAX);
+        taxReq.setVendorId(primaryVendor.getId());
+        taxReq.setVendorNameSnapshot(primaryVendor.getName());
+        taxReq.setSupplyAmount(new BigDecimal("7000000"));
+        taxReq.setVatAmount(BigDecimal.ZERO);
+        taxReq.setFeeAmount(BigDecimal.ZERO);
+        taxReq.setBusinessAccountId(taxAccount.getId());
+        taxReq.setSettlementAccountId(bankAccount.getId());
+        taxReq.setDescription("5월 발표용 법인세비용 전표");
+        createAndTransitionVoucher(taxReq, VoucherStatus.POSTED);
+        
+        log.info(">> Presentation vouchers for May 2026 upserted successfully.");
     }
 }

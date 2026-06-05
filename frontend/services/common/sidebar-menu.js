@@ -153,7 +153,7 @@
                         </button>
                     </div>
                     <div class="dduk-inline-005">
-                        <span data-template-id="workspace-name" class="canva-text dduk-inline-006">아망티</span>
+                        <span data-template-id="workspace-name" class="canva-text dduk-inline-006">(주)아망티</span>
                         <i class="dduk-inline-007" data-lucide="chevron-down"></i>
                     </div>
                     <div class="dduk-inline-008">
@@ -455,7 +455,7 @@
                     if (!allowedRoles.includes(currentUserRole)) {
                         e.preventDefault();
                         e.stopPropagation();
-                        alert('해당 메뉴에 접근할 권한이 없습니다.');
+                        window.ddukApi?.showToast?.('해당 메뉴에 접근할 권한이 없습니다.', 'warning');
                         return;
                     }
                 }

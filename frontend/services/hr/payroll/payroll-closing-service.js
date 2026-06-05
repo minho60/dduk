@@ -16,7 +16,6 @@ export class PayrollClosingService {
         // - Check if all records are APPROVED or POSTED
         // - Check if reconciliation is MATCHED
         
-        console.log(`[ClosingService] Closing period ${yearMonth} by ${userId}...`);
         this.closedPeriods.add(yearMonth);
         
         payrollEventBus.publish(PAYROLL_EVENTS.CLOSED, { yearMonth, userId, timestamp: new Date().toISOString() });
@@ -35,7 +34,6 @@ export class PayrollClosingService {
      */
     async rollbackClose(yearMonth, userId) {
         this.closedPeriods.delete(yearMonth);
-        console.log(`[ClosingService] Period ${yearMonth} unlocked by ${userId}`);
         return { success: true };
     }
 }

@@ -11,7 +11,7 @@
     const state = {
         year: '',
         month: '',
-        reportType: 'trial-balance'
+        reportType: 'balance-sheet'
     };
 
     document.addEventListener('DOMContentLoaded', () => {
@@ -63,7 +63,7 @@
     function updateFilters() {
         state.year = document.getElementById('filter_year')?.value || '';
         state.month = document.getElementById('filter_month')?.value || '';
-        state.reportType = document.getElementById('report_type')?.value || 'trial-balance';
+        state.reportType = document.getElementById('report_type')?.value || 'balance-sheet';
     }
 
     function updateSegmentedTabs() {
@@ -100,9 +100,7 @@
         if (state.month) params.set('fiscalMonth', state.month);
 
         let apiUrl = '';
-        if (state.reportType === 'trial-balance') {
-            apiUrl = `/api/v1/accounting/reports/trial-balance`;
-        } else if (state.reportType === 'profit-loss') {
+        if (state.reportType === 'profit-loss') {
             apiUrl = `/api/v1/accounting/reports/profit-loss`;
         } else {
             apiUrl = `/api/v1/accounting/reports/balance-sheet`;
@@ -112,11 +110,7 @@
             const res = await window.ddukApi.get(`${apiUrl}?${params.toString()}`);
             const data = res.data || {};
 
-            if (state.reportType === 'trial-balance') {
-                document.getElementById('report_title').textContent = '합계잔액시산표';
-                document.getElementById('report_badge').textContent = 'Trial Balance';
-                renderTrialBalance(data);
-            } else if (state.reportType === 'profit-loss') {
+            if (state.reportType === 'profit-loss') {
                 document.getElementById('report_title').textContent = '손익계산서';
                 document.getElementById('report_badge').textContent = 'Profit & Loss';
                 renderProfitLoss(data);
@@ -135,50 +129,6 @@
         }
     }
 
-    function renderTrialBalance(data) {
-        const items = data.items || [];
-        const tbody = document.getElementById('report_rows');
-        if (!tbody) return;
-
-        if (!items.length) {
-            showEmpty(true);
-            return;
-        }
-
-        showEmpty(false);
-        tbody.innerHTML = items.map(item => `
-            <tr>
-                <td style="font-family: monospace; font-weight: 600;">${escHtml(item.code)}</td>
-                <td style="font-weight: 500;">${escHtml(item.name)}</td>
-                <td><span class="status_badge muted">${escHtml(item.type)}</span></td>
-                <td class="amount-cell">${formatMoney(item.totalDebit)}</td>
-                <td class="amount-cell">${formatMoney(item.totalCredit)}</td>
-                <td class="amount-cell" style="font-weight: 600;">${formatMoney(item.balance)}</td>
-            </tr>
-        `).join('');
-
-        document.getElementById('total_debit').textContent = formatMoney(data.totalDebit);
-        document.getElementById('total_credit').textContent = formatMoney(data.totalCredit);
-        document.getElementById('total_balance').textContent = formatMoney(Number(data.totalDebit || 0) - Number(data.totalCredit || 0));
-
-        // KPI
-        document.getElementById('kpi_total_assets').textContent = formatMoney(data.totalDebit);
-        document.getElementById('kpi_total_liabilities').textContent = formatMoney(data.totalCredit);
-        
-        const netVal = Number(data.totalDebit || 0) - Number(data.totalCredit || 0);
-        document.getElementById('kpi_net_income').textContent = formatMoney(netVal);
-        
-        const hintEl = document.getElementById('net_income_status');
-        if (hintEl) {
-            hintEl.textContent = netVal === 0 ? '차대 차액 없음' : '차대 불일치';
-            hintEl.className = netVal === 0 ? 'kpi_hint status-positive' : 'kpi_hint status-negative';
-        }
-
-        // 하단 요약 카드 비활성화 처리
-        document.getElementById('summary_revenue').textContent = '-';
-        document.getElementById('summary_expenses').textContent = '-';
-        document.getElementById('summary_operating_income').textContent = '-';
-    }
 
     function renderProfitLoss(data) {
         const tbody = document.getElementById('report_rows');
