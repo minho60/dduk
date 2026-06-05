@@ -8,6 +8,7 @@ services:
       - DB_URL=${DB_URL}
       - DB_USERNAME=${DB_USERNAME}
       - DB_PASSWORD=${DB_PASSWORD}
+      - FRONTEND_PATH=${FRONTEND_PATH:-classpath:/static/}
       - APP_CORS_ALLOWED_ORIGIN_PATTERNS=${APP_CORS_ALLOWED_ORIGIN_PATTERNS}
       - JPA_DDL_AUTO=${JPA_DDL_AUTO:-update}
       - JPA_SHOW_SQL=${JPA_SHOW_SQL:-false}
