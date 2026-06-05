@@ -122,12 +122,6 @@ jobs:
           ssh-keyscan -p "${EC2_PORT:-22}" -H "$EC2_HOST" >> ~/.ssh/known_hosts
           chmod 644 ~/.ssh/known_hosts
 
-      - name: Print SSH key fingerprint
-        shell: bash
-        run: |
-          set -euo pipefail
-          ssh-keygen -lf ~/.ssh/dduk-erp-key.pem
-
       - name: Deploy pull-only stack on EC2
         shell: bash
         env:
@@ -142,7 +136,7 @@ jobs:
           RPA_SERVER_IMAGE: ${{ env.RPA_SERVER_IMAGE }}
         run: |
           set -euo pipefail
-          ssh -o IdentitiesOnly=yes -o StrictHostKeyChecking=no -i ~/.ssh/dduk-erp-key.pem -p 22 "ubuntu@3.36.71.14" \
+          ssh -o IdentitiesOnly=yes -i ~/.ssh/dduk-erp-key.pem -p "${EC2_PORT:-22}" "$EC2_USER@$EC2_HOST" \
             "export EC2_DEPLOY_PATH='$EC2_DEPLOY_PATH' GHCR_USERNAME='$GHCR_USERNAME' GHCR_READ_TOKEN='$GHCR_READ_TOKEN' BACKEND_IMAGE='$BACKEND_IMAGE' AI_SERVER_IMAGE='$AI_SERVER_IMAGE' RPA_SERVER_IMAGE='$RPA_SERVER_IMAGE'; bash -s" <<'EOF'
             set -euo pipefail
             cd "$EC2_DEPLOY_PATH"
