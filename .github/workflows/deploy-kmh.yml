@@ -3,7 +3,7 @@ name: Deploy kmh to EC2
 on:
   push:
     branches:
-      - kmh
+      - develop
   workflow_dispatch:
 
 concurrency:
@@ -12,9 +12,9 @@ concurrency:
 
 env:
   REGISTRY: ghcr.io
-  BACKEND_IMAGE: ghcr.io/${{ github.repository_owner }}/dduk-backend:kmh
-  AI_SERVER_IMAGE: ghcr.io/${{ github.repository_owner }}/dduk-ai-server:kmh
-  RPA_SERVER_IMAGE: ghcr.io/${{ github.repository_owner }}/dduk-rpa-server:kmh
+  BACKEND_IMAGE: ghcr.io/${{ github.repository_owner }}/dduk-backend:develop
+  AI_SERVER_IMAGE: ghcr.io/${{ github.repository_owner }}/dduk-ai-server:develop
+  RPA_SERVER_IMAGE: ghcr.io/${{ github.repository_owner }}/dduk-rpa-server:develop
 
 jobs:
   build-and-push:

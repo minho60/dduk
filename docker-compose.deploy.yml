@@ -1,6 +1,6 @@
 services:
   backend:
-    image: ${BACKEND_IMAGE:-ghcr.io/minho60/dduk-backend:kmh}
+    image: ${BACKEND_IMAGE:-ghcr.io/minho60/dduk-backend:develop}
     container_name: dduk-backend
     ports:
       - "${PORT:-8080}:8080"
@@ -27,7 +27,7 @@ services:
     restart: always
 
   ai-server:
-    image: ${AI_SERVER_IMAGE:-ghcr.io/minho60/dduk-ai-server:kmh}
+    image: ${AI_SERVER_IMAGE:-ghcr.io/minho60/dduk-ai-server:develop}
     container_name: dduk-ai-server
     ports:
       - "${AI_SERVER_PORT:-5000}:5000"
@@ -40,7 +40,7 @@ services:
     restart: always
 
   rpa-server:
-    image: ${RPA_SERVER_IMAGE:-ghcr.io/minho60/dduk-rpa-server:kmh}
+    image: ${RPA_SERVER_IMAGE:-ghcr.io/minho60/dduk-rpa-server:develop}
     container_name: dduk-rpa-server
     ports:
       - "${RPA_SERVER_PORT:-5050}:5050"
