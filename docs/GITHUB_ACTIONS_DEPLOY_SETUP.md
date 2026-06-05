@@ -1,5 +1,16 @@
 # GitHub Actions Deploy Setup
 
+> [!IMPORTANT]
+> **📢 개인 저장소(Fork) 배포 실습 시 필수 직접 수정 사항**
+> 팀원이 개인 저장소로 Fork하여 배포 실습을 진행할 때, **다음 3가지 항목은 본인의 환경에 맞추어 반드시 직접 수정**해야 정상적으로 배포에 성공합니다:
+> 
+> 1. **Git Clone 주소 변경 (4번 항목 참고)**
+>    - `git clone https://github.com/<본인-깃허브-계정>/dduk.git` ➡️ 본인의 깃허브 계정명 주소로 변경하여 EC2에 클론해야 합니다.
+> 2. **GitHub Secrets 7종 직접 등록 (2번 항목 참고)**
+>    - 본인 EC2 인스턴스의 IP(`EC2_HOST`), 본인 SSH 개인키 pem(`EC2_SSH_KEY`), 본인의 사용자명(`GHCR_USERNAME`) 등을 본인의 Fork된 저장소 Secrets에 직접 등록해야 합니다. (Secrets 복사 시 공백/개행 주의!)
+> 3. **워크플로우 트리거 브랜치명 수정 (7번 항목 참고)**
+>    - `.github/workflows/deploy-kmh.yml` 파일 내부의 `on.push.branches` 부분을 본인의 작업/실습 브랜치명(예: `wooree`)으로 반드시 직접 수정하고 push해야 GitHub Actions 배포가 작동합니다.
+
 이 문서는 `develop` 브랜치 push 시 GitHub Actions가 Docker 이미지를 빌드해서 GHCR에 올리고, EC2는 그 이미지를 `pull`만 해서 배포하는 흐름을 설명한다.
 
 대상 브랜치:
