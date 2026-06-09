@@ -255,7 +255,7 @@ public class WarehouseTransferService {
 
     @Transactional(readOnly = true)
     public List<WarehouseTransferResponseDto> getAllTransfers(TransferStatus status, Long sourceWhId, Long targetWhId) {
-        List<WarehouseTransfer> transfers = warehouseTransferRepository.findAll();
+        List<WarehouseTransfer> transfers = warehouseTransferRepository.findAllReadableTransfers();
 
         if (status != null) {
             transfers = transfers.stream().filter(t -> t.getStatus() == status).collect(Collectors.toList());

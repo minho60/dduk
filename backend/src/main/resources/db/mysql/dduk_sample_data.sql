@@ -452,6 +452,14 @@ ON DUPLICATE KEY UPDATE
     approved_by_id = VALUES(approved_by_id),
     updated_at = NOW();
 
+-- Keep fixed demo transfer items idempotent when SQL init is rerun.
+DELETE FROM warehouse_transfer_items
+WHERE transfer_id IN (
+    SELECT id
+    FROM warehouse_transfers
+    WHERE transfer_no IN ('TR-DEMO-001', 'TR-DEMO-002', 'TR-DEMO-003')
+);
+
 INSERT INTO warehouse_transfer_items (
     transfer_id,
     item_id,

@@ -145,7 +145,7 @@
     async function initDashboardData() {
         try {
             // 1. KPI 카드 연동 (Admin Dashboard API)
-            const response = await fetch(`${API_BASE}/admin/dashboard`, {
+            const response = await fetch(`${API_BASE}/dashboard`, {
                 headers: {
                     'Authorization': `Bearer ${localStorage.getItem('token') || ''}`
                 }
@@ -504,7 +504,7 @@
         setStatusBanner('대시보드 데이터를 불러오는 중이야.', 'info');
 
         try {
-            const resData = await requestJson(`${API_BASE}/admin/dashboard`);
+            const resData = await requestJson(`${API_BASE}/dashboard`);
 
             if (resData.status === 'success' && resData.data) {
                 updateKPICards(resData.data);

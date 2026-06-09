@@ -346,4 +346,47 @@ public class WarehouseTransferServiceTest {
             warehouseTransferService.approveTransfer(pending.getId(), testMember.getId())
         );
     }
+
+    @Test
+    @DisplayName("Warehouse transfer list ignores stale rows that reference missing warehouses.")
+    void getAllTransfers_skipsRowsWithMissingWarehouseReferences() {
+        WarehouseTransferRequestDto request = WarehouseTransferRequestDto.builder()
+                .sourceWarehouseId(whSource.getId())
+                .targetWarehouseId(whTarget.getId())
+                .remarks("valid transfer for stale-row regression")
+                .items(Collections.singletonList(WarehouseTransferItemDto.builder()
+                        .itemId(testItem.getId())
+                        .quantity(5)
+                        .build()))
+                .build();
+        WarehouseTransferResponseDto valid = warehouseTransferService.requestTransfer(request, testMember.getId());
+
+        try {
+            jdbcTemplate.execute("SET REFERENTIAL_INTEGRITY FALSE");
+            jdbcTemplate.update("""
+                    INSERT INTO warehouse_transfers (
+                        transfer_no,
+                        source_warehouse_id,
+                        target_warehouse_id,
+                        status,
+                        requested_by_id,
+                        created_at,
+                        updated_at
+                    )
+                    VALUES (?, ?, ?, ?, ?, CURRENT_TIMESTAMP, CURRENT_TIMESTAMP)
+                    """,
+                    "TRF-ORPHAN-WH-001",
+                    whSource.getId(),
+                    999999L,
+                    TransferStatus.PENDING.name(),
+                    testMember.getId());
+        } finally {
+            jdbcTemplate.execute("SET REFERENTIAL_INTEGRITY TRUE");
+        }
+
+        List<WarehouseTransferResponseDto> transfers = warehouseTransferService.getAllTransfers(null, null, null);
+
+        assertTrue(transfers.stream().anyMatch(t -> t.getId().equals(valid.getId())));
+        assertFalse(transfers.stream().anyMatch(t -> "TRF-ORPHAN-WH-001".equals(t.getTransferNo())));
+    }
 }
