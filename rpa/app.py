@@ -1,11 +1,12 @@
-import os
-import sys
-import subprocess
 import logging
+import os
+import subprocess
+import sys
 import threading
+
 import requests
-from flask import Flask, request, jsonify
 from dotenv import load_dotenv
+from flask import Flask, jsonify, request
 
 dotenv_path = os.path.join(os.path.dirname(__file__), "..", ".env")
 load_dotenv(dotenv_path)
@@ -14,7 +15,11 @@ logging.basicConfig(level=logging.INFO)
 logger = logging.getLogger(__name__)
 
 MAX_CONCURRENT_TASKS = 3
+PURCHASE_ACTION = "collect_purchase_orders"
+
 task_semaphore = threading.Semaphore(MAX_CONCURRENT_TASKS)
+purchase_task_lock = threading.Lock()
+active_purchase_tasks = set()
 
 ACTION_SCRIPT_MAP = {
     "collect_purchase_orders": os.path.join(os.path.dirname(__file__), "tasks", "purchase_order_task.py"),
@@ -42,7 +47,7 @@ def send_failure_callback(task_id: str, task_type: str, action_name: str, error_
 
     headers = {
         "Content-Type": "application/json",
-        "X-RPA-Token": RPA_CALLBACK_TOKEN
+        "X-RPA-Token": RPA_CALLBACK_TOKEN,
     }
     payload = {
         "taskId": task_id,
@@ -51,14 +56,34 @@ def send_failure_callback(task_id: str, task_type: str, action_name: str, error_
         "status": "failed",
         "error": {
             "code": "RPA_EXECUTION_TIMEOUT",
-            "message": error_message
-        }
+            "message": error_message,
+        },
     }
     try:
         response = requests.post(BACKEND_CALLBACK_URL, json=payload, headers=headers, timeout=5)
         logger.info("[RPA Callback] Sent failure callback for task %s. Response Code: %s", task_id, response.status_code)
     except Exception as exc:
         logger.error("[RPA Callback] Failed to send failure callback for task %s: %s", task_id, str(exc))
+
+
+def mark_purchase_task_started(task_id: str):
+    with purchase_task_lock:
+        active_purchase_tasks.add(task_id)
+
+
+def mark_purchase_task_finished(task_id: str):
+    with purchase_task_lock:
+        active_purchase_tasks.discard(task_id)
+
+
+def has_active_purchase_task() -> bool:
+    with purchase_task_lock:
+        return bool(active_purchase_tasks)
+
+
+def current_active_purchase_task() -> str | None:
+    with purchase_task_lock:
+        return next(iter(active_purchase_tasks), None)
 
 
 def run_task_with_timeout(task_id: str, task_type: str, action_name: str, python_executable: str, task_script: str, creation_flags: int):
@@ -68,7 +93,7 @@ def run_task_with_timeout(task_id: str, task_type: str, action_name: str, python
             [python_executable, task_script, task_id, task_type, action_name],
             stdout=subprocess.DEVNULL,
             stderr=subprocess.DEVNULL,
-            creationflags=creation_flags
+            creationflags=creation_flags,
         )
 
         try:
@@ -79,12 +104,13 @@ def run_task_with_timeout(task_id: str, task_type: str, action_name: str, python
             proc.kill()
             proc.wait()
             logger.info("[RPA Monitor Thread] Task %s process force killed successfully.", task_id)
-            send_failure_callback(task_id, task_type, action_name, "RPA 테스트가 제한시간(120초)을 초과해서 강제 종료됐어.")
-
+            send_failure_callback(task_id, task_type, action_name, "RPA 작업이 제한시간(120초)을 초과해서 강제 종료됐어.")
     except Exception as exc:
         logger.error("[RPA Monitor Thread] Exception during process lifecycle management for task %s: %s", task_id, str(exc))
         send_failure_callback(task_id, task_type, action_name, f"RPA 모니터링 내부 에러: {str(exc)}")
     finally:
+        if action_name == PURCHASE_ACTION:
+            mark_purchase_task_finished(task_id)
         task_semaphore.release()
         logger.info("[RPA Monitor Thread] Semaphore released.")
 
@@ -94,48 +120,58 @@ def create_app():
 
     @app.route("/api/v1/rpa/trigger", methods=["POST"])
     def trigger_rpa():
+        data = request.get_json() or {}
+        task_id = data.get("taskId")
+        task_type = data.get("taskType") or "PURCHASE_PRICE"
+        action = data.get("action")
+
+        if not task_id or not action:
+            return jsonify({
+                "status": "error",
+                "message": "요청에 taskId 또는 action이 비어 있어.",
+                "code": "INVALID_TRIGGER_PARAMETER",
+            }), 400
+
+        task_script = ACTION_SCRIPT_MAP.get(action)
+        if not task_script:
+            logger.warning("[RPA Trigger Server] Unsupported action received. Task ID: %s, Task Type: %s, Action: %s", task_id, task_type, action)
+            return jsonify({
+                "status": "error",
+                "message": "지원하지 않는 RPA action이야.",
+                "code": "UNSUPPORTED_RPA_ACTION",
+            }), 400
+
+        if action == PURCHASE_ACTION and has_active_purchase_task():
+            running_task_id = current_active_purchase_task() or "unknown"
+            logger.warning("[RPA Trigger Server] Rejecting overlapping purchase crawl. Existing task: %s", running_task_id)
+            return jsonify({
+                "status": "error",
+                "message": f"이미 구매 단가 수집 작업({running_task_id})이 진행 중이야. 완료 후 다시 요청해줘.",
+                "code": "PURCHASE_PRICE_ALREADY_RUNNING",
+            }), 409
+
         acquired = task_semaphore.acquire(blocking=False)
         if not acquired:
             logger.warning("[RPA Trigger Server] Rejecting request: Max concurrent limit reached.")
             return jsonify({
                 "status": "error",
-                "message": "현재 동시 실행 가능한 RPA 작업 최대치 3개를 초과했어. 잠시 후 다시 시도해.",
-                "code": "RPA_LIMIT_EXCEEDED"
+                "message": "현재 동시에 실행 가능한 RPA 작업 수를 초과했어. 잠시 후 다시 시도해줘.",
+                "code": "RPA_LIMIT_EXCEEDED",
             }), 429
 
         try:
-            data = request.get_json() or {}
-            task_id = data.get("taskId")
-            task_type = data.get("taskType") or "PURCHASE_PRICE"
-            action = data.get("action")
-
-            if not task_id or not action:
-                task_semaphore.release()
-                return jsonify({
-                    "status": "error",
-                    "message": "요청에 taskId 또는 action이 비어 있어.",
-                    "code": "INVALID_TRIGGER_PARAMETER"
-                }), 400
-
-            task_script = ACTION_SCRIPT_MAP.get(action)
-            if not task_script:
-                task_semaphore.release()
-                logger.warning("[RPA Trigger Server] Unsupported action received. Task ID: %s, Task Type: %s, Action: %s", task_id, task_type, action)
-                return jsonify({
-                    "status": "error",
-                    "message": "지원하지 않는 RPA action이야.",
-                    "code": "UNSUPPORTED_RPA_ACTION"
-                }), 400
-
             python_executable = sys.executable
             creation_flags = subprocess.CREATE_NO_WINDOW if sys.platform == "win32" else 0
+
+            if action == PURCHASE_ACTION:
+                mark_purchase_task_started(task_id)
 
             logger.info("[RPA Trigger Server] Accepted trigger request. Task ID: %s, Task Type: %s, Action: %s", task_id, task_type, action)
 
             monitor_thread = threading.Thread(
                 target=run_task_with_timeout,
                 args=(task_id, task_type, action, python_executable, task_script, creation_flags),
-                daemon=True
+                daemon=True,
             )
             monitor_thread.start()
 
@@ -144,16 +180,17 @@ def create_app():
                 "taskId": task_id,
                 "taskType": task_type,
                 "actionName": action,
-                "message": "RPA 태스크를 백그라운드에서 실행 시작했어."
+                "message": "RPA 작업을 백그라운드에서 시작했어.",
             }), 202
-
         except Exception as exc:
+            if action == PURCHASE_ACTION:
+                mark_purchase_task_finished(task_id)
             task_semaphore.release()
             logger.error("[RPA Trigger Server] Unexpected error while staging task: %s", str(exc))
             return jsonify({
                 "status": "error",
-                "message": "RPA 태스크 기동 직전 서버 내부 에러가 발생했어.",
-                "code": "INTERNAL_SERVER_ERROR"
+                "message": "RPA 작업을 시작하기 직전에 서버 오류가 발생했어.",
+                "code": "INTERNAL_SERVER_ERROR",
             }), 500
 
     @app.route("/login", methods=["GET", "POST"])
@@ -186,7 +223,7 @@ def create_app():
                         </tr>
                         <tr>
                             <td>PO-2026-0002</td>
-                            <td>아망티 드립백 세트</td>
+                            <td>아망티 스틱밤 세트</td>
                             <td>300</td>
                             <td>9,900원</td>
                             <td>10ea / box</td>
@@ -237,7 +274,7 @@ def create_app():
                         <td>긴급 발주 검토</td>
                     </tr>
                     <tr>
-                        <td>아망티 드립백 세트</td>
+                        <td>아망티 스틱밤 세트</td>
                         <td>아망티</td>
                         <td>출고 지연</td>
                         <td>2026-06-05</td>

@@ -14,6 +14,7 @@ import org.springframework.web.server.ResponseStatusException;
 
 import java.time.LocalDateTime;
 import java.util.EnumSet;
+import java.util.Optional;
 
 import org.springframework.data.domain.Page;
 import org.springframework.data.domain.Pageable;
@@ -97,6 +98,15 @@ public class TaskHistoryService {
     }
 
     @Transactional(readOnly = true)
+    public long countActiveTasksByScope(TaskHistoryType taskType, String actionName) {
+        return taskHistoryRepository.countByTaskTypeAndActionNameAndStatusIn(
+                taskType,
+                resolveActionName(actionName),
+                EnumSet.of(TaskHistoryStatus.REQUESTED, TaskHistoryStatus.RUNNING)
+        );
+    }
+
+    @Transactional(readOnly = true)
     public long countRecentFailures(LocalDateTime threshold) {
         return taskHistoryRepository.countByStatusAndCompletedAtAfter(TaskHistoryStatus.FAILED, threshold);
     }
@@ -163,6 +173,14 @@ public class TaskHistoryService {
     @Transactional(readOnly = true)
     public TaskHistory getTaskHistoryDetail(String taskId) {
         return taskHistoryRepository.findByTaskId(taskId).orElse(null);
+    }
+
+    @Transactional(readOnly = true)
+    public Optional<TaskHistory> getLatestTask(TaskHistoryType taskType, String actionName) {
+        return taskHistoryRepository.findFirstByTaskTypeAndActionNameOrderByRequestedAtDescIdDesc(
+                taskType,
+                resolveActionName(actionName)
+        );
     }
 
     private TaskHistoryType normalizeTaskType(String taskType) {

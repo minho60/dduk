@@ -1,21 +1,27 @@
 package com.dduk.service.admin.rpa;
 
+import com.dduk.entity.admin.TaskHistory;
+import com.dduk.entity.admin.TaskHistoryType;
 import com.dduk.service.admin.taskhistory.TaskHistoryService;
+import com.dduk.service.inventory.InventoryAgingAnalysisService;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.boot.web.client.RestTemplateBuilder;
 import org.springframework.http.HttpEntity;
 import org.springframework.http.HttpHeaders;
+import org.springframework.http.HttpMethod;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.MediaType;
 import org.springframework.http.ResponseEntity;
 import org.springframework.stereotype.Service;
+import org.springframework.web.client.HttpStatusCodeException;
 import org.springframework.web.client.ResourceAccessException;
 import org.springframework.web.client.RestTemplate;
 
 import java.time.Duration;
 import java.util.HashMap;
 import java.util.Map;
+import java.util.Optional;
 import java.util.UUID;
 
 @Slf4j
@@ -32,12 +38,16 @@ public class RpaClientService {
 
     private final RestTemplate restTemplate;
     private final TaskHistoryService taskHistoryService;
-    private final com.dduk.service.inventory.InventoryAgingAnalysisService inventoryAgingAnalysisService;
+    private final InventoryAgingAnalysisService inventoryAgingAnalysisService;
 
     @Value("${rpa-server.url:http://localhost:5050}")
     private String rpaServerUrl;
 
-    public RpaClientService(RestTemplateBuilder restTemplateBuilder, TaskHistoryService taskHistoryService, com.dduk.service.inventory.InventoryAgingAnalysisService inventoryAgingAnalysisService) {
+    public RpaClientService(
+            RestTemplateBuilder restTemplateBuilder,
+            TaskHistoryService taskHistoryService,
+            InventoryAgingAnalysisService inventoryAgingAnalysisService
+    ) {
         this.restTemplate = restTemplateBuilder
                 .setConnectTimeout(Duration.ofSeconds(2))
                 .setReadTimeout(Duration.ofSeconds(3))
@@ -50,6 +60,15 @@ public class RpaClientService {
     public Map<String, Object> triggerRpaTask(String taskType) {
         String normalizedTaskType = normalizeTaskType(taskType);
         String actionName = resolveActionName(normalizedTaskType);
+
+        if (TASK_TYPE_PURCHASE_PRICE.equals(normalizedTaskType)) {
+            long activeTaskCount = taskHistoryService.countActiveTasksByScope(TaskHistoryType.RPA, actionName);
+            if (activeTaskCount > 0) {
+                Optional<TaskHistory> latestTask = taskHistoryService.getLatestTask(TaskHistoryType.RPA, actionName);
+                throw new IllegalStateException(buildDuplicatePurchaseRequestMessage(latestTask.orElse(null), activeTaskCount));
+            }
+        }
+
         String taskId = "rpa-task-" + UUID.randomUUID().toString().substring(0, 8);
         String endpoint = rpaServerUrl + "/api/v1/rpa/trigger";
         log.info("[RPA Client] Triggering async RPA task: {} ({}) to endpoint: {}", taskId, normalizedTaskType, endpoint);
@@ -68,28 +87,18 @@ public class RpaClientService {
             taskHistoryService.markRpaTaskAccepted(taskId);
             inventoryAgingAnalysisService.runAsync(taskId, normalizedTaskType, actionName);
             log.info("[RPA Client] Internal Inventory Aging analysis triggered. Task ID: {}, action: {}", taskId, actionName);
-            return Map.of(
-                    "taskId", taskId,
-                    "taskType", normalizedTaskType,
-                    "actionName", actionName,
-                    "accepted", true
-            );
+            return buildAcceptedResponse(taskId, normalizedTaskType, actionName, 1);
         }
 
         HttpEntity<Map<String, Object>> requestEntity = new HttpEntity<>(requestBody, headers);
 
         try {
-            ResponseEntity<Map> responseEntity = restTemplate.postForEntity(endpoint, requestEntity, Map.class);
+            ResponseEntity<Map> responseEntity = restTemplate.exchange(endpoint, HttpMethod.POST, requestEntity, Map.class);
 
             if (responseEntity.getStatusCode() == HttpStatus.ACCEPTED || responseEntity.getStatusCode() == HttpStatus.OK) {
                 taskHistoryService.markRpaTaskAccepted(taskId);
                 log.info("[RPA Client] RPA trigger accepted. Task ID: {}, action: {}", taskId, actionName);
-                return Map.of(
-                        "taskId", taskId,
-                        "taskType", normalizedTaskType,
-                        "actionName", actionName,
-                        "accepted", true
-                );
+                return buildAcceptedResponse(taskId, normalizedTaskType, actionName, 1);
             }
 
             taskHistoryService.markRpaTriggerFailure(
@@ -99,11 +108,26 @@ public class RpaClientService {
                     responseEntity.getBody()
             );
             log.warn("[RPA Client] Unexpected trigger response for task {}: {}", taskId, responseEntity.getStatusCode());
-            return Map.of(
-                    "taskId", taskId,
-                    "taskType", normalizedTaskType,
-                    "actionName", actionName,
-                    "accepted", false
+            throw new RuntimeException("RPA 수집 요청을 접수하지 못했어. 잠시 후 다시 시도해줘.");
+        } catch (HttpStatusCodeException exception) {
+            Map<String, Object> responseBody = parseErrorBody(exception.getResponseBodyAsString());
+            String upstreamMessage = responseBody.get("message") == null ? null : String.valueOf(responseBody.get("message"));
+            taskHistoryService.markRpaTriggerFailure(
+                    taskId,
+                    actionName,
+                    upstreamMessage == null ? "RPA trigger failed" : upstreamMessage,
+                    Map.of(
+                            "endpoint", endpoint,
+                            "status", exception.getStatusCode().value(),
+                            "body", responseBody
+                    )
+            );
+            log.warn("[RPA Client] Trigger rejected for task {} with status {}: {}", taskId, exception.getStatusCode(), upstreamMessage);
+            throw new IllegalStateException(
+                    upstreamMessage == null || upstreamMessage.isBlank()
+                            ? "RPA 수집 요청을 지금은 받을 수 없어. 잠시 후 다시 시도해줘."
+                            : upstreamMessage,
+                    exception
             );
         } catch (ResourceAccessException exception) {
             taskHistoryService.markRpaTriggerFailure(
@@ -114,6 +138,8 @@ public class RpaClientService {
             );
             log.error("[RPA Client] Connection timeout calling RPA server trigger: {}", exception.getMessage());
             throw new RuntimeException("RPA 서비스 연결이 지연되고 있어. 관리자에게 문의해.", exception);
+        } catch (IllegalStateException exception) {
+            throw exception;
         } catch (Exception exception) {
             taskHistoryService.markRpaTriggerFailure(
                     taskId,
@@ -123,6 +149,45 @@ public class RpaClientService {
             );
             log.error("[RPA Client] Failed to trigger RPA task", exception);
             throw new RuntimeException("RPA 연동 기동에 실패했어.", exception);
+        }
+    }
+
+    private Map<String, Object> buildAcceptedResponse(String taskId, String taskType, String actionName, long activeTaskCount) {
+        return Map.of(
+                "taskId", taskId,
+                "taskType", taskType,
+                "actionName", actionName,
+                "accepted", true,
+                "collectionMode", TASK_TYPE_PURCHASE_PRICE.equals(taskType) ? "QUEUED_SNAPSHOT" : "ASYNC_TASK",
+                "activeTaskCount", activeTaskCount,
+                "message", TASK_TYPE_PURCHASE_PRICE.equals(taskType)
+                        ? "아망티 가격 수집 요청이 접수됐어. 완료되면 최근 저장 결과가 갱신돼."
+                        : "RPA 작업 요청이 접수됐어."
+        );
+    }
+
+    private String buildDuplicatePurchaseRequestMessage(TaskHistory latestTask, long activeTaskCount) {
+        if (latestTask == null) {
+            return "이미 구매 단가 수집 작업이 진행 중이야. 완료 후 다시 요청해줘.";
+        }
+
+        String requestedAt = latestTask.getRequestedAt() == null ? "방금" : latestTask.getRequestedAt().toString();
+        return String.format(
+                "이미 구매 단가 수집 작업이 진행 중이야. 최근 요청(%s, %s) 완료 후 다시 요청해줘. 현재 진행 중인 작업 수: %d",
+                latestTask.getTaskId(),
+                requestedAt,
+                activeTaskCount
+        );
+    }
+
+    private Map<String, Object> parseErrorBody(String body) {
+        if (body == null || body.isBlank()) {
+            return Map.of();
+        }
+        try {
+            return new HashMap<>(new com.fasterxml.jackson.databind.ObjectMapper().readValue(body, Map.class));
+        } catch (Exception exception) {
+            return Map.of("raw", body);
         }
     }
 

@@ -30,6 +30,9 @@ public class AdminRpaController {
         } catch (IllegalArgumentException exception) {
             return ResponseEntity.status(HttpStatus.BAD_REQUEST)
                     .body(ApiResponse.error(exception.getMessage(), "INVALID_RPA_TASK_TYPE"));
+        } catch (IllegalStateException exception) {
+            return ResponseEntity.status(HttpStatus.CONFLICT)
+                    .body(ApiResponse.error(exception.getMessage(), "RPA_TASK_ALREADY_ACTIVE"));
         }
     }
 }

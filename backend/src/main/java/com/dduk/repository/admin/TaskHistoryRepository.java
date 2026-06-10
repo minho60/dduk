@@ -31,6 +31,17 @@ public interface TaskHistoryRepository extends JpaRepository<TaskHistory, Long> 
             TaskHistoryStatus status
     );
 
+    Optional<TaskHistory> findFirstByTaskTypeAndActionNameOrderByRequestedAtDescIdDesc(
+            TaskHistoryType taskType,
+            String actionName
+    );
+
+    long countByTaskTypeAndActionNameAndStatusIn(
+            TaskHistoryType taskType,
+            String actionName,
+            Collection<TaskHistoryStatus> statuses
+    );
+
     @Query("""
             SELECT t
             FROM TaskHistory t
