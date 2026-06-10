@@ -1,8 +1,14 @@
 import logging
 import os
+import platform
 import subprocess
 import sys
 import threading
+
+try:
+    import resource
+except ImportError:  # pragma: no cover - Windows local check
+    resource = None
 
 import requests
 from dotenv import load_dotenv
@@ -14,7 +20,9 @@ load_dotenv(dotenv_path)
 logging.basicConfig(level=logging.INFO)
 logger = logging.getLogger(__name__)
 
-MAX_CONCURRENT_TASKS = 3
+MAX_CONCURRENT_TASKS = max(1, int(os.getenv("RPA_MAX_CONCURRENT_TASKS", "1")))
+TASK_TIMEOUT_SECONDS = max(30, int(os.getenv("RPA_TASK_TIMEOUT_SECONDS", "90")))
+TASK_MEMORY_MB = max(256, int(os.getenv("RPA_TASK_MEMORY_MB", "640")))
 PURCHASE_ACTION = "collect_purchase_orders"
 
 task_semaphore = threading.Semaphore(MAX_CONCURRENT_TASKS)
@@ -42,7 +50,7 @@ RPA_CALLBACK_TOKEN = os.getenv("RPA_CALLBACK_TOKEN")
 
 def send_failure_callback(task_id: str, task_type: str, action_name: str, error_message: str):
     if not RPA_CALLBACK_TOKEN:
-        logger.error("[RPA Callback] RPA_CALLBACK_TOKEN is missing in environment variables. Webhook skipped.")
+        logger.error("[RPA Callback] RPA_CALLBACK_TOKEN is missing. Webhook skipped.")
         return
 
     headers = {
@@ -86,7 +94,26 @@ def current_active_purchase_task() -> str | None:
         return next(iter(active_purchase_tasks), None)
 
 
-def run_task_with_timeout(task_id: str, task_type: str, action_name: str, python_executable: str, task_script: str, creation_flags: int):
+def build_linux_resource_limiter():
+    if platform.system().lower() != "linux" or resource is None:
+        return None
+
+    memory_bytes = TASK_MEMORY_MB * 1024 * 1024
+
+    def limit_resources():
+        resource.setrlimit(resource.RLIMIT_AS, (memory_bytes, memory_bytes))
+
+    return limit_resources
+
+
+def run_task_with_timeout(
+    task_id: str,
+    task_type: str,
+    action_name: str,
+    python_executable: str,
+    task_script: str,
+    creation_flags: int,
+):
     try:
         logger.info("[RPA Monitor Thread] Spawning subprocess for task: %s (%s / %s)", task_id, task_type, action_name)
         proc = subprocess.Popen(
@@ -94,17 +121,26 @@ def run_task_with_timeout(task_id: str, task_type: str, action_name: str, python
             stdout=subprocess.DEVNULL,
             stderr=subprocess.DEVNULL,
             creationflags=creation_flags,
+            preexec_fn=build_linux_resource_limiter(),
         )
 
         try:
-            proc.wait(timeout=120)
+            proc.wait(timeout=TASK_TIMEOUT_SECONDS)
             logger.info("[RPA Monitor Thread] Task %s process terminated naturally.", task_id)
         except subprocess.TimeoutExpired:
-            logger.error("[RPA Monitor Thread] Task %s exceeded 120 seconds limit. Force killing process.", task_id)
+            logger.error(
+                "[RPA Monitor Thread] Task %s exceeded %s seconds limit. Force killing process.",
+                task_id,
+                TASK_TIMEOUT_SECONDS,
+            )
             proc.kill()
             proc.wait()
-            logger.info("[RPA Monitor Thread] Task %s process force killed successfully.", task_id)
-            send_failure_callback(task_id, task_type, action_name, "RPA 작업이 제한시간(120초)을 초과해서 강제 종료됐어.")
+            send_failure_callback(
+                task_id,
+                task_type,
+                action_name,
+                f"RPA 작업이 제한시간({TASK_TIMEOUT_SECONDS}초)을 초과해서 강제 종료됐어.",
+            )
     except Exception as exc:
         logger.error("[RPA Monitor Thread] Exception during process lifecycle management for task %s: %s", task_id, str(exc))
         send_failure_callback(task_id, task_type, action_name, f"RPA 모니터링 내부 에러: {str(exc)}")
@@ -128,7 +164,7 @@ def create_app():
         if not task_id or not action:
             return jsonify({
                 "status": "error",
-                "message": "요청에 taskId 또는 action이 비어 있어.",
+                "message": "taskId 또는 action 이 비어 있어.",
                 "code": "INVALID_TRIGGER_PARAMETER",
             }), 400
 
@@ -137,7 +173,7 @@ def create_app():
             logger.warning("[RPA Trigger Server] Unsupported action received. Task ID: %s, Task Type: %s, Action: %s", task_id, task_type, action)
             return jsonify({
                 "status": "error",
-                "message": "지원하지 않는 RPA action이야.",
+                "message": "지원하지 않는 RPA action 이야.",
                 "code": "UNSUPPORTED_RPA_ACTION",
             }), 400
 
@@ -150,12 +186,11 @@ def create_app():
                 "code": "PURCHASE_PRICE_ALREADY_RUNNING",
             }), 409
 
-        acquired = task_semaphore.acquire(blocking=False)
-        if not acquired:
+        if not task_semaphore.acquire(blocking=False):
             logger.warning("[RPA Trigger Server] Rejecting request: Max concurrent limit reached.")
             return jsonify({
                 "status": "error",
-                "message": "현재 동시에 실행 가능한 RPA 작업 수를 초과했어. 잠시 후 다시 시도해줘.",
+                "message": "현재 동시에 실행 가능한 RPA 작업 수를 넘었어. 잠시 뒤 다시 시도해줘.",
                 "code": "RPA_LIMIT_EXCEEDED",
             }), 429
 
@@ -165,8 +200,6 @@ def create_app():
 
             if action == PURCHASE_ACTION:
                 mark_purchase_task_started(task_id)
-
-            logger.info("[RPA Trigger Server] Accepted trigger request. Task ID: %s, Task Type: %s, Action: %s", task_id, task_type, action)
 
             monitor_thread = threading.Thread(
                 target=run_task_with_timeout,
@@ -180,7 +213,7 @@ def create_app():
                 "taskId": task_id,
                 "taskType": task_type,
                 "actionName": action,
-                "message": "RPA 작업을 백그라운드에서 시작했어.",
+                "message": "RPA 작업을 저사양 안전모드로 시작했어.",
             }), 202
         except Exception as exc:
             if action == PURCHASE_ACTION:
@@ -189,7 +222,7 @@ def create_app():
             logger.error("[RPA Trigger Server] Unexpected error while staging task: %s", str(exc))
             return jsonify({
                 "status": "error",
-                "message": "RPA 작업을 시작하기 직전에 서버 오류가 발생했어.",
+                "message": "RPA 작업 시작 직전에 서버 오류가 발생했어.",
                 "code": "INTERNAL_SERVER_ERROR",
             }), 500
 
@@ -215,19 +248,19 @@ def create_app():
                     <tbody>
                         <tr>
                             <td>PO-2026-0001</td>
-                            <td>아망티 시그니처 원두</td>
+                            <td>Sample Almond Powder</td>
                             <td>150</td>
-                            <td>18,500원</td>
+                            <td>18,500</td>
                             <td>1kg / bag</td>
-                            <td>아망티</td>
+                            <td>Amantea</td>
                         </tr>
                         <tr>
                             <td>PO-2026-0002</td>
-                            <td>아망티 스틱밤 세트</td>
+                            <td>Sample Stick Butter</td>
                             <td>300</td>
-                            <td>9,900원</td>
+                            <td>9,900</td>
                             <td>10ea / box</td>
-                            <td>아망티</td>
+                            <td>Amantea</td>
                         </tr>
                     </tbody>
                 </table>
@@ -267,18 +300,11 @@ def create_app():
                 </thead>
                 <tbody>
                     <tr>
-                        <td>아망티 시그니처 원두</td>
-                        <td>아망티</td>
-                        <td>공급 부족</td>
+                        <td>Sample Almond Powder</td>
+                        <td>Amantea</td>
+                        <td>Low Stock</td>
                         <td>2026-06-03</td>
-                        <td>긴급 발주 검토</td>
-                    </tr>
-                    <tr>
-                        <td>아망티 스틱밤 세트</td>
-                        <td>아망티</td>
-                        <td>출고 지연</td>
-                        <td>2026-06-05</td>
-                        <td>대체 공급처 확인</td>
+                        <td>Check urgent purchase order</td>
                     </tr>
                 </tbody>
             </table>
@@ -305,11 +331,11 @@ def create_app():
                 </thead>
                 <tbody>
                     <tr>
-                        <td>고용노동부 기준</td>
+                        <td>MOEL Notice</td>
                         <td>2026-01-01</td>
-                        <td>10,300원</td>
-                        <td>2,152,700원</td>
-                        <td>주 40시간 기준 월 환산 최저임금</td>
+                        <td>10,300</td>
+                        <td>2,152,700</td>
+                        <td>40 hours per week base</td>
                     </tr>
                 </tbody>
             </table>
