@@ -5,54 +5,46 @@ from playwright.sync_api import sync_playwright
 
 
 class PlaywrightEngine:
-    _instance = None
-    _lock = threading.Lock()
-
-    def __new__(cls, *args, **kwargs):
-        with cls._lock:
-            if cls._instance is None:
-                cls._instance = super().__new__(cls)
-                cls._instance._initialized = False
-            return cls._instance
-
     def __init__(self):
-        if self._initialized:
-            return
-
         self.browser_type = os.getenv("RPA_BROWSER", "chromium")
         self.headless = os.getenv("RPA_HEADLESS", "true").lower() == "true"
         self.timeout = int(os.getenv("PLAYWRIGHT_TIMEOUT_MS", "30000"))
+        self._lock = threading.RLock()
+        self._playwright_manager = None
         self.playwright = None
         self.browser = None
-        self._initialized = True
 
     def start(self):
-        if self.playwright:
-            return
+        with self._lock:
+            if self.browser is not None and self.playwright is not None:
+                return
 
-        self.playwright = sync_playwright().start()
-        if self.browser_type == "firefox":
-            launch_fn = self.playwright.firefox.launch
-        elif self.browser_type == "webkit":
-            launch_fn = self.playwright.webkit.launch
-        else:
-            launch_fn = self.playwright.chromium.launch
+            self.shutdown()
+            self._playwright_manager = sync_playwright()
+            self.playwright = self._playwright_manager.start()
 
-        launch_args = [
-            "--disable-dev-shm-usage",
-            "--disable-gpu",
-            "--disable-extensions",
-            "--disable-background-networking",
-            "--disable-sync",
-            "--no-first-run",
-            "--no-default-browser-check",
-            "--mute-audio",
-        ]
-        if os.getenv("RPA_BROWSER_NO_SANDBOX", "true").lower() == "true":
-            launch_args.append("--no-sandbox")
+            if self.browser_type == "firefox":
+                launch_fn = self.playwright.firefox.launch
+            elif self.browser_type == "webkit":
+                launch_fn = self.playwright.webkit.launch
+            else:
+                launch_fn = self.playwright.chromium.launch
 
-        self.browser = launch_fn(headless=self.headless, args=launch_args)
-        print(f"[RPA Engine] Browser ({self.browser_type}) started. Headless: {self.headless}")
+            launch_args = [
+                "--disable-dev-shm-usage",
+                "--disable-gpu",
+                "--disable-extensions",
+                "--disable-background-networking",
+                "--disable-sync",
+                "--no-first-run",
+                "--no-default-browser-check",
+                "--mute-audio",
+            ]
+            if os.getenv("RPA_BROWSER_NO_SANDBOX", "true").lower() == "true":
+                launch_args.append("--no-sandbox")
+
+            self.browser = launch_fn(headless=self.headless, args=launch_args)
+            print(f"[RPA Engine] Browser ({self.browser_type}) started. Headless: {self.headless}")
 
     def get_context(self):
         self.start()
@@ -65,10 +57,19 @@ class PlaywrightEngine:
         return context
 
     def shutdown(self):
-        if self.browser:
-            self.browser.close()
-            self.browser = None
-        if self.playwright:
-            self.playwright.stop()
+        with self._lock:
+            if self.browser is not None:
+                try:
+                    self.browser.close()
+                except Exception:
+                    pass
+                self.browser = None
+
+            if self._playwright_manager is not None:
+                try:
+                    self._playwright_manager.stop()
+                except Exception:
+                    pass
+                self._playwright_manager = None
+
             self.playwright = None
-        print("[RPA Engine] Browser shut down successfully.")
